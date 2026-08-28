@@ -1,6 +1,7 @@
 import data from "@/data/artworks.json";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { getImageUrl } from "@/lib/getImageUrl";
 import Link from "next/link";
 import InteractiveCanvas from "./InteractiveCanvas";
 
@@ -21,7 +22,7 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
     notFound();
   }
 
-  const highResUrl = artwork.ut_high || `${process.env.NEXT_PUBLIC_IMAGE_HOST || ''}${artwork.images[0]}`;
+  const highResUrl = artwork.ut_high || getImageUrl(artwork.images[0]);
 
   return (
     <main className="min-h-screen bg-neutral-100 flex flex-col relative overflow-hidden">

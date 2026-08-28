@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { getImageUrl } from "@/lib/getImageUrl";
 import data from "@/data/artworks.json";
 import Image from "next/image";
 import Link from "next/link";
@@ -78,8 +79,7 @@ export default function Gallery() {
                   {artwork.images.length > 0 ? (
                     <Image 
                       src={
-                        artwork.ut_thumb || 
-                        `${process.env.NEXT_PUBLIC_IMAGE_HOST || ''}${artwork.images[0].replace(/(\.[^.]+)$/, '-thumb$1')}`
+                        artwork.ut_thumb || getImageUrl(artwork.images[0], true)
                       }
                       alt={artwork.title}
                       fill
