@@ -62,7 +62,7 @@ export default function Gallery() {
           </motion.p>
         </header>
         
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-32">
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24 md:gap-y-32">
           {artworks.slice(0, visibleCount).map((artwork, i) => (
             <motion.article 
               initial={{ opacity: 0, y: 20 }}
