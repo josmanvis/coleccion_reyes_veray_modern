@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/getImageUrl";
 import ShareButton from "@/components/ShareButton";
+import AcquireButton from "@/components/AcquireButton";
 import Link from "next/link";
 import InteractiveCanvas from "./InteractiveCanvas";
 
@@ -97,9 +98,11 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
 
           {/* Desktop Actions */}
           <div className="hidden md:flex flex-row gap-4">
-            <button className="flex-1 group relative flex items-center justify-center py-5 border border-black bg-black text-white hover:bg-neutral-800 transition-colors duration-500 overflow-hidden">
-              <span className="font-display text-[10px] uppercase tracking-[0.2em] font-bold z-10">Acquire Artwork</span>
-            </button>
+            <AcquireButton 
+              className="flex-1" 
+              artworkTitle={artwork.title} 
+              artworkImage={highResUrl} 
+            />
             <ShareButton title={artwork.title} text={`View ${artwork.title} from Colección Reyes-Veray`} />
             {highResUrl && (
               <a 
@@ -119,9 +122,11 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
       {/* Mobile Fixed Action Bar (Thumb Zone UX) */}
       <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-white via-white/90 to-transparent z-50 pointer-events-none pb-8">
         <div className="flex flex-row gap-3 pointer-events-auto shadow-2xl">
-          <button className="flex-[2] group relative flex items-center justify-center py-5 border border-black bg-black text-white active:bg-neutral-800 transition-colors duration-300">
-            <span className="font-display text-[11px] uppercase tracking-[0.2em] font-bold">Acquire</span>
-          </button>
+          <AcquireButton 
+            className="flex-[2]" 
+            artworkTitle={artwork.title} 
+            artworkImage={highResUrl} 
+          />
           <ShareButton title={artwork.title} text={`View ${artwork.title} from Colección Reyes-Veray`} />
         </div>
       </div>
