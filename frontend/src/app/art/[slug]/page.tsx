@@ -12,6 +12,41 @@ export async function generateStaticParams() {
   }));
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const artwork = data.find((a) => a.url === `/${resolvedParams.slug}/index.html` || a.url === `/${resolvedParams.slug}`);
+
+  if (!artwork) return {};
+
+  const imageUrl = artwork.ut_high || getImageUrl(artwork.images[0]);
+  const title = `${artwork.title} | Colección Reyes-Veray`;
+  const description = "Explore the Colección Reyes-Veray contemporary archive.";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: artwork.title,
+        },
+      ],
+      siteName: "Colección Reyes-Veray",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
+
 export default async function ArtworkDetail({ params }: { params: Promise<{ slug: string }> }) {
   // Await the params since Next.js 15 might require params to be treated as a promise in some contexts,
   // but standard usage in app router allows sync destructuring if used properly, actually Next 15 requires awaiting it if it's dynamic.
