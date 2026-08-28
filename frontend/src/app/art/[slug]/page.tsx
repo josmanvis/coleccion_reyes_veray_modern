@@ -21,7 +21,7 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
     notFound();
   }
 
-  const highResUrl = artwork.images[0];
+  const highResUrl = artwork.ut_high || artwork.images[0];
 
   return (
     <main className="min-h-screen bg-neutral-100 flex flex-col relative overflow-hidden">
