@@ -1,19 +1,17 @@
 export function getImageUrl(localPath: string, isThumb: boolean = false): string {
   const host = process.env.NEXT_PUBLIC_IMAGE_HOST;
-  
-  if (host) {
-    // We are on Vercel connecting to Jetpack CDN
-    if (isThumb) {
-      // Jetpack uses ?resize=w,h rather than -thumb in the filename
-      return `${host}${localPath}?resize=800,800`;
-    }
-    // High res from Jetpack
-    return `${host}${localPath}`;
-  } else {
-    // Local dev: use the generated -thumb.jpg file if requested
-    if (isThumb) {
-      return localPath.replace(/(\.[^.]+)$/, '-thumb$1');
-    }
-    return localPath;
+
+  // Resolve the source path: remote DAM URLs are used as-is, local paths get the host prefix
+  let resolved = localPath;
+  if (host && localPath.startsWith("/")) {
+    resolved = `${host}${localPath}`;
   }
+
+  if (isThumb) {
+    // Jetpack CDN uses ?resize=w,h; append correctly whether the URL already has a query string
+    const sep = resolved.includes("?") ? "&" : "?";
+    return `${resolved}${sep}resize=800,800`;
+  }
+
+  return resolved;
 }

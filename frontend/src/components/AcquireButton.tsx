@@ -3,20 +3,22 @@
 import { useState } from "react";
 import AcquireModal from "./AcquireModal";
 
-export default function AcquireButton({ 
-  artworkTitle, 
+export default function AcquireButton({
+  artworkTitle,
   artworkImage,
+  artworkSlug,
   className = ""
-}: { 
-  artworkTitle: string; 
+}: {
+  artworkTitle: string;
   artworkImage: string;
+  artworkSlug?: string;
   className?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className={`group relative flex items-center justify-center py-5 border border-black bg-black text-white hover:bg-neutral-800 transition-colors duration-500 overflow-hidden ${className}`}
       >
@@ -26,11 +28,12 @@ export default function AcquireButton({
         </span>
       </button>
 
-      <AcquireModal 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)} 
-        artworkTitle={artworkTitle} 
+      <AcquireModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        artworkTitle={artworkTitle}
         artworkImage={artworkImage}
+        artworkSlug={artworkSlug}
       />
     </>
   );
