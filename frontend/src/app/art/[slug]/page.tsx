@@ -110,7 +110,7 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
                 download
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 group relative flex items-center justify-center py-5 border border-black hover:bg-neutral-100 transition-colors duration-500 overflow-hidden"
+                className="flex-1 group relative flex items-center justify-center py-5 border border-black hover:bg-neutral-100 transition-colors duration-500 overflow-hidden text-black"
               >
                 <span className="font-display text-[10px] uppercase tracking-[0.2em] font-bold z-10">Download Hi-Res Archive</span>
               </a>

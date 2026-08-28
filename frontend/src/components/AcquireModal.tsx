@@ -41,7 +41,7 @@ export default function AcquireModal({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[101] shadow-2xl flex flex-col"
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[101] shadow-2xl flex flex-col text-black"
           >
             <div className="p-8 flex justify-between items-center border-b border-black/10">
               <h2 className="font-display text-[10px] uppercase tracking-widest font-bold">Acquisition Request</h2>
