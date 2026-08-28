@@ -77,7 +77,10 @@ export default function Gallery() {
                 >
                   {artwork.images.length > 0 ? (
                     <Image 
-                      src={artwork.ut_thumb || artwork.images[0].replace(/(\.[^.]+)$/, '-thumb$1')}
+                      src={
+                        artwork.ut_thumb || 
+                        `${process.env.NEXT_PUBLIC_IMAGE_HOST || ''}${artwork.images[0].replace(/(\.[^.]+)$/, '-thumb$1')}`
+                      }
                       alt={artwork.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

@@ -44,7 +44,7 @@ export default function Home() {
             <figure className="w-full @4xl:w-[70%] group">
               <div className="aspect-[4/5] bg-neutral-100 relative w-full overflow-hidden">
                 <Image 
-                  src="/wp-content/uploads/2021/01/Ruiz-Aby.-0133-thumb.jpg"
+                  src={`${process.env.NEXT_PUBLIC_IMAGE_HOST || ''}/wp-content/uploads/2021/01/Ruiz-Aby.-0133-thumb.jpg`}
                   alt="La Tempestad"
                   fill
                   className="object-contain p-12 mix-blend-multiply opacity-90 group-hover:scale-[1.03] transition-transform duration-[2s] ease-out"
@@ -77,7 +77,7 @@ export default function Home() {
             <figure className="w-full @4xl:w-[60%] group">
               <div className="aspect-[16/9] bg-neutral-100 relative w-full overflow-hidden">
                 <Image 
-                  src="/wp-content/uploads/2020/09/Arana-Alfonso.-0125d-thumb.jpg"
+                  src={`${process.env.NEXT_PUBLIC_IMAGE_HOST || ''}/wp-content/uploads/2020/09/Arana-Alfonso.-0125d-thumb.jpg`}
                   alt="El Retrato"
                   fill
                   className="object-contain p-12 mix-blend-multiply opacity-90 group-hover:scale-[1.03] transition-transform duration-[2s] ease-out"
