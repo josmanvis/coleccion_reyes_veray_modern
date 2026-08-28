@@ -2,6 +2,7 @@ import data from "@/data/artworks.json";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/getImageUrl";
+import ShareButton from "@/components/ShareButton";
 import Link from "next/link";
 import InteractiveCanvas from "./InteractiveCanvas";
 
@@ -44,13 +45,13 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
            </div>
         </div>
 
-        {/* Bottom Details Panel */}
-        <div className="bg-white/80 backdrop-blur-2xl border border-white/20 p-8 md:p-12 max-w-2xl pointer-events-auto shadow-2xl">
-          <header className="mb-12">
+        {/* Desktop Bottom Details Panel (Mobile padding adjusted for fixed bottom bar) */}
+        <div className="bg-white/80 backdrop-blur-2xl border border-white/20 p-8 md:p-12 max-w-2xl pointer-events-auto shadow-2xl mb-32 md:mb-0">
+          <header className="mb-8 md:mb-12">
             <h1 className="font-serif text-3xl md:text-5xl font-light leading-tight">{artwork.title}</h1>
           </header>
           
-          <div className="space-y-8 border-t border-black/10 pt-8 mb-12">
+          <div className="space-y-8 border-t border-black/10 pt-8 mb-4 md:mb-12">
             <div>
               <h3 className="font-display text-[9px] uppercase tracking-[0.3em] font-bold text-neutral-400 mb-4">Provenance & Details</h3>
               <div className="font-serif text-lg leading-relaxed whitespace-pre-wrap text-neutral-700">
@@ -59,10 +60,12 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          {/* Desktop Actions */}
+          <div className="hidden md:flex flex-row gap-4">
             <button className="flex-1 group relative flex items-center justify-center py-5 border border-black bg-black text-white hover:bg-neutral-800 transition-colors duration-500 overflow-hidden">
               <span className="font-display text-[10px] uppercase tracking-[0.2em] font-bold z-10">Acquire Artwork</span>
             </button>
+            <ShareButton title={artwork.title} text={`View ${artwork.title} from Colección Reyes-Veray`} />
             {highResUrl && (
               <a 
                 href={highResUrl} 
@@ -75,6 +78,16 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
               </a>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Fixed Action Bar (Thumb Zone UX) */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-white via-white/90 to-transparent z-50 pointer-events-none pb-8">
+        <div className="flex flex-row gap-3 pointer-events-auto shadow-2xl">
+          <button className="flex-[2] group relative flex items-center justify-center py-5 border border-black bg-black text-white active:bg-neutral-800 transition-colors duration-300">
+            <span className="font-display text-[11px] uppercase tracking-[0.2em] font-bold">Acquire</span>
+          </button>
+          <ShareButton title={artwork.title} text={`View ${artwork.title} from Colección Reyes-Veray`} />
         </div>
       </div>
     </main>
