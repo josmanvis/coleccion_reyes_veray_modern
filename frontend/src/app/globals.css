@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/container-queries";
+
+:root {
+  --background: #fdfcfc; /* pristine warm gallery white */
+  --foreground: #111111;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d0d0d;
+    --foreground: #f4f4f4;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-serif: var(--font-serif), Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-display: var(--font-display), "Helvetica Neue", sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Extra space for the gallery walk pacing */
+  padding-bottom: 20vh;
+}
+
+::selection {
+  background-color: #222;
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::selection {
+    background-color: #ddd;
+    color: #000;
+  }
+}
