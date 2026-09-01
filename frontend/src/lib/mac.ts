@@ -85,13 +85,26 @@ function toArtwork(item: MacProduct): Artwork {
 }
 
 /** Local fallback dataset (bundled snapshot of the collection) */
+/**
+ * The snapshot stores WordPress-relative paths (`/wp-content/uploads/...`) that
+ * this site never serves — nothing is mounted at /wp-content, so they 404.
+ * The originals are still live behind the Jetpack/Photon CDN, so point there.
+ */
+const WP_ORIGIN_CDN = "https://i0.wp.com/coleccionreyesveray.com";
+
+function toCdnUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  if (!path.startsWith("/wp-content/")) return path;
+  return `${WP_ORIGIN_CDN}${path}?ssl=1`;
+}
+
 async function localArtworks(): Promise<Artwork[]> {
   const data = (await import("@/data/artworks.json")).default;
   return data.map((a: Record<string, unknown>) => ({
     title: a.title as string,
     url: a.url as string,
     slug: (a.url as string).replace(/^\//, "").replace(/\/index\.html$/, ""),
-    images: (a.images as string[]) || [],
+    images: ((a.images as string[]) || []).map(toCdnUrl),
     description: a.description as string | undefined,
     ut_thumb: a.ut_thumb as string | undefined,
     ut_high: a.ut_high as string | undefined,
@@ -133,10 +146,13 @@ export async function getArtworkSlugs(): Promise<string[]> {
 
 /** A single artwork by slug. */
 export async function getArtwork(slug: string): Promise<Artwork | null> {
-  const product = await macFetch<MacProduct | { error: string }>(
+  const result = await macFetch<MacProduct | MacProduct[] | { error: string }>(
     `/inventory?slug=${encodeURIComponent(slug)}`,
     3600
   );
+  // BAC's /inventory returns a collection even when filtered to a single slug;
+  // older builds returned a bare object. Accept both.
+  const product = Array.isArray(result) ? result[0] : result;
   if (product && !("error" in product) && (product as MacProduct).name) {
     return toArtwork(product as MacProduct);
   }
@@ -157,6 +173,24 @@ export async function getFeaturedArtworks(limit = 4): Promise<Artwork[]> {
 /** A CMS page (about, exhibitions, etc.) published in BAC. */
 export async function getPage(pageSlug: string): Promise<MacPage | null> {
   return macFetch<MacPage>(`/pages/${encodeURIComponent(pageSlug)}`, 3600);
+}
+
+/** Site settings (footer style, analytics, etc.) from BAC. */
+export type SiteSettings = {
+  tenant: { name: string; slug: string; email?: string | null };
+  settings: {
+    customDomain?: string | null;
+    subdomain?: string | null;
+    navigationStyle: string;
+    footerStyle: string;
+    showPoweredBy?: string | null;
+    defaultOgImage?: string | null;
+    footerText?: string | null;
+  } | null;
+};
+
+export async function getSiteSettings(): Promise<SiteSettings | null> {
+  return macFetch<SiteSettings>("/settings", 86400);
 }
 
 /** Submit an acquisition/general inquiry into the BAC CRM. */
