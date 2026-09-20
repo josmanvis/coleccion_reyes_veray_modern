@@ -7,3 +7,11 @@ node_modules/
 
 # Added by pubsafe
 .DS_Store
+
+# Private collection source data — holds purchase prices, valuations and
+# insurance details. This repository is public; keep it local.
+Backup_*.xlsx
+*.xlsx
+
+# Local machine-specific Claude Code permissions
+.claude/settings.local.json

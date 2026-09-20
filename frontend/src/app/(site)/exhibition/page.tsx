@@ -1,6 +1,6 @@
 import PageBlocks from "@/components/PageBlocks";
 import ExhibitionFallback from "@/components/ExhibitionFallback";
-import { getPage } from "@/lib/mac";
+import { getSitePage } from "@/lib/site-content";
 
 export const revalidate = 3600;
 
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function Exhibition() {
-  const page = await getPage("exhibition");
+  const page = await getSitePage("exhibition");
 
   if (page && page.blocks && page.blocks.length > 0) {
     return <PageBlocks page={page} />;

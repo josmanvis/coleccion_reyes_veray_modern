@@ -20,6 +20,8 @@ export default function Header() {
 
   const navLinks = [
     { name: "Inventory", href: "/gallery" },
+    { name: "Artists", href: "/artists" },
+    { name: "Portfolios", href: "/portfolios" },
     { name: "Exhibition", href: "/exhibition" },
     { name: "Collector", href: "/about" },
     { name: "Contact", href: "/contact" },

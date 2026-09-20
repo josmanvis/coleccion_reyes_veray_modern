@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "inventory:seed": "tsx scripts/seed-inventory.ts",
+    "wp:fetch": "tsx scripts/fetch-wordpress.ts"
   },
   "dependencies": {
     "@tailwindcss/container-queries": "^0.1.1",
+    "better-sqlite3": "^13.0.3",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "framer-motion": "^13.1.1",
+    "fuse.js": "^7.5.0",
     "lenis": "^1.3.26",
     "lucide-react": "^1.34.0",
     "next": "16.3.3",
@@ -22,12 +27,14 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

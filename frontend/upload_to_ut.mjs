@@ -1,8 +1,14 @@
 import { UTApi } from "uploadthing/server";
 import fs from "fs";
 
-// Initialize with the provided token
-const utapi = new UTApi({ token: "eyJhcGlLZXkiOiJza19saXZlXzU4N2RhYmI0YWY3ZWFmZDViYzU4ZDk3MWNkODA5ZjhmNzUxZDY2YmMwODA4MDAwYzJjZTdiOTVhOTk0NzEzNGIiLCJhcHBJZCI6Ino5ZThiZjQ3OGkiLCJyZWdpb25zIjpbInNlYTEiXX0=" });
+// The key is a live UploadThing secret: it is read from the environment so it
+// never lands in the repository. Set UPLOADTHING_TOKEN before running.
+const token = process.env.UPLOADTHING_TOKEN;
+if (!token) {
+  console.error("Missing UPLOADTHING_TOKEN. Set it in the environment and re-run.");
+  process.exit(1);
+}
+const utapi = new UTApi({ token });
 
 const artworksFile = './src/data/artworks.json';
 const artworks = JSON.parse(fs.readFileSync(artworksFile, 'utf8'));

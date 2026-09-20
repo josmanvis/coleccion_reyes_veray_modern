@@ -6,6 +6,14 @@ import ShareButton from "@/components/ShareButton";
 import AcquireButton from "@/components/AcquireButton";
 import Link from "next/link";
 import InteractiveCanvas from "./InteractiveCanvas";
+import PrevNext from "@/components/PrevNext";
+import {
+  artistSlugIndex,
+  artistHrefFor,
+  artworkNeighbours,
+  getArtworkBySlug,
+} from "@/lib/inventory/public";
+import { sentenceCase } from "@/lib/inventory/fields";
 
 export const revalidate = 3600;
 
@@ -47,6 +55,21 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
 
   const highResUrl = artwork.images[0] ? getImageUrl(artwork.images[0]) : artwork.ut_high || null;
   const slug = artwork.slug || resolvedParams.slug;
+
+  // The inventory database knows what sits either side of this work. A piece in
+  // a portfolio pages through its own sheets; everything else through the
+  // artist's output.
+  const record = getArtworkBySlug(slug);
+  const around = record ? artworkNeighbours(record) : null;
+  const sequence = around?.withinPortfolio ?? around?.withinArtist ?? null;
+  const artistHref = record ? artistHrefFor(record, artistSlugIndex()) : null;
+  const pageLink = (row: { website_slug?: unknown; title?: unknown } | null) =>
+    row?.website_slug
+      ? {
+          href: `/art/${row.website_slug}`,
+          label: row.title ? sentenceCase(String(row.title)) : "Untitled",
+        }
+      : null;
 
   return (
     <main className="min-h-screen bg-neutral-100 flex flex-col relative overflow-hidden">
@@ -90,6 +113,41 @@ export default async function ArtworkDetail({ params }: { params: Promise<{ slug
               </div>
             </div>
           </div>
+
+          {sequence && (sequence.previous || sequence.next) && (
+            <div className="mb-8">
+              <PrevNext
+                previous={pageLink(sequence.previous)}
+                next={pageLink(sequence.next)}
+                caption={
+                  around?.withinPortfolio && around.portfolio
+                    ? `${sequence.index + 1} / ${sequence.total} · ${around.portfolio.title}`
+                    : `${sequence.index + 1} / ${sequence.total}`
+                }
+              />
+            </div>
+          )}
+
+          {(artistHref || around?.portfolio) && (
+            <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2">
+              {artistHref && (
+                <Link
+                  href={artistHref}
+                  className="font-display text-[10px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-black"
+                >
+                  All works by this artist →
+                </Link>
+              )}
+              {around?.portfolio && (
+                <Link
+                  href={`/${around.portfolio.slug}`}
+                  className="font-display text-[10px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-black"
+                >
+                  Portfolio: {around.portfolio.title} →
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* Desktop Actions */}
           <div className="hidden md:flex flex-row gap-4">

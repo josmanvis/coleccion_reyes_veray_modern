@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# inventory database (local)
+/data
+
+# CMS image uploads
+/public/uploads

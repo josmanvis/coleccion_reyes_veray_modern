@@ -23,3 +23,22 @@ body {
   background-color: #111111;
   color: #fdfcfc;
 }
+
+/* The gallery display face is too wide for dense data; the admin area opts out. */
+.admin-shell {
+  /* Height of the sticky admin bar; sticky table headers offset by this. */
+  --admin-header-h: 60px;
+  font-family: var(--font-ui), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  /* Lining tabular numerals so registro numbers and money columns line up. */
+  font-feature-settings: "tnum" 1, "cv05" 1;
+  color: #171717; /* neutral-900: 15:1 on the warm white background */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every interactive element in the admin gets a visible keyboard ring. */
+.admin-shell :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid #171717;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

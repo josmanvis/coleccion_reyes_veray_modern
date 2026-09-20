@@ -1,6 +1,6 @@
 import PageBlocks from "@/components/PageBlocks";
 import AboutFallback from "@/components/AboutFallback";
-import { getPage } from "@/lib/mac";
+import { getSitePage } from "@/lib/site-content";
 
 export const revalidate = 3600;
 
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function About() {
-  const page = await getPage("about");
+  const page = await getSitePage("about");
 
   if (page && page.blocks && page.blocks.length > 0) {
     return <PageBlocks page={page} />;
