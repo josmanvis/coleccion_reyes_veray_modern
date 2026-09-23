@@ -183,13 +183,31 @@ export function getArtistBySlug(slug: string): PublicArtist | null {
 
 /** The artist's works, newest registro last, so the grid reads like the original. */
 export function artistWorks(artist: PublicArtist): ArtworkRow[] {
-  return getDb()
+  const db = getDb();
+  const key = artistKey(artist as unknown as Record<string, unknown>);
+
+  // Artists are grouped on an accent- and case-folded key, so one artist can be
+  // filed under several spellings ("Tavarez" / "tavárez"). Matching the stored
+  // spelling exactly would drop every work typed the other way.
+  const refs = (
+    db
+      .prepare(
+        `SELECT ref, artist_last, artist_first FROM artworks
+          WHERE artist_last IS NOT NULL AND TRIM(artist_last) != ''`
+      )
+      .all() as Array<Record<string, unknown>>
+  )
+    .filter((row) => artistKey(row) === key)
+    .map((row) => String(row.ref));
+  if (refs.length === 0) return [];
+
+  const args = Object.fromEntries(refs.map((ref, i) => [`r${i}`, ref]));
+  return db
     .prepare(
-      `SELECT * FROM artworks
-        WHERE artist_last IS @last AND artist_first IS @first
+      `SELECT * FROM artworks WHERE ref IN (${refs.map((_, i) => `@r${i}`).join(", ")})
         ORDER BY registro ASC`
     )
-    .all({ last: artist.artist_last, first: artist.artist_first }) as ArtworkRow[];
+    .all(args) as ArtworkRow[];
 }
 
 // --- Portfolios --------------------------------------------------------------
