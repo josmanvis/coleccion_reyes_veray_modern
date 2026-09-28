@@ -1,13 +1,20 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/getImageUrl";
-import { getArtwork } from "@/lib/mac";
+import { getArtwork, getArtworkSlugs } from "@/lib/mac";
 import ShareButton from "@/components/ShareButton";
 import AcquireButton from "@/components/AcquireButton";
 import Link from "next/link";
 import InteractiveCanvas from "./InteractiveCanvas";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const slugs = await getArtworkSlugs();
+  return slugs.map((slug) => ({
+    slug: slug,
+  }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;

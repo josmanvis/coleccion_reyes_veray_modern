@@ -127,6 +127,37 @@ export async function getArtworks(): Promise<Artwork[]> {
   return localArtworks();
 }
 
+export type Artist = {
+  id: string;
+  slug: string;
+  name: string;
+  bio: string | null;
+  lifespan: string | null;
+  artworkCount: number;
+};
+
+/**
+ * Artists represented in the collection, from the AXXES public API.
+ *
+ * These used to be imported as image-less "products" with a `glossary/` slug
+ * prefix; they are now first-class records, so this has no local fallback and
+ * degrades to an empty list rather than inventing data.
+ */
+export async function getArtists(): Promise<Artist[]> {
+  const rows = await macFetch<Artist[]>("/artists", 86400);
+  if (rows && Array.isArray(rows)) {
+    return rows;
+  }
+  console.error("MAC artists unavailable");
+  return [];
+}
+
+export async function getArtist(slug: string): Promise<Artist | null> {
+  const rows = await macFetch<Artist[]>(`/artists?slug=${encodeURIComponent(slug)}`, 86400);
+  if (Array.isArray(rows) && rows.length > 0) return rows[0];
+  return null;
+}
+
 /** Slim slug list for static generation. */
 export async function getArtworkSlugs(): Promise<string[]> {
   const slugs = await macFetch<string[] | Array<{ slug: string | null; name?: string }>>(

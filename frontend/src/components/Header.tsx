@@ -19,10 +19,10 @@ export default function Header() {
   }, [pathname]);
 
   const navLinks = [
-    { name: "Inventory", href: "/gallery" },
-    { name: "Exhibition", href: "/exhibition" },
-    { name: "Collector", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "Índice", href: "/artists" },
+    { name: "Catálogo", href: "/gallery" },
+    { name: "Exposición", href: "/exhibition" },
+    { name: "Contacto", href: "/contact" },
   ];
 
   return (
