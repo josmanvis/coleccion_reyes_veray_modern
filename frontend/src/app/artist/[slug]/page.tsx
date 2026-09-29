@@ -103,7 +103,7 @@ export default async function ArtistPage({
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-12">
             {works.map((w) => (
-              <Link key={w.url} href={w.url} className="group block">
+              <Link key={w.url} href={`/art/${w.slug}`} className="group block">
                 <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
                   {w.images[0] && (
                     <Image
