@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getArtist, getArtists, getArtworks } from "@/lib/mac";
+import { getArtist, getArtists, getArtworkIndex } from "@/lib/mac";
 import { getImageUrl } from "@/lib/getImageUrl";
 
 export const revalidate = 86400;
@@ -42,6 +42,18 @@ function matchKey(name: string): string {
   return `${last} ${parts.join(" ")}`;
 }
 
+/** Normalise a product title to its comparable "surname firstname" prefix. */
+function titleKey(title: string): string {
+  return title
+    .split("\u2013")[0]
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export default async function ArtistPage({
   params,
 }: {
@@ -51,21 +63,9 @@ export default async function ArtistPage({
   const artist = await getArtist(slug);
   if (!artist) notFound();
 
-  const all = await getArtworks();
+  const all = await getArtworkIndex();
   const key = matchKey(artist.name);
-  const works = all.filter((w) => {
-    const t = w.title.split("–")[0];
-    return (
-      t
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9 ]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim()
-        .startsWith(key)
-    );
-  });
+  const works = all.filter((w) => titleKey(w.title).startsWith(key));
 
   return (
     <main className="min-h-screen pt-48 pb-32 px-6 md:px-12 lg:px-24">
@@ -103,11 +103,11 @@ export default async function ArtistPage({
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-12">
             {works.map((w) => (
-              <Link key={w.url} href={`/art/${w.slug}`} className="group block">
+              <Link key={w.slug} href={`/art/${w.slug}`} className="group block">
                 <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
-                  {w.images[0] && (
+                  {w.image && (
                     <Image
-                      src={getImageUrl(w.images[0], true)}
+                      src={getImageUrl(w.image, true)}
                       alt={w.title}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"

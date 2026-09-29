@@ -158,6 +158,38 @@ export async function getArtist(slug: string): Promise<Artist | null> {
   return null;
 }
 
+export type ArtworkIndexEntry = {
+  slug: string;
+  title: string;
+  image: string | null;
+};
+
+/**
+ * Title + thumbnail for every work, for grouping works under an artist.
+ *
+ * Deliberately not getArtworks(): the full inventory is ~8MB for this tenant,
+ * which is over Next.js's 2MB data-cache ceiling, so it is never cached and is
+ * re-downloaded on every render. With one page per artist that turned a
+ * 3-minute build into one that did not finish in 12 minutes. This shape is
+ * ~300KB and caches, so the whole 591-page build fetches it once.
+ */
+export async function getArtworkIndex(): Promise<ArtworkIndexEntry[]> {
+  const rows = await macFetch<ArtworkIndexEntry[]>(
+    "/inventory?fields=artistIndex",
+    86400
+  );
+  if (rows && Array.isArray(rows)) {
+    return rows;
+  }
+  console.error("MAC artwork index unavailable, falling back to local JSON");
+  const local = await localArtworks();
+  return local.map((a) => ({
+    slug: a.slug,
+    title: a.title,
+    image: a.images[0] ?? null,
+  }));
+}
+
 /** Slim slug list for static generation. */
 export async function getArtworkSlugs(): Promise<string[]> {
   const slugs = await macFetch<string[] | Array<{ slug: string | null; name?: string }>>(
