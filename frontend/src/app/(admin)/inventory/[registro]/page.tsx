@@ -15,6 +15,8 @@ import {
 import { StatusPill } from "@/components/inventory/InventoryTable";
 import CertificatePanel from "@/components/inventory/CertificatePanel";
 import ValuationPanel from "@/components/inventory/ValuationPanel";
+import ArtworkLocationMap from "@/components/inventory/ArtworkLocationMap";
+import { placementFor } from "@/lib/inventory/location-map";
 import { valuationForRef } from "@/lib/inventory/market";
 import IssuedCertificates from "@/components/inventory/IssuedCertificates";
 import { mediumLine } from "@/lib/inventory/certificates";
@@ -135,6 +137,10 @@ export default async function ArtworkPage({ params }: Props) {
           </dl>
 
           {pricing && <ValuationPanel valuation={pricing.valuation} artist={pricing.artist} />}
+          <ArtworkLocationMap
+            placement={placementFor(artwork.location === null ? null : String(artwork.location))}
+            registro={String(artwork.registro)}
+          />
         </div>
 
         <div>

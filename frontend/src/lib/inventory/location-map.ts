@@ -155,3 +155,46 @@ export function assignRoom(key: string, roomId: string | null): void {
     )
     .run(key, roomId);
 }
+
+export type ArtworkPlacement = {
+  /** The «Localización» cell as written. */
+  raw: string;
+  /** The place's key, for linking to the full map. */
+  key: string;
+  /** Building code read from the cell ("480"), when it names one. */
+  building: string | null;
+  roomId: string | null;
+  source: PlacementSource | null;
+  offsite: boolean;
+};
+
+/**
+ * Where one work sits on the plan, by the same rules as `mapData`, without
+ * scanning the whole collection. Null when the work has no location.
+ */
+export function placementFor(location: string | null | undefined): ArtworkPlacement | null {
+  const raw = String(location ?? "").trim();
+  if (!raw) return null;
+  const parsed = parseLocation(raw);
+  const key = locationKey(parsed);
+  const offsite = !parsed.building && !parsed.kind;
+  const building = parsed.building;
+
+  const manual = (
+    db().prepare("SELECT room_id FROM location_rooms WHERE key = ?").get(key) as { room_id: string } | undefined
+  )?.room_id;
+  if (manual && roomById(manual)) return { raw, key, building, roomId: manual, source: "asignada", offsite };
+
+  const ref = findRoom(parsed.building, parsed.room);
+  if (ref) return { raw, key, building, roomId: planRoomId(ref.floor, ref.room), source: "registro", offsite };
+
+  const unitKey = locationKey({ building: parsed.building, kind: parsed.kind, label: parsed.label });
+  for (const unit of listUnits()) {
+    if (!unit.room) continue;
+    if (locationKey({ building: unit.building, kind: unit.kind, label: unit.label }) !== unitKey) continue;
+    const unitRef = findRoom(unit.building, unit.room);
+    if (unitRef) return { raw, key, building, roomId: planRoomId(unitRef.floor, unitRef.room), source: "unidad", offsite };
+  }
+
+  return { raw, key, building, roomId: null, source: null, offsite };
+}
