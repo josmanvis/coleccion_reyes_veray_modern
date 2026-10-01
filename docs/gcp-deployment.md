@@ -1,7 +1,7 @@
 # Colección Reyes-Veray on Google Cloud
 
 Public site: https://orc.axxes.app
-Vitrine product/login: https://vitrine.axxes.app
+Vitrine product/login: https://vitrine.axxes.app and https://vitrine.axxes.club
 Project: `gravy-meta`; region: `us-west1`.
 
 ## Resources and operating costs
@@ -10,9 +10,9 @@ The website uses one Cloud Run service (`orc`) with request billing, 1 CPU, 512 
 
 `gravy-meta-orc-web` holds the existing publicly available artwork images and precomputed WebP sizes (320, 640, 960 and 1600 pixels). Immutable versioned URLs have a one-year browser cache lifetime. Images load directly from Cloud Storage, avoiding Cloud Run resizing CPU and application upload/download bandwidth. Files are fetched lazily; gallery searches reuse their filtered index rather than refilter on every scroll update.
 
-`gravy-meta-orc-private` is reserved for future client originals/documents. Public access is prevented. Both buckets are regional Standard storage with uniform bucket-level access, no object versioning, and seven-day soft deletion. The private bucket is currently empty. Future original uploads do not become public automatically. Existing public archive downloads preserve the previous website behavior.
+`gravy-meta-orc-private` is reserved for future client originals/documents. Public access is prevented. Both buckets are regional with uniform bucket-level access, no object versioning, and seven-day soft deletion. Public web assets stay in Standard storage. The empty private bucket has Autoclass enabled with Archive as its terminal tier, adapting future originals to actual access without retrieval or early-deletion fees. The private bucket is currently empty. Future original uploads do not become public automatically. Existing public archive downloads preserve the previous website behavior.
 
-For a conservative 200 GiB estimate, Standard storage is approximately $4/month before derivatives, operations, downloads, soft-deleted data, taxes and shared infrastructure charges. Upload bandwidth is free; internet downloads are separately billed. Colder tiers should be selected based on actual access/retention, not used for frequently viewed website images. Current official pricing: https://cloud.google.com/storage/pricing . The existing database/load-balancer bill belongs to the shared platform and is not included in this storage estimate.
+For a conservative 200 GiB estimate, Standard storage is approximately $4/month before derivatives, operations, downloads, soft-deleted data, taxes and shared infrastructure charges. Upload bandwidth is free; internet downloads are separately billed. Private Autoclass objects at least 128 KiB move to Nearline after 30 unread days, Coldline after 90 and Archive after 365; reading them returns them to Standard. At 200 GiB entirely cold, underlying storage would be about $2/month Nearline, $0.80 Coldline or $0.24 Archive, plus Autoclass management ($0.0025/1,000 eligible objects/month), operations and downloads. Public images remain Standard. Current official pricing: https://cloud.google.com/storage/pricing . The existing database/load-balancer bill belongs to the shared platform and is not included in this storage estimate.
 
 ## Catalog and inquiries
 
@@ -73,8 +73,12 @@ See `docs/gcp-verification.json` for deployed revision/image, route checks, data
 
 ## Vitrine product entry
 
-The separate `vitrine-app` Cloud Run service presents the existing Vitrine desk and a gated `/viewing-room` using ORC's public collection renderer. It uses the GCP catalog, dedicated `vitrine-app-env` secret and `vitrine-app-runtime` identity. Authorized entry-organization seats open the pinned client collection; roles and existing subscription exemptions are preserved. Existing `vitrine.axxes.club` is unchanged. The new hostname offers GCP-backed password login; cross-domain Handshake SSO is not enabled.
+Both Vitrine domains present the original premium landing page, membership prices, real `/register` and `/sign-in`, and the Vitrine-branded desk at `/orc`. The gated `/orc/viewing-room` uses ORC’s public collection renderer. The `vitrine-app` and `vitrine` Cloud Run services use the GCP catalog, domain-specific environment secrets and the `vitrine-app-runtime` identity. Separate `vitrine` cookie prefixes and domains avoid overwriting other suite sessions. Accounts share the GCP datastore and can sign in to either domain; cookies do not cross `.app` and `.club`. Cross-domain Handshake SSO is not enabled.
 
-Its source is the Vitrine repository branch `feat/orc-vitrine`, with a separate `cloudbuild-orc.yaml` build workflow. Its limit is two instances, 1 CPU, 512 MiB, concurrency 40, zero minimum instances and request billing. The shared load balancer/certificate carries both hostnames.
+New registration records a selected membership request and awaits existing manual activation or an owner’s invitation; payment checkout is not configured. It never grants the Reyes-Veray client seat. Authorized entry-organization seats open only the pinned client collection; direct private collection seats retain the existing subscription checks. The collection switcher remains available on unpaid collections.
+
+Its source is the Vitrine repository branch `feat/orc-vitrine`, with a separate `cloudbuild-orc.yaml` build workflow. Each Vitrine service has a limit of two instances, 1 CPU, 512 MiB, concurrency 40, zero minimum instances and request billing. The shared load balancer/certificate carries both hostnames.
 
 After remote object checksum/size verification, `scripts/migrate-image-references.mjs` updates known image references in this client's products and published/visible CMS records to GCS originals. `--dry-run` executes the same scoped updates and rolls back. The real run requires complete asset verification and writes a unique ignored JSON backup before committing. Unchanged JSON fields and other tenants are preserved. Vitrine's table requests the prepared 320px WebP derivative instead of each original.
+
+Autoclass behavior and exclusions: https://docs.cloud.google.com/storage/docs/autoclass . Enablement occurred while the private bucket was empty.

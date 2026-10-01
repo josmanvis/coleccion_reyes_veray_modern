@@ -1,0 +1,131 @@
+{
+  "project": "gravy-meta",
+  "region": "us-west1",
+  "recordedAt": "2026-10-01T17:40:29.766913+00:00",
+  "orc": {
+    "hostname": "orc.axxes.app",
+    "revision": "orc-00002-bc9",
+    "image": "us-west1-docker.pkg.dev/gravy-meta/orc/site@sha256:337d4f0f0ace57ad0c14ffed1c8acf8d9bb39b8bedf05455de282553628865ab",
+    "build": "aba3b971-ac80-4299-a8b9-43615227fac1",
+    "sourceCommit": "1d605b3",
+    "maxInstances": 3
+  },
+  "vitrine": {
+    "hostnames": [
+      "vitrine.axxes.app",
+      "vitrine.axxes.club"
+    ],
+    "revisions": [
+      "vitrine-app-gcp-product-20261001",
+      "vitrine-gcp-product-20261001"
+    ],
+    "image": "us-west1-docker.pkg.dev/gravy-meta/ci-vitrine/vitrine@sha256:4e19b8cd6e067e61e2628c4196444ae0da92bd095fc6b1f39695135222ee53a9",
+    "build": "d8d58cdc-b361-4ddf-aabd-70560c103e65",
+    "maxInstances": 2,
+    "auth": "Shared GCP email/password accounts; isolated vitrine cookies for each domain; manual membership activation; no payment checkout",
+    "accessRegressionTests": 8,
+    "publicHttpTestsPerDomain": 3,
+    "sourceCommit": "78f7532"
+  },
+  "sharedRuntime": {
+    "minimumInstances": 0,
+    "cpu": 1,
+    "memoryMiB": 512,
+    "concurrency": 40,
+    "billing": "request",
+    "database": "gravy-meta:us-west1:axxes-prod-db/axxes_prod",
+    "loadBalancer": "axxes-lb",
+    "ip": "136.81.161.193"
+  },
+  "catalog": {
+    "activeArtworks": 3667,
+    "artists": 591,
+    "publishedPages": 4,
+    "visibleBlocks": 17,
+    "sourcePublicFieldsMatched": 3667,
+    "role": "orc_web",
+    "rawPrivateTableReadDenied": true,
+    "crossTenantViewWriteDenied": true,
+    "imageReferenceMigrationDryRun": 3672
+  },
+  "liveOrc": {
+    "routes": [
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/gallery",
+        "status": 200
+      },
+      {
+        "path": "/artists",
+        "status": 200
+      },
+      {
+        "path": "/contact",
+        "status": 200
+      },
+      {
+        "path": "/art/luis-hernandez-cruz",
+        "status": 200
+      }
+    ],
+    "inquiryStatuses": [
+      201,
+      201
+    ],
+    "persisted": true,
+    "duplicateNotes": 1
+  },
+  "liveVitrine": {
+    "premiumLandingBothDomains": true,
+    "prices": [
+      99,
+      199
+    ],
+    "registration": true,
+    "membershipRequestRetry": true,
+    "signupCalls": 1,
+    "noSeatPending": true,
+    "planRecorded": true,
+    "forgedRefererCannotOverwrite": true,
+    "unauthenticatedPlanRejected": true,
+    "nullBodyRejected": true,
+    "authorizedDesk": true,
+    "unpaidCollectionCanSwitchBack": true,
+    "brandedViewingRoom": true,
+    "sharedAccountClubLogin": true,
+    "isolatedCookiesBothDomains": true,
+    "browserErrors": []
+  },
+  "browser": {
+    "homepageStatus": 200,
+    "signInStatus": 200,
+    "pageErrors": [],
+    "mobileGallery": {
+      "status": 200,
+      "initialImages": 30,
+      "unmatchedSearchImages": 0,
+      "pageErrors": []
+    }
+  },
+  "assets": {
+    "status": "uploading",
+    "images": 8484,
+    "expectedObjects": 42420,
+    "missingSourceImages": 0
+  },
+  "privateStorage": {
+    "bucket": "gravy-meta-orc-private",
+    "anonymousListStatus": 403,
+    "autoclass": true,
+    "terminalTier": "ARCHIVE",
+    "softDeleteDays": 7
+  },
+  "limitations": [
+    "Existing shared members.axxes.club and other suite services remain unchanged and Neon-backed; ORC and both Vitrine domains use Cloud SQL.",
+    "Later 200GB image set is not supplied; private storage is ready, with no private-file uploader UI.",
+    "Current-image original transfer and final checksum reconciliation are still running."
+  ]
+}
