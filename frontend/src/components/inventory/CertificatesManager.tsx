@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowUpRight, ChevronDown, ChevronRight, Copy, Download, Eye, Hash, Pencil, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, ChevronDown, ChevronRight, Copy, Download, Eye, Hash, List, Pencil, Sheet, Trash2, Upload } from "lucide-react";
 import type { CertificateRecord } from "@/lib/inventory/certificate-log";
 import {
   CERTIFICATE_COPY,
@@ -19,6 +19,7 @@ import { useTr } from "@/components/I18nProvider";
 import { copyText, download, useContextMenu } from "./ContextMenu";
 import CertificateViewer from "./CertificateViewer";
 import { useDeletedToast } from "./trash-client";
+import DataSheet, { type SheetChange, type SheetColumn, type SheetRow, type SheetSaveResult } from "./DataSheet";
 
 export type CertificateRow = CertificateRecord & {
   /** The linked ficha, for the "Obra" column. */
@@ -57,6 +58,7 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
   const menu = useContextMenu();
   const [viewing, setViewing] = useState<number | null>(null);
   const deletedToast = useDeletedToast();
+  const [asSheet, setAsSheet] = useState(false);
 
   const needsReview = (row: CertificateRow) => Boolean(row.notes) || !row.ref;
 
@@ -212,6 +214,15 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
           <option value="fecha">{tr("Más recientes")}</option>
           <option value="crv">{tr("Por número CRV")}</option>
         </select>
+        <button
+          type="button"
+          className={BTN_SUBTLE}
+          onClick={() => setAsSheet((v) => !v)}
+          title={asSheet ? tr("Ver como lista") : tr("Editar como hoja de cálculo")}
+        >
+          {asSheet ? <List size={15} strokeWidth={1.75} aria-hidden /> : <Sheet size={15} strokeWidth={1.75} aria-hidden />}
+          {asSheet ? tr("Lista") : tr("Hoja")}
+        </button>
         <div className="ml-auto">
           <input
             ref={upload}
@@ -234,6 +245,11 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
         {counts.revisar > 0 && chip("revisar", tr("Por revisar"))}
       </div>
 
+      {asSheet ? (
+        <div className={`${CARD} mt-4 h-[calc(100vh-260px)] min-h-[420px] overflow-hidden`}>
+          <CertificatesSheet rows={visible} versions={versions} />
+        </div>
+      ) : (
       <div className={`${CARD} mt-4 overflow-hidden`}>
         {visible.length === 0 && <p className={`px-4 py-8 text-center text-sm ${MUTED}`}>{tr("Ningún certificado coincide.")}</p>}
         <ul className="divide-y divide-[var(--stroke-soft)]">
@@ -392,6 +408,7 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
           })}
         </ul>
       </div>
+      )}
 
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -477,4 +494,83 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
       />
     </div>
   );
+}
+
+/**
+ * The register as a spreadsheet, for correcting numbers, parties and dates in
+ * a run. The name is derived from type and number, so it is shown, not edited.
+ */
+function CertificatesSheet({ rows, versions }: { rows: CertificateRow[]; versions: Map<number, string> }) {
+  const tr = useTr();
+  const router = useRouter();
+
+  const columns = useMemo<SheetColumn[]>(
+    () => [
+      {
+        key: "type",
+        label: tr("Tipo"),
+        type: "select",
+        width: 130,
+        options: CERTIFICATE_TYPES.map((type) => ({ value: type, label: typeLabel(type, tr) })),
+      },
+      { key: "registro", label: tr("Número CRV"), width: 110 },
+      { key: "party", label: tr("Persona o entidad"), width: 240 },
+      { key: "issued_on", label: tr("Fecha otorgado"), type: "date", width: 120 },
+      { key: "notes", label: tr("Notas"), type: "longtext", width: 260 },
+      { key: "name", label: tr("Nombre"), readOnly: true, width: 280 },
+      { key: "artist", label: tr("Artista"), readOnly: true, width: 180 },
+      { key: "title", label: tr("Título"), readOnly: true, width: 220 },
+      { key: "file", label: tr("Archivo"), readOnly: true, width: 90, hidden: true },
+    ],
+    [tr]
+  );
+
+  const sheetRows = useMemo<SheetRow[]>(
+    () =>
+      rows.map((row) => ({
+        id: String(row.id),
+        header: row.code,
+        href: row.artwork ? `/inventory/${encodeURIComponent(row.artwork.ref)}` : undefined,
+        values: {
+          type: row.type,
+          registro: row.registro ?? "",
+          party: row.party ?? "",
+          issued_on: row.issued_on ?? "",
+          notes: row.notes ?? "",
+          name: [certificateDisplayName(row.type, row.registro), versions.get(row.id)].filter(Boolean).join(" · "),
+          artist: row.artwork?.artist ?? row.artist ?? "",
+          title: row.artwork?.title ?? row.title ?? "",
+          file: row.file_ext?.toUpperCase() ?? "",
+        },
+      })),
+    [rows, versions]
+  );
+
+  const onSave = useCallback(
+    async (changes: SheetChange[]): Promise<SheetSaveResult> => {
+      const saved: SheetSaveResult["saved"] = {};
+      const failed: SheetSaveResult["failed"] = {};
+      // A handful of rows at most, so one request each through the existing route.
+      for (const { id, patch } of changes) {
+        const response = await fetch(`/api/admin/certificates/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          failed[id] = tr(body.error || "No se pudo guardar");
+          continue;
+        }
+        saved[id] = Object.fromEntries(
+          Object.keys(patch).map((key) => [key, body[key] === null || body[key] === undefined ? "" : String(body[key])])
+        );
+      }
+      router.refresh();
+      return { saved, failed };
+    },
+    [router, tr]
+  );
+
+  return <DataSheet storageKey="certificates" columns={columns} rows={sheetRows} onSave={onSave} />;
 }
