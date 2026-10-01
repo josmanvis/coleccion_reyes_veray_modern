@@ -37,9 +37,15 @@ export default function Contact() {
         className="max-w-2xl w-full bg-white p-12 md:p-24 shadow-2xl border border-black/5 text-center text-black"
       >
         <h1 className="font-serif text-5xl md:text-7xl font-light mb-8 text-black">Contact</h1>
-        <p className="font-serif text-xl text-neutral-600 mb-16">
+        <p className="font-serif text-xl text-neutral-600 mb-6">
           For inquiries regarding the collection, exhibitions, or private viewing rooms, please reach out to the curator.
         </p>
+        <a
+          href="mailto:ottoreyes88@gmail.com"
+          className="inline-block font-serif text-xl md:text-2xl text-black underline underline-offset-8 hover:text-neutral-500 transition-colors mb-16 break-all"
+        >
+          ottoreyes88@gmail.com
+        </a>
 
         {status === "sent" ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-12">
