@@ -9,7 +9,7 @@ export const revalidate = 86400;
 
 export async function generateStaticParams() {
   const artists = await getArtists();
-  return artists.map((a) => ({ slug: a.slug }));
+  return artists.slice(0, 8).map((a) => ({ slug: a.slug }));
 }
 
 export async function generateMetadata({

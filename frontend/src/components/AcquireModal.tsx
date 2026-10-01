@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AcquireModal({
@@ -16,6 +17,7 @@ export default function AcquireModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const submission = useRef<{signature:string; id:string} | null>(null);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -25,19 +27,10 @@ export default function AcquireModal({
     e.preventDefault();
     setStatus("sending");
     try {
-      const res = await fetch("/api/inquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          message,
-          artworkTitle,
-          artworkSlug,
-          artworkImage,
-          source: "coleccion-acquire-modal",
-        }),
-      });
+      const payload = {name,email,message,artworkTitle,artworkSlug,artworkImage,source:"coleccion-acquire-modal"};
+      const signature = JSON.stringify(payload);
+      if (submission.current?.signature !== signature) submission.current = {signature,id:crypto.randomUUID()};
+      const res = await fetch("/api/inquiry", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,submissionId:submission.current.id})});
       if (!res.ok) throw new Error("Request failed");
       setStatus("sent");
       setTimeout(onClose, 2500);
@@ -79,8 +72,7 @@ export default function AcquireModal({
             <div className="p-8 flex-1 overflow-y-auto">
               <div className="mb-12">
                 <div className="aspect-[4/3] relative bg-neutral-100 mb-6 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={artworkImage} alt={artworkTitle} className="w-full h-full object-contain p-4 mix-blend-multiply" />
+                  <Image src={artworkImage || "/asset-pending.svg"} alt={artworkTitle} fill sizes="400px" className="object-contain p-4 mix-blend-multiply" />
                 </div>
                 <h3 className="font-serif text-2xl font-light leading-tight">{artworkTitle}</h3>
                 <p className="font-serif text-neutral-500 mt-2">Private Collection</p>

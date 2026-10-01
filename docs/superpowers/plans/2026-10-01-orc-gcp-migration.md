@@ -3,7 +3,7 @@
 > Execute inline with superpowers:executing-plans. The user approved the spec and explicitly instructed implementation and deployment; continue without redundant approval prompts.
 
 **Goal:** Serve the functioning collection at orc.axxes.app on GCP with low ongoing costs and storage ready for later client assets.
-**Architecture:** Cloud Run in us-west1 behind the existing HTTPS load balancer, regional GCS for immutable public image variants, existing Members production catalog/CRM. Separate private storage for later originals/documents.
+**Architecture:** Cloud Run in us-west1 behind the existing HTTPS load balancer, regional GCS for immutable public image variants, tenant-scoped views on existing GCP Cloud SQL production catalog/CRM; a separate Vitrine-branded authenticated entry at vitrine.axxes.app. Separate private storage for later originals/documents.
 **Tech Stack:** Next.js 16, Node 24, Cloud Build, Artifact Registry, Cloud Run, Cloud Storage, existing Certificate Manager and authoritative Cloudflare DNS.
 **Spec:** docs/superpowers/specs/2026-10-01-orc-gcp-migration-design.md
 
@@ -24,35 +24,44 @@
 ### Task 1: Restore public catalog access
 **Files:** Members src/middleware.ts and tests/public-tenant-routes.test.ts; its cloudbuild.yaml test step.
 **Produces:** Public JSON reads and inquiry persistence for tenant coleccion-reyes-veray.
-- [ ] Reproduce login redirects; write and run a middleware regression test for inventory/inquiries and private boundaries. Expected public paths currently redirect.
-- [ ] Allow the existing /api/v1/public/tenants segment; run regression and existing appropriate tests.
-- [ ] Build the Members service on Linux and release with its existing rollout/rollback script.
-- [ ] Verify live public JSON, private auth, catalog counts and backing GCP storage/database configuration without printing credentials.
+- [x] Reproduce login redirects; write and run a middleware regression test for inventory/inquiries and private boundaries. Expected public paths currently redirect.
+- [x] Allow the existing /api/v1/public/tenants segment; run regression and existing appropriate tests.
+- [x] Build the Members service on Linux and release with its existing rollout/rollback script.
+- [x] Verify live public JSON, private auth, catalog counts and backing GCP storage/database configuration without printing credentials.
 
 ### Task 2: Migrate and optimize referenced images
 **Files:** scripts/prepare-assets.mjs, scripts/prepare-assets.test.mjs, frontend/src/data/image-manifest.json, scripts/upload-assets.sh.
 **Consumes:** Existing 5.4 GB local archive and live tenant image references.
 **Produces:** Deterministic versioned GCS paths and responsive WebP image variants.
-- [ ] Inventory local/live images and CMS references; test URL normalization and path containment against encoded paths/external providers.
-- [ ] Generate original copies plus WebP widths 320, 640, 960, 1600 using sharp; map original URLs and legacy CDN aliases to the same GCP objects; record missing files.
-- [ ] Create regional public-web and private-client buckets; configure public derivatives, private originals, cache headers and limited retention.
+- [x] Inventory local/live images and CMS references; test URL normalization and path containment against encoded paths/external providers.
+- [x] Generate original copies plus WebP widths 320, 640, 960, 1600 using sharp; map original URLs and legacy CDN aliases to the same GCP objects; record missing files.
+- [x] Create regional public-web and private-client buckets; configure public derivatives, private originals, cache headers and limited retention.
 - [ ] Upload assets and verify remote metadata/checksums and manifest completeness.
 
 ### Task 3: Prepare efficient Next.js deployment
 **Files:** frontend/src/lib/getImageUrl.ts, frontend/src/lib/image-loader.ts, frontend/src/lib/mac.ts, frontend/next.config.ts, relevant image components, frontend/Dockerfile, frontend/cloudbuild.yaml, frontend/.dockerignore, frontend/.gcloudignore; frontend tests.
 **Consumes:** Image manifest and functioning Members public API.
 **Produces:** Standalone Linux container with bounded API calls and reusable precomputed image variants.
-- [ ] Add failing tests for variant selection, mapping encoded legacy references, fallback behavior and inquiry redirect rejection.
-- [ ] Implement GCP image resolution/custom loader, use narrow remote patterns, remove provider-only image resizing and UploadThing deployment dependency.
-- [ ] Reduce gallery payload and prevent unnecessary full-inventory/static-generation network calls; retain page revalidation and dynamic detail support.
-- [ ] Add reproducible build config, scale-to-zero service configuration and documentation; run tests/typecheck and Linux production build.
+- [x] Add failing tests for variant selection, mapping encoded legacy references, fallback behavior and inquiry redirect rejection.
+- [x] Implement GCP image resolution/custom loader, use narrow remote patterns, remove provider-only image resizing and UploadThing deployment dependency.
+- [x] Reduce gallery payload and prevent unnecessary full-inventory/static-generation network calls; retain page revalidation and dynamic detail support.
+- [x] Add reproducible build config, scale-to-zero service configuration and documentation; run tests/typecheck and Linux production build.
 
 ### Task 4: Release and activate domain
 **Files:** scripts/deploy-gcp.py, docs/gcp-deployment.md, docs/gcp-verification.json.
 **Consumes:** Verified container and uploaded image variants.
 **Produces:** Live https://orc.axxes.app with GCP image delivery and working inquiries.
-- [ ] Deploy orc with min=0, max=3, request billing, dedicated runtime identity and no unnecessary storage write privileges.
-- [ ] Create serverless NEG/backend and add ORC host rule from the current URL map; verify TLS/host routing before publication.
-- [ ] Add authoritative DNS and mirrored Google DNS record; verify ordinary HTTPS and DNS resolution.
-- [ ] Check all route types, representative responsive images, CMS/catalog JSON, private API auth, and identified test inquiry persistence.
+- [x] Deploy orc with min=0, max=3, request billing, dedicated runtime identity and no unnecessary storage write privileges.
+- [x] Create serverless NEG/backend and add ORC host rule from the current URL map; verify TLS/host routing before publication.
+- [x] Add authoritative DNS and mirrored Google DNS record; verify ordinary HTTPS and DNS resolution.
+- [x] Check all route types, representative responsive images, CMS/catalog JSON, private API auth, and identified test inquiry persistence.
 - [ ] Record source/image revision, counts, test evidence, cost model, bulk upload instructions, limitations; review diff and commit changes.
+
+### Authorized steering: Vitrine product entry
+- [x] Add a Vitrine-branded viewing room behind existing membership and plan checks.
+- [x] Provision a separate GCP-connected vitrine-app identity/configuration without changing .club services.
+- [x] Add its own serverless backend, HTTPS host and authoritative DNS.
+- [x] Reproduce team-seat collection misrouting and fix it with six regression tests.
+- [ ] Deploy the final tested image; verify real password login and authorized viewing room with an owned temporary account, then remove it.
+
+Runtime architecture ruling: shared Members remains Neon-backed. ORC reads/writes scoped Cloud SQL views directly; Vitrine's new hostname uses the same GCP catalog. Snapshots support offline builds and read fallback; inquiry success requires committed GCP persistence. Existing shared suite migration and Handshake cross-domain SSO are separate work.

@@ -1,10 +1,14 @@
+import { unstable_cache } from "next/cache";
+import { readGcpCatalog, saveGcpInquiry } from "./gcp-catalog";
+import { readSnapshotCatalog } from "./snapshot-catalog";
+import { resolveImage, resolvePageImages } from "./resolve-image";
 /**
  * Server-side data layer for the Axxes Club (BAC) public API.
  * Every getter falls back to bundled local data if BAC is unreachable,
  * so the site degrades gracefully instead of failing.
  */
 
-const MAC_BASE = process.env.MAC_API_BASE || "https://members.axxes.club";
+const MAC_BASE = process.env.MAC_API_BASE;
 const TENANT = "coleccion-reyes-veray";
 
 export type Artwork = {
@@ -38,13 +42,20 @@ export type MacPage = {
 
 async function macFetch<T>(path: string, revalidate = 3600): Promise<T | null> {
   try {
+    if (process.env.ORC_DATABASE_URL) {
+      return await unstable_cache(() => readGcpCatalog(path), ["orc-catalog", path], {revalidate})() as T;
+    }
+    if (!MAC_BASE) return await readSnapshotCatalog(path) as T;
     const res = await fetch(`${MAC_BASE}/api/v1/public/tenants/${TENANT}${path}`, {
       next: { revalidate },
+      signal: AbortSignal.timeout(10_000),
+      redirect: "error",
     });
-    if (!res.ok) return null;
+    if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) return null;
     return (await res.json()) as T;
   } catch {
-    return null;
+    console.error("GCP catalog read failed; serving the verified collection snapshot");
+    return await readSnapshotCatalog(path) as T;
   }
 }
 
@@ -65,7 +76,7 @@ function toArtwork(item: MacProduct): Artwork {
   const sortedImages = Array.isArray(item.images)
     ? [...item.images]
         .sort((a, b) => (a.position || 0) - (b.position || 0))
-        .map((img) => img.url)
+        .map((img) => resolveImage(img.url))
         .filter(Boolean)
     : [];
 
@@ -85,29 +96,16 @@ function toArtwork(item: MacProduct): Artwork {
 }
 
 /** Local fallback dataset (bundled snapshot of the collection) */
-/**
- * The snapshot stores WordPress-relative paths (`/wp-content/uploads/...`) that
- * this site never serves — nothing is mounted at /wp-content, so they 404.
- * The originals are still live behind the Jetpack/Photon CDN, so point there.
- */
-const WP_ORIGIN_CDN = "https://i0.wp.com/coleccionreyesveray.com";
-
-function toCdnUrl(path: string): string {
-  if (/^https?:\/\//i.test(path)) return path;
-  if (!path.startsWith("/wp-content/")) return path;
-  return `${WP_ORIGIN_CDN}${path}?ssl=1`;
-}
-
 async function localArtworks(): Promise<Artwork[]> {
   const data = (await import("@/data/artworks.json")).default;
   return data.map((a: Record<string, unknown>) => ({
     title: a.title as string,
     url: a.url as string,
     slug: (a.url as string).replace(/^\//, "").replace(/\/index\.html$/, ""),
-    images: ((a.images as string[]) || []).map(toCdnUrl),
+    images: ((a.images as string[]) || []).map(resolveImage),
     description: a.description as string | undefined,
-    ut_thumb: a.ut_thumb as string | undefined,
-    ut_high: a.ut_high as string | undefined,
+    ut_thumb: a.ut_thumb ? resolveImage(a.ut_thumb as string) : undefined,
+    ut_high: a.ut_high ? resolveImage(a.ut_high as string) : undefined,
   }));
 }
 
@@ -179,7 +177,7 @@ export async function getArtworkIndex(): Promise<ArtworkIndexEntry[]> {
     86400
   );
   if (rows && Array.isArray(rows)) {
-    return rows;
+    return rows.map(row => ({ ...row, image: row.image ? resolveImage(row.image) : null }));
   }
   console.error("MAC artwork index unavailable, falling back to local JSON");
   const local = await localArtworks();
@@ -225,7 +223,7 @@ export async function getArtwork(slug: string): Promise<Artwork | null> {
 
 /** Featured artworks for the homepage. */
 export async function getFeaturedArtworks(limit = 4): Promise<Artwork[]> {
-  const inventory = await macFetch<MacProduct[]>("/inventory?featured=true", 3600);
+  const inventory = await macFetch<MacProduct[]>(`/inventory?featured=true&limit=${limit}`, 3600);
   if (inventory && Array.isArray(inventory) && inventory.length > 0) {
     return inventory.slice(0, limit).map(toArtwork);
   }
@@ -235,7 +233,8 @@ export async function getFeaturedArtworks(limit = 4): Promise<Artwork[]> {
 
 /** A CMS page (about, exhibitions, etc.) published in BAC. */
 export async function getPage(pageSlug: string): Promise<MacPage | null> {
-  return macFetch<MacPage>(`/pages/${encodeURIComponent(pageSlug)}`, 3600);
+  const page = await macFetch<MacPage>(`/pages/${encodeURIComponent(pageSlug)}`, 3600);
+  return page ? resolvePageImages(page) : null;
 }
 
 /** Site settings (footer style, analytics, etc.) from BAC. */
@@ -266,16 +265,30 @@ export async function submitInquiry(payload: {
   artworkSlug?: string;
   artworkImage?: string;
   source?: string;
+  submissionId?: string;
 }): Promise<boolean> {
   try {
+    if (process.env.ORC_DATABASE_URL) return await saveGcpInquiry(payload);
+    if (!MAC_BASE) return false;
     const res = await fetch(`${MAC_BASE}/api/v1/public/tenants/${TENANT}/inquiries`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
       cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+      redirect: "error",
     });
-    return res.ok;
+    if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) return false;
+    const result = await res.json();
+    return result.ok === true && typeof result.contactId === "string";
   } catch {
     return false;
   }
+}
+/** Gallery listing uses the cacheable slim index rather than the 8 MB inventory. */
+export async function getGalleryArtworks(): Promise<Artwork[]> {
+  const index = await getArtworkIndex();
+  const local = (await import("@/data/artworks.json")).default;
+  const descriptions = new Map(local.map(a => [a.url.replace(/^\//, "").replace(/\/index\.html$/, ""), a.description]));
+  return index.map(a => ({title: a.title, slug: a.slug, url: `/${a.slug}`, images: a.image ? [a.image] : [], description: descriptions.get(a.slug)?.slice(0, 500)}));
 }

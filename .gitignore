@@ -7,3 +7,8 @@ node_modules/
 
 # Added by pubsafe
 .DS_Store
+
+# Migration scratch and image staging
+.superpowers/
+
+__pycache__/

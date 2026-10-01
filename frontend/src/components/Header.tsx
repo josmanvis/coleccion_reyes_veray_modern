@@ -3,20 +3,17 @@
 import Link from "next/link";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [openOnPath, setOpenOnPath] = useState<string | null>(null);
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 50], [1, 0.8]);
   const y = useTransform(scrollY, [0, 50], [0, -10]);
   
   const pathname = usePathname();
 
-  // Close menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  const menuOpen = openOnPath === pathname;
 
   const navLinks = [
     { name: "Índice", href: "/artists" },
@@ -33,7 +30,7 @@ export default function Header() {
       >
         {/* Branding */}
         <div className="flex flex-col uppercase tracking-[0.2em] pointer-events-auto">
-          <Link href="/" className="group z-50" onClick={() => setMenuOpen(false)}>
+          <Link href="/" className="group z-50" onClick={() => setOpenOnPath(null)}>
             <h1 className="font-display font-bold text-[11px] leading-tight">
               Colección<br/>Reyes-Veray
             </h1>
@@ -47,7 +44,8 @@ export default function Header() {
             {navLinks.map((link) => (
               <li key={link.name}>
                 <Link 
-                  href={link.href} 
+                  href={link.href}
+                  onClick={() => setOpenOnPath(null)}
                   className={`hover:opacity-50 transition-opacity duration-300 ${pathname === link.href ? 'opacity-50' : ''}`}
                 >
                   {link.name}
@@ -60,7 +58,7 @@ export default function Header() {
         {/* Mobile Menu Toggle */}
         <button 
           className="md:hidden pointer-events-auto font-display text-[10px] uppercase tracking-widest font-bold z-50 mix-blend-difference"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => setOpenOnPath(menuOpen ? null : pathname)}
         >
           {menuOpen ? "Close" : "Menu"}
         </button>
@@ -86,7 +84,8 @@ export default function Header() {
                     transition={{ duration: 0.8, delay: 0.2 + (i * 0.1), ease: [0.16, 1, 0.3, 1] }}
                   >
                     <Link 
-                      href={link.href} 
+                      href={link.href}
+                  onClick={() => setOpenOnPath(null)}
                       className={`block hover:opacity-50 transition-opacity duration-300 ${pathname === link.href ? 'opacity-50 italic' : ''}`}
                     >
                       {link.name}

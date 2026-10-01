@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 
 export default function Contact() {
+  const submission = useRef<{signature:string; id:string} | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -13,10 +14,13 @@ export default function Contact() {
     e.preventDefault();
     setStatus("sending");
     try {
+      const payload = { name, email, message, source: "coleccion-contact-page" };
+      const signature = JSON.stringify(payload);
+      if (submission.current?.signature !== signature) submission.current = {signature,id:crypto.randomUUID()};
       const res = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message, source: "coleccion-contact-page" }),
+        body: JSON.stringify({...payload,submissionId:submission.current.id}),
       });
       if (!res.ok) throw new Error("Request failed");
       setStatus("sent");

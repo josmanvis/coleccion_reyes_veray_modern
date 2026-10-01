@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useSpring } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -38,6 +38,7 @@ export default function InteractiveCanvas({ src, alt }: { src: string; alt: stri
         src={src} 
         alt={alt}
         fill
+        sizes="100vw"
         quality={100}
         priority
         className="object-contain drop-shadow-2xl mix-blend-multiply" 

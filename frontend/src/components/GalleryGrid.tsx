@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -19,17 +19,13 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
   const [visibleCount, setVisibleCount] = useState(30);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const filteredArtworks = artworks.filter((artwork) => {
+  const filteredArtworks = useMemo(() => artworks.filter((artwork) => {
     const query = searchQuery.toLowerCase();
     return (
       artwork.title.toLowerCase().includes(query) ||
       (artwork.description && artwork.description.toLowerCase().includes(query))
     );
-  });
-
-  useEffect(() => {
-    setVisibleCount(30);
-  }, [searchQuery]);
+  }), [artworks, searchQuery]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -79,7 +75,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
             type="text"
             placeholder="Search by artist, title, or medium..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(30); }}
             className="w-full bg-transparent pl-12 pb-4 font-serif text-2xl md:text-4xl outline-none placeholder:text-black/20 text-black"
           />
         </motion.div>
@@ -87,7 +83,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
       
       {filteredArtworks.length === 0 ? (
         <div className="py-32 text-center">
-          <p className="font-serif text-2xl text-neutral-400">No records found matching "{searchQuery}"</p>
+          <p className="font-serif text-2xl text-neutral-400">No records found matching &ldquo;{searchQuery}&rdquo;</p>
         </div>
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24 md:gap-y-32">

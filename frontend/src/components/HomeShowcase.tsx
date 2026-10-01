@@ -57,6 +57,7 @@ export default function HomeShowcase({ featured }: { featured: Artwork[] }) {
                         src={getImageUrl(image, true)}
                         alt={artwork.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, 70vw"
                         className="object-contain p-12 mix-blend-multiply opacity-90 group-hover:scale-[1.03] transition-transform duration-[2s] ease-out"
                       />
                     )}

@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { getArtwork, getArtworkSlugs } from "@/lib/mac";
 import ShareButton from "@/components/ShareButton";
@@ -11,7 +10,8 @@ export const revalidate = 3600;
 
 export async function generateStaticParams() {
   const slugs = await getArtworkSlugs();
-  return slugs.map((slug) => ({
+  // Build a small warm set; remaining pages use on-demand ISR.
+  return slugs.slice(0, 12).map((slug) => ({
     slug: slug,
   }));
 }

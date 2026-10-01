@@ -24,13 +24,13 @@ export default async function Footer() {
         </div>
         {showPowered && (
           <a
-            href="https://axxes.club"
+            href="https://vitrine.axxes.app"
             target="_blank"
             rel="noopener noreferrer"
             className="opacity-25 hover:opacity-100 transition-opacity duration-500"
-            aria-label="Powered by Axxes Club"
+            aria-label="Powered by Vitrine"
           >
-            Powered by <span className="font-bold text-black/70">Axxes</span>.club
+            Powered by <span className="font-bold text-black/70">Vitrine</span>
           </a>
         )}
       </div>
