@@ -61,7 +61,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
           transition={{ duration: 1, delay: 0.2 }}
           className="font-display text-[10px] uppercase tracking-[0.2em] text-neutral-400 mt-8 mb-16 leading-loose max-w-md"
         >
-          Accessing secure viewing room. Complete collection provenance and high-resolution asset management. {filteredArtworks.length} indexed records synchronized via Axxes Club DAM.
+          Explore {filteredArtworks.length} artworks from the Colección Reyes-Veray.
         </motion.p>
         
         <motion.div 
