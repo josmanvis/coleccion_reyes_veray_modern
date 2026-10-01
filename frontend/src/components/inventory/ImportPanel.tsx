@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTr } from "@/components/I18nProvider";
 
 type ImportSummary = {
   inserted: number;
@@ -14,6 +15,7 @@ type ImportSummary = {
 };
 
 export default function ImportPanel() {
+  const tr = useTr();
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,7 +39,7 @@ export default function ImportPanel() {
       setSummary(data);
       router.refresh();
     } else {
-      setError(data.error || "No se pudo importar el archivo");
+      setError(tr(data.error || "No se pudo importar el archivo"));
     }
     setPending(false);
   }
@@ -45,7 +47,8 @@ export default function ImportPanel() {
   return (
     <>
       <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-        Importar hoja de cálculo
+        
+        {tr("Importar hoja de cálculo")}
       </h2>
 
       <form onSubmit={upload} className="mt-3 flex flex-wrap items-center gap-2 text-sm">
@@ -60,13 +63,12 @@ export default function ImportPanel() {
           disabled={!file || pending}
           className="rounded bg-[var(--brand)] px-3 py-1.5 text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
         >
-          {pending ? "Importando…" : "Importar"}
+          {pending ? tr("Importando…") : tr("Importar")}
         </button>
       </form>
 
       <p className="mt-2 text-xs text-[var(--ink-3)]">
-        Las filas se combinan por <span className="font-mono">#&nbsp;Registro</span>: las existentes
-        se actualizan y las nuevas se agregan. Nada se borra.
+        {tr("Las filas se combinan por # Registro: las existentes se actualizan y las nuevas se agregan. Nada se borra.")}
       </p>
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
@@ -74,15 +76,16 @@ export default function ImportPanel() {
       {summary && (
         <div className="mt-3 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
           <p>
-            {summary.filename}: {summary.inserted} nuevas · {summary.updated} actualizadas
-            {summary.skipped > 0 && ` · ${summary.skipped} omitidas`}
+            {summary.filename}:{" "}
+            {tr("{a} nuevas · {b} actualizadas", { a: summary.inserted, b: summary.updated })}
+            {summary.skipped > 0 && ` · ${tr("{n} omitidas", { n: summary.skipped })}`}
           </p>
           <p className="mt-0.5 text-xs text-emerald-800">
-            Imágenes enlazadas: {summary.images.linked} · sin imagen: {summary.images.unmatched}
+            {tr("Imágenes enlazadas: {a} · sin imagen: {b}", { a: summary.images.linked, b: summary.images.unmatched })}
           </p>
           {summary.unknownColumns.length > 0 && (
             <p className="mt-1 text-xs text-emerald-800">
-              Columnas ignoradas: {summary.unknownColumns.join(", ")}
+              {tr("Columnas ignoradas: {cols}", { cols: summary.unknownColumns.join(", ") })}
             </p>
           )}
           {summary.errors.length > 0 && (

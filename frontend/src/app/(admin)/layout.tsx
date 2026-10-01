@@ -13,10 +13,12 @@ import ClockButton from "@/components/inventory/ClockButton";
 import { SESSION_COOKIE, readSession } from "@/lib/inventory/session";
 import { getUser } from "@/lib/inventory/users";
 import { accentStyle } from "@/lib/inventory/theme";
+import { getTr } from "@/lib/i18n-server";
 
-export const metadata = {
-  title: "Inventario · Colección Reyes-Veray",
-};
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Inventario · Colección Reyes-Veray") };
+}
 
 /**
  * Microsoft 365 shell: a slim brand bar across the top, a navigation rail down
@@ -28,6 +30,7 @@ export default async function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const tr = await getTr();
   // The accent is resolved on the server and written onto the shell, so the
   // interface never flashes the default blue before the preference loads.
   const store = await cookies();
@@ -52,7 +55,8 @@ export default async function AdminLayout({
               className="shrink-0 brightness-0 invert"
               priority
             />
-            OORC
+            
+            {tr("OORC")}
           </Link>
           <div className="app-no-drag mx-auto hidden w-full max-w-[520px] md:block">
             <OmniSearch />
@@ -67,7 +71,8 @@ export default async function AdminLayout({
                 className="inline-flex items-center gap-1.5 rounded-[var(--radius)] px-3 py-1.5 text-sm text-white/90 transition-colors hover:bg-white/15 hover:text-white"
               >
                 <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
-                Ver sitio
+                
+                {tr("Ver sitio")}
               </Link>
             )}
             <LogoutButton />

@@ -11,6 +11,7 @@ import {
 } from "@/lib/inventory/certificates";
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * Prints without a download: the PDF is loaded into an off-screen same-origin
@@ -94,6 +95,7 @@ export default function CertificatePanel({
     publications: string;
   };
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [type, setType] = useState<CertificateType>("adquisicion");
@@ -127,7 +129,7 @@ export default function CertificatePanel({
 
   async function run(action: "download" | "print") {
     if (!party.trim()) {
-      notify("Indica la persona o entidad", "error");
+      notify(tr("Indica la persona o entidad"), "error");
       return;
     }
     setPending(action);
@@ -140,7 +142,7 @@ export default function CertificatePanel({
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo generar el certificado", "error");
+      notify(tr(body.error || "No se pudo generar el certificado"), "error");
       setPending(null);
       return;
     }
@@ -159,7 +161,7 @@ export default function CertificatePanel({
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      notify(`Certificado ${issued ?? ""} descargado`.replace("  ", " "));
+      notify(tr("Certificado {code} descargado", { code: issued ?? "" }).replace("  ", " "));
     } else {
       const shell = desktop();
       if (shell) {
@@ -173,13 +175,13 @@ export default function CertificatePanel({
         const printed = await shell.printPdf(bytes, { silent: true, deviceName: printer });
         URL.revokeObjectURL(url);
         if (printed.success) {
-          notify(`Certificado ${issued ?? ""} impreso`.replace("  ", " "));
+          notify(tr("Certificado {code} impreso", { code: issued ?? "" }).replace("  ", " "));
         } else {
-          notify(printed.failureReason || "La impresora rechazó el trabajo", "error");
+          notify(printed.failureReason || tr("La impresora rechazó el trabajo"), "error");
         }
       } else {
-        printPdf(url, () => notify("No se pudo abrir el diálogo de impresión", "error"));
-        notify(`Certificado ${issued ?? ""} enviado a la impresora`.replace("  ", " "));
+        printPdf(url, () => notify(tr("No se pudo abrir el diálogo de impresión"), "error"));
+        notify(tr("Certificado {v} enviado a la impresora", { v: issued ?? "" }).replace("  ", " "));
       }
     }
 
@@ -199,11 +201,11 @@ export default function CertificatePanel({
     });
     if (response.ok) {
       setDeaccessioned(true);
-      notify("Obra marcada como de-accessed");
+      notify(tr("Obra marcada como de-accessed"));
       router.refresh();
     } else {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo cambiar el estatus", "error");
+      notify(tr(body.error || "No se pudo cambiar el estatus"), "error");
     }
     setWorking(false);
     setAskDeaccession(false);
@@ -212,14 +214,15 @@ export default function CertificatePanel({
   const form = (
     <section>
       <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke-soft)] pb-1.5">
-        <h2 className="text-xs uppercase tracking-wide text-[var(--ink-3)]">Certificado</h2>
+        <h2 className="text-xs uppercase tracking-wide text-[var(--ink-3)]">{tr("Certificado")}</h2>
         {variant === "drawer" && (
           <button
             type="button"
             onClick={() => setOpen(false)}
             className="text-sm text-[var(--ink-2)] underline-offset-2 transition hover:text-[var(--ink-1)] hover:underline"
           >
-            Cerrar
+            
+            {tr("Cerrar")}
           </button>
         )}
       </div>
@@ -237,44 +240,44 @@ export default function CertificatePanel({
                 : "border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)]"
             }`}
           >
-            {CERTIFICATE_COPY[option].heading.replace("Certificado de ", "")}
+            {tr(CERTIFICATE_COPY[option].heading.replace("Certificado de ", ""))}
           </button>
         ))}
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="sm:col-span-2">
-          <Label>{CERTIFICATE_COPY[type].partyLabel}</Label>
+          <Label>{tr(CERTIFICATE_COPY[type].partyLabel)}</Label>
           <input
             type="text"
             value={party}
             onChange={(e) => setParty(e.target.value)}
-            placeholder="Familia Reyes-Becerra"
+            placeholder={tr("Familia Reyes-Becerra")}
             className={FIELD}
           />
         </label>
 
         <label>
-          <Label>Artista</Label>
+          <Label>{tr("Artista")}</Label>
           <input type="text" value={values.artist} onChange={(e) => set("artist", e.target.value)} className={FIELD} />
         </label>
         <label>
-          <Label>Fecha del certificado</Label>
+          <Label>{tr("Fecha del certificado")}</Label>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={FIELD} />
         </label>
 
         <label className="sm:col-span-2">
-          <Label>Título (puede incluir la traducción: Ciudades // Cities)</Label>
+          <Label>{tr("Título (puede incluir la traducción: Ciudades // Cities)")}</Label>
           <input type="text" value={values.title} onChange={(e) => set("title", e.target.value)} className={FIELD} />
         </label>
 
         <label className="sm:col-span-2">
-          <Label>Técnica y soporte (bilingüe)</Label>
+          <Label>{tr("Técnica y soporte (bilingüe)")}</Label>
           <input type="text" value={values.medium} onChange={(e) => set("medium", e.target.value)} className={FIELD} />
         </label>
 
         <label>
-          <Label>Dimensiones</Label>
+          <Label>{tr("Dimensiones")}</Label>
           <input
             type="text"
             value={values.dimensions}
@@ -283,23 +286,23 @@ export default function CertificatePanel({
           />
         </label>
         <label>
-          <Label>Año</Label>
+          <Label>{tr("Año")}</Label>
           <input type="text" value={values.year} onChange={(e) => set("year", e.target.value)} className={FIELD} />
         </label>
 
         <label className="sm:col-span-2">
-          <Label>Edición (se imprime como “Ed. 27/90”; vacío si es pieza única)</Label>
+          <Label>{tr("Edición (se imprime como “Ed. 27/90”; vacío si es pieza única)")}</Label>
           <input
             type="text"
             value={values.edition}
             onChange={(e) => set("edition", e.target.value)}
-            placeholder="27/90 · P/A"
+            placeholder={tr("27/90 · P/A")}
             className={FIELD}
           />
         </label>
 
         <label className="sm:col-span-2">
-          <Label>Exhibiciones (opcional)</Label>
+          <Label>{tr("Exhibiciones (opcional)")}</Label>
           <textarea
             value={values.exhibitions}
             onChange={(e) => set("exhibitions", e.target.value)}
@@ -308,7 +311,7 @@ export default function CertificatePanel({
           />
         </label>
         <label className="sm:col-span-2">
-          <Label>Publicaciones (opcional)</Label>
+          <Label>{tr("Publicaciones (opcional)")}</Label>
           <textarea
             value={values.publications}
             onChange={(e) => set("publications", e.target.value)}
@@ -326,7 +329,7 @@ export default function CertificatePanel({
           className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
         >
           <FileDown size={15} strokeWidth={1.75} aria-hidden />
-          {pending === "download" ? "Generando…" : "Descargar PDF"}
+          {pending === "download" ? tr("Generando…") : tr("Descargar PDF")}
         </button>
         <button
           type="button"
@@ -335,33 +338,37 @@ export default function CertificatePanel({
           className="inline-flex items-center gap-1.5 rounded-[var(--radius)] border border-[var(--stroke)] px-4 py-2 text-sm font-semibold text-[var(--ink-1)] transition hover:bg-[var(--hover)] disabled:opacity-40"
         >
           <Printer size={15} strokeWidth={1.75} aria-hidden />
-          {pending === "print" ? "Preparando…" : "Imprimir certificado"}
+          {pending === "print" ? tr("Preparando…") : tr("Imprimir certificado")}
         </button>
         <span className="text-xs text-[var(--ink-3)]">
-          Se incluye la imagen de la obra cuando está enlazada.
+          
+          {tr("Se incluye la imagen de la obra cuando está enlazada.")}
         </span>
       </div>
 
       {code && (
         <div className="mt-4 rounded border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
           <p>
-            Certificado emitido: <span className="font-mono">{code}</span>
+            {tr("Certificado emitido:")} <span className="font-mono">{code}</span>
           </p>
           {deaccessioned ? (
             <p className="mt-1 text-xs text-emerald-800">
-              La obra quedó marcada como de-accessed.
+              
+              {tr("La obra quedó marcada como de-accessed.")}
             </p>
           ) : (
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <span className="text-xs text-emerald-800">
-                ¿La obra sale de la colección con este certificado?
+                
+                {tr("¿La obra sale de la colección con este certificado?")}
               </span>
               <button
                 type="button"
                 onClick={() => setAskDeaccession(true)}
                 className="rounded border border-emerald-300 bg-[var(--surface)] px-3 py-1.5 text-xs text-emerald-900 transition hover:border-emerald-500"
               >
-                Marcar como de-accessed
+                
+                {tr("Marcar como de-accessed")}
               </button>
             </div>
           )}
@@ -370,16 +377,16 @@ export default function CertificatePanel({
 
       <ConfirmDialog
         open={askDeaccession}
-        title="¿Marcar la obra como de-accessed?"
-        body="La obra dejará de contar como parte del inventario. Puedes revertirlo desde la ficha."
+        title={tr("¿Marcar la obra como de-accessed?")}
+        body={tr("La obra dejará de contar como parte del inventario. Puedes revertirlo desde la ficha.")}
         detail={
           <>
-            Estatus: &quot;De-accessed:{" "}
-            {`${CERTIFICATE_COPY[type].heading.replace("Certificado de ", "")} a ${party.trim()}`}
-            {code ? ` (${code})` : ""}&quot;
+            {tr("Estatus: \"De-accessed: {detail}\"", {
+              detail: `${tr(CERTIFICATE_COPY[type].heading.replace("Certificado de ", ""))} ${tr("a")} ${party.trim()}${code ? ` (${code})` : ""}`,
+            })}
           </>
         }
-        confirmLabel="Marcar"
+        confirmLabel={tr("Marcar")}
         tone="danger"
         pending={working}
         onConfirm={deaccession}
@@ -399,21 +406,22 @@ export default function CertificatePanel({
         className="rounded border border-[var(--stroke)] px-3 py-1.5 text-[var(--ink-1)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
       >
         <Award size={15} strokeWidth={1.75} aria-hidden />
-        Generar certificado
+        
+        {tr("Generar certificado")}
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <button
             type="button"
-            aria-label="Cerrar"
+            aria-label={tr("Cerrar")}
             onClick={() => setOpen(false)}
             className="absolute inset-0 cursor-default bg-black/20"
           />
           <aside
             role="dialog"
             aria-modal="true"
-            aria-label="Generar certificado"
+            aria-label={tr("Generar certificado")}
             className="relative h-full w-full max-w-[560px] overflow-y-auto border-l border-[var(--stroke)] bg-[var(--surface)] p-5 shadow-xl"
           >
             {form}

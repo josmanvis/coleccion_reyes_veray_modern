@@ -4,10 +4,14 @@ import { listPortfolios } from "@/lib/inventory/public";
 import { formatNumber } from "@/lib/inventory/fields";
 import { CARD, MUTED } from "@/components/inventory/ui";
 import { Layers } from "lucide-react";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Portafolios · Inventario" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Portafolios · Inventario") };
+}
 
 /**
  * Portfolios are derived from the registro numbering (0012.a, 0012.b …), not a
@@ -15,6 +19,7 @@ export const metadata = { title: "Portafolios · Inventario" };
  * the sheets, which are ordinary records and editable as such.
  */
 export default async function AdminPortfolios() {
+  const tr = await getTr();
   const portfolios = listPortfolios();
   const sheets = portfolios.reduce((sum, p) => sum + p.members.length, 0);
 
@@ -23,9 +28,9 @@ export default async function AdminPortfolios() {
       <div className="border-b border-[var(--stroke-soft)] bg-[var(--surface)]">
         <div className="flex flex-wrap items-center gap-3 px-6 py-3">
           <div>
-            <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">Portafolios</h1>
+            <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">{tr("Portafolios")}</h1>
             <p className={`mt-0.5 text-sm ${MUTED}`}>
-              {formatNumber(portfolios.length)} portafolios · {formatNumber(sheets)} hojas
+              {tr("{n} portafolios · {m} hojas", { n: formatNumber(portfolios.length), m: formatNumber(sheets) })}
             </p>
           </div>
         </div>
@@ -58,10 +63,10 @@ export default async function AdminPortfolios() {
                   <span className="block truncate text-sm font-semibold text-[var(--ink-1)]">
                     {portfolio.title}
                   </span>
-                  <span className={`block text-xs ${MUTED}`}>CRV {portfolio.base}</span>
+                  <span className={`block text-xs ${MUTED}`}>{tr("CRV {base}", { base: portfolio.base })}</span>
                 </span>
                 <span className={`shrink-0 text-sm tabular-nums ${MUTED}`}>
-                  {portfolio.members.length} hojas
+                  {tr("{n} hojas", { n: portfolio.members.length })}
                 </span>
               </Link>
             );

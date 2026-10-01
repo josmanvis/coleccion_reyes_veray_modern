@@ -16,6 +16,7 @@ import { artistHrefFor, artistSlugIndex } from "@/lib/inventory/public";
 import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
 import { hrefWith, type SearchParams } from "./query";
 import { BADGE, type Tone } from "./ui";
+import { getTr } from "@/lib/i18n-server";
 
 const STATUS_TONES: Record<StatusGroup, Tone> = {
   en_inventario: "success",
@@ -24,9 +25,10 @@ const STATUS_TONES: Record<StatusGroup, Tone> = {
   sin_estatus: "neutral",
 };
 
-export function StatusPill({ group }: { group: string }) {
+export async function StatusPill({ group }: { group: string }) {
+  const tr = await getTr();
   const key = (group in STATUS_TONES ? group : "sin_estatus") as StatusGroup;
-  return <span className={BADGE[STATUS_TONES[key]]}>{STATUS_GROUPS[key]}</span>;
+  return <span className={BADGE[STATUS_TONES[key]]}>{tr(STATUS_GROUPS[key])}</span>;
 }
 
 const CELL =
@@ -53,14 +55,15 @@ function quickValues(row: ArtworkRow): Record<string, string> {
   );
 }
 
-function SortHeader({
+async function SortHeader({
   column,
   params,
 }: {
   column: (typeof COLUMNS)[number];
   params: SearchParams;
 }) {
-  if (!column.sort) return <>{column.label}</>;
+  const tr = await getTr();
+  if (!column.sort) return <>{tr(column.label)}</>;
 
   const activeSort = (params.sort as string) ?? "registro";
   const activeDir = params.dir === "desc" ? "desc" : "asc";
@@ -72,7 +75,7 @@ function SortHeader({
       href={hrefWith("/inventory", params, { sort: column.sort, dir: nextDir, page: undefined })}
       className="inline-flex items-center gap-1 transition-colors hover:text-[var(--brand-hover)]"
     >
-      {column.label}
+      {tr(column.label)}
       <span className={isActive ? "text-[var(--brand)]" : "text-[var(--ink-4)]"}>
         {isActive && activeDir === "desc" ? "↓" : "↑"}
       </span>
@@ -80,13 +83,14 @@ function SortHeader({
   );
 }
 
-export default function InventoryTable({
+export default async function InventoryTable({
   rows,
   params,
 }: {
   rows: ArtworkRow[];
   params: SearchParams;
 }) {
+  const tr = await getTr();
   // Built once per render; a per-row lookup would rebuild the whole index.
   const artistSlugs = artistSlugIndex();
 
@@ -115,7 +119,7 @@ export default function InventoryTable({
                   <ThumbPreview
                     src={row.image_full ? String(row.image_full) : row.image_thumb ? String(row.image_thumb) : null}
                     alt={row.title ? String(row.title) : ""}
-                    caption={`${row.registro} · ${row.title ? titleCase(String(row.title)) : "Sin título"}`}
+                    caption={`${row.registro} · ${row.title ? titleCase(String(row.title)) : tr("Sin título")}`}
                   />
                 </Link>
               </td>
@@ -124,7 +128,7 @@ export default function InventoryTable({
               </td>
               <td className={`${CELL} max-w-[260px]`}>
                 <Link href={`/inventory/${row.ref}`} className="line-clamp-1 hover:underline">
-                  {row.title ? titleCase(String(row.title)) : "Sin título"}
+                  {row.title ? titleCase(String(row.title)) : tr("Sin título")}
                 </Link>
               </td>
               <td className={`${CELL} max-w-[180px]`}>
@@ -174,7 +178,7 @@ export default function InventoryTable({
                 <QuickEdit
                   refId={String(row.ref)}
                   registro={String(row.registro)}
-                  title={row.title ? titleCase(String(row.title)) : "Sin título"}
+                  title={row.title ? titleCase(String(row.title)) : tr("Sin título")}
                   values={quickValues(row)}
                 />
               </td>
@@ -185,7 +189,8 @@ export default function InventoryTable({
 
       {rows.length === 0 && (
         <p className="px-5 py-16 text-center text-sm text-[var(--ink-3)]">
-          Ninguna obra coincide con estos filtros.
+          
+          {tr("Ninguna obra coincide con estos filtros.")}
         </p>
       )}
     </div>

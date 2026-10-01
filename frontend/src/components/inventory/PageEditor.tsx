@@ -15,6 +15,7 @@ import {
 import ConfirmDialog from "./ConfirmDialog";
 import ImagePicker from "./ImagePicker";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 const FIELD =
   "w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
@@ -37,6 +38,7 @@ function BlockFields({
   onPickImage: () => void;
   onPickGallery: () => void;
 }) {
+  const tr = useTr();
   const c = block.content;
   const set = (patch: Record<string, unknown>) => onChange({ ...c, ...patch });
 
@@ -45,19 +47,19 @@ function BlockFields({
       return (
         <div className="grid gap-3 sm:grid-cols-[110px_1fr]">
           <label>
-            <Label>Nivel</Label>
+            <Label>{tr("Nivel")}</Label>
             <select
               value={String(c.level ?? "h2")}
               onChange={(e) => set({ level: e.target.value })}
               className={FIELD}
             >
-              <option value="h1">H1</option>
-              <option value="h2">H2</option>
-              <option value="h3">H3</option>
+              <option value="h1">{tr("H1")}</option>
+              <option value="h2">{tr("H2")}</option>
+              <option value="h3">{tr("H3")}</option>
             </select>
           </label>
           <label>
-            <Label>Texto</Label>
+            <Label>{tr("Texto")}</Label>
             <input
               type="text"
               value={String(c.text ?? "")}
@@ -71,7 +73,7 @@ function BlockFields({
     case "text":
       return (
         <div>
-          <Label>Texto</Label>
+          <Label>{tr("Texto")}</Label>
           <RichText value={String(c.html ?? "")} onChange={(html) => set({ html })} />
         </div>
       );
@@ -80,7 +82,7 @@ function BlockFields({
       return (
         <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
           <div>
-            <Label>Imagen</Label>
+            <Label>{tr("Imagen")}</Label>
             <div className="relative aspect-square overflow-hidden rounded border border-[var(--stroke)] bg-[var(--hover)]">
               {c.url ? (
                 <Image
@@ -93,7 +95,8 @@ function BlockFields({
                 />
               ) : (
                 <span className="flex size-full items-center justify-center text-xs text-[var(--ink-3)]">
-                  Sin imagen
+                  
+                  {tr("Sin imagen")}
                 </span>
               )}
             </div>
@@ -102,12 +105,12 @@ function BlockFields({
               onClick={onPickImage}
               className={`${BTN} mt-2 w-full border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
-              {c.url ? "Cambiar" : "Elegir imagen"}
+              {c.url ? tr("Cambiar") : tr("Elegir imagen")}
             </button>
           </div>
           <div className="space-y-3">
             <label className="block">
-              <Label>Texto alternativo</Label>
+              <Label>{tr("Texto alternativo")}</Label>
               <input
                 type="text"
                 value={String(c.alt ?? "")}
@@ -116,7 +119,7 @@ function BlockFields({
               />
             </label>
             <label className="block">
-              <Label>Pie de foto</Label>
+              <Label>{tr("Pie de foto")}</Label>
               <input
                 type="text"
                 value={String(c.caption ?? "")}
@@ -132,7 +135,7 @@ function BlockFields({
       const images = Array.isArray(c.images) ? (c.images as Array<Record<string, unknown>>) : [];
       return (
         <div>
-          <Label>{images.length} imagen{images.length === 1 ? "" : "es"}</Label>
+          <Label>{tr(images.length === 1 ? "{n} imagen" : "{n} imágenes", { n: images.length })}</Label>
           {images.length > 0 && (
             <ul className="mb-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {images.map((img, i) => (
@@ -149,11 +152,12 @@ function BlockFields({
                   </span>
                   <button
                     type="button"
-                    aria-label="Quitar imagen"
+                    aria-label={tr("Quitar imagen")}
                     onClick={() => set({ images: images.filter((_, j) => j !== i) })}
                     className="absolute -right-1 -top-1 rounded-full border border-[var(--stroke)] bg-[var(--surface)] px-1.5 text-xs text-[var(--ink-2)] shadow-sm hover:border-red-400 hover:text-red-700"
                   >
-                    ×
+                    
+                    {tr("×")}
                   </button>
                 </li>
               ))}
@@ -164,7 +168,8 @@ function BlockFields({
             onClick={onPickGallery}
             className={`${BTN} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
           >
-            Añadir imágenes
+            
+            {tr("Añadir imágenes")}
           </button>
         </div>
       );
@@ -174,7 +179,7 @@ function BlockFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <label>
-            <Label>Texto del enlace</Label>
+            <Label>{tr("Texto del enlace")}</Label>
             <input
               type="text"
               value={String(c.text ?? "")}
@@ -183,12 +188,12 @@ function BlockFields({
             />
           </label>
           <label>
-            <Label>Destino</Label>
+            <Label>{tr("Destino")}</Label>
             <input
               type="text"
               value={String(c.link ?? "")}
               onChange={(e) => set({ link: e.target.value })}
-              placeholder="/gallery"
+              placeholder={tr("/gallery")}
               className={FIELD}
             />
           </label>
@@ -198,7 +203,7 @@ function BlockFields({
     case "spacer":
       return (
         <label className="block max-w-[200px]">
-          <Label>Altura (px)</Label>
+          <Label>{tr("Altura (px)")}</Label>
           <input
             type="number"
             value={Number(c.height ?? 40)}
@@ -209,11 +214,12 @@ function BlockFields({
       );
 
     default:
-      return <p className="text-sm text-[var(--ink-3)]">Sin opciones.</p>;
+      return <p className="text-sm text-[var(--ink-3)]">{tr("Sin opciones.")}</p>;
   }
 }
 
 export default function PageEditor({ page }: { page: PageRow }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
 
@@ -263,11 +269,11 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
     const body = await response.json().catch(() => ({}));
     if (response.ok) {
-      notify(`Página "${body.title}" guardada`);
+      notify(tr("Página \"{title}\" guardada", { title: body.title }));
       if (body.slug !== page.slug) router.replace(`/admin/content/${body.slug}`);
       router.refresh();
     } else {
-      notify(body.error || "No se pudo guardar", "error");
+      notify(tr(body.error || "No se pudo guardar"), "error");
     }
     setPending(false);
     setAsking(null);
@@ -279,12 +285,12 @@ export default function PageEditor({ page }: { page: PageRow }) {
       method: "DELETE",
     });
     if (response.ok) {
-      notify(`Página "${page.title}" eliminada`);
+      notify(tr("Página \"{title}\" eliminada", { title: page.title }));
       router.push("/admin/content");
       router.refresh();
     } else {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo eliminar", "error");
+      notify(tr(body.error || "No se pudo eliminar"), "error");
       setPending(false);
       setAsking(null);
     }
@@ -294,7 +300,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
     <>
       <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-[var(--stroke-soft)] bg-[var(--surface)] px-5 py-3 backdrop-blur">
         <span className="text-sm text-[var(--ink-3)]">
-          {dirty ? "Cambios sin guardar" : "Sin cambios"}
+          {dirty ? tr("Cambios sin guardar") : tr("Sin cambios")}
         </span>
         <span
           className={`rounded border px-2 py-0.5 text-xs font-medium ${
@@ -303,7 +309,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
               : "border-[var(--stroke)] bg-[var(--hover)] text-[var(--ink-2)]"
           }`}
         >
-          {draft.status === "published" ? "Publicada" : "Borrador"}
+          {draft.status === "published" ? tr("Publicada") : tr("Borrador")}
         </span>
 
         <div className="ml-auto flex items-center gap-2">
@@ -312,7 +318,8 @@ export default function PageEditor({ page }: { page: PageRow }) {
               href={`/${draft.slug}`}
               className={`${BTN} border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
-              Ver en el sitio
+              
+              {tr("Ver en el sitio")}
             </Link>
           )}
           <button
@@ -322,7 +329,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
             }
             className={`${BTN} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
           >
-            {draft.status === "published" ? "Pasar a borrador" : "Publicar"}
+            {draft.status === "published" ? tr("Pasar a borrador") : tr("Publicar")}
           </button>
           <button
             type="button"
@@ -330,14 +337,15 @@ export default function PageEditor({ page }: { page: PageRow }) {
             onClick={() => setAsking("save")}
             className={`${BTN} border-[var(--brand)] bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]`}
           >
-            Guardar
+            
+            {tr("Guardar")}
           </button>
         </div>
       </div>
 
       <section className="mb-8 grid gap-4 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] p-4 sm:grid-cols-2">
         <label>
-          <Label>Título</Label>
+          <Label>{tr("Título")}</Label>
           <input
             type="text"
             value={draft.title}
@@ -346,7 +354,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
           />
         </label>
         <label>
-          <Label>Slug (dirección pública)</Label>
+          <Label>{tr("Slug (dirección pública)")}</Label>
           <input
             type="text"
             value={draft.slug}
@@ -355,7 +363,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
           />
         </label>
         <label className="sm:col-span-2">
-          <Label>Descripción corta</Label>
+          <Label>{tr("Descripción corta")}</Label>
           <input
             type="text"
             value={draft.description ?? ""}
@@ -364,7 +372,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
           />
         </label>
         <label>
-          <Label>Meta título (SEO)</Label>
+          <Label>{tr("Meta título (SEO)")}</Label>
           <input
             type="text"
             value={draft.meta_title ?? ""}
@@ -373,7 +381,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
           />
         </label>
         <label>
-          <Label>Meta descripción (SEO)</Label>
+          <Label>{tr("Meta descripción (SEO)")}</Label>
           <input
             type="text"
             value={draft.meta_description ?? ""}
@@ -388,13 +396,13 @@ export default function PageEditor({ page }: { page: PageRow }) {
           <li key={index} className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)]">
             <header className="flex items-center gap-2 border-b border-[var(--stroke-soft)] px-4 py-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
-                {BLOCK_LABELS[block.type] ?? block.type}
+                {tr(BLOCK_LABELS[block.type] ?? block.type)}
               </span>
               <span className="text-xs text-[var(--ink-4)]">#{index + 1}</span>
               <div className="ml-auto flex items-center gap-1">
                 <button
                   type="button"
-                  aria-label="Subir bloque"
+                  aria-label={tr("Subir bloque")}
                   disabled={index === 0}
                   onClick={() => moveBlock(index, -1)}
                   className="rounded px-2 py-1 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)] disabled:opacity-30"
@@ -403,7 +411,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Bajar bloque"
+                  aria-label={tr("Bajar bloque")}
                   disabled={index === draft.blocks.length - 1}
                   onClick={() => moveBlock(index, 1)}
                   className="rounded px-2 py-1 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)] disabled:opacity-30"
@@ -415,7 +423,8 @@ export default function PageEditor({ page }: { page: PageRow }) {
                   onClick={() => setBlocks(draft.blocks.filter((_, i) => i !== index))}
                   className="rounded px-2 py-1 text-sm text-red-700 transition hover:bg-red-50"
                 >
-                  Quitar
+                  
+                  {tr("Quitar")}
                 </button>
               </div>
             </header>
@@ -435,12 +444,13 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
       {draft.blocks.length === 0 && (
         <p className="rounded border border-dashed border-[var(--stroke)] px-4 py-10 text-center text-sm text-[var(--ink-3)]">
-          Esta página todavía no tiene contenido. Añade un bloque para empezar.
+          
+          {tr("Esta página todavía no tiene contenido. Añade un bloque para empezar.")}
         </p>
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-[var(--stroke-soft)] pt-6">
-        <span className="text-xs font-medium text-[var(--ink-3)]">Añadir bloque:</span>
+        <span className="text-xs font-medium text-[var(--ink-3)]">{tr("Añadir bloque:")}</span>
         {(Object.keys(BLOCK_LABELS) as BlockType[]).map((type) => (
           <button
             key={type}
@@ -448,7 +458,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
             onClick={() => addBlock(type)}
             className={`${BTN} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
           >
-            + {BLOCK_LABELS[type]}
+            + {tr(BLOCK_LABELS[type])}
           </button>
         ))}
         <button
@@ -456,7 +466,8 @@ export default function PageEditor({ page }: { page: PageRow }) {
           onClick={() => setAsking("delete")}
           className={`${BTN} ml-auto border-red-300 text-red-800 hover:border-red-500 hover:bg-red-50 focus-visible:outline-red-700`}
         >
-          Eliminar página
+          
+          {tr("Eliminar página")}
         </button>
       </div>
 
@@ -486,18 +497,18 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
       <ConfirmDialog
         open={asking === "save"}
-        title="¿Guardar la página?"
+        title={tr("¿Guardar la página?")}
         body={
           draft.status === "published"
-            ? "Los cambios se verán en el sitio público de inmediato."
-            : "La página quedará guardada como borrador, sin publicarse."
+            ? tr("Los cambios se verán en el sitio público de inmediato.")
+            : tr("La página quedará guardada como borrador, sin publicarse.")
         }
         detail={
           <>
-            /{draft.slug} · {draft.blocks.length} bloque{draft.blocks.length === 1 ? "" : "s"}
+            /{draft.slug} · {tr(draft.blocks.length === 1 ? "{n} bloque" : "{n} bloques", { n: draft.blocks.length })}
           </>
         }
-        confirmLabel="Guardar"
+        confirmLabel={tr("Guardar")}
         pending={pending}
         onConfirm={save}
         onCancel={() => setAsking(null)}
@@ -505,10 +516,10 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
       <ConfirmDialog
         open={asking === "delete"}
-        title={`¿Eliminar "${page.title}"?`}
-        body="La página y su contenido se borran de la base de datos. No se puede deshacer."
+        title={tr("¿Eliminar \"{title}\"?", { title: page.title })}
+        body={tr("La página y su contenido se borran de la base de datos. No se puede deshacer.")}
         tone="danger"
-        confirmLabel="Sí, eliminar"
+        confirmLabel={tr("Sí, eliminar")}
         pending={pending}
         onConfirm={remove}
         onCancel={() => setAsking(null)}

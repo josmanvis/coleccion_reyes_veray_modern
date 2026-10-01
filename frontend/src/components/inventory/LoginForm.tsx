@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTr } from "@/components/I18nProvider";
 
 export default function LoginForm({ next }: { next: string }) {
+  const tr = useTr();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,7 @@ export default function LoginForm({ next }: { next: string }) {
     }
 
     const body = await response.json().catch(() => ({}));
-    setError(body.error || "No se pudo iniciar sesión");
+    setError(tr(body.error || "No se pudo iniciar sesión"));
     setPending(false);
   }
 
@@ -38,7 +40,7 @@ export default function LoginForm({ next }: { next: string }) {
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        placeholder="Usuario"
+        placeholder={tr("Usuario")}
         autoFocus
         autoComplete="username"
         className="w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--brand)]"
@@ -47,7 +49,7 @@ export default function LoginForm({ next }: { next: string }) {
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="Contraseña"
+        placeholder={tr("Contraseña")}
         autoComplete="current-password"
         className="w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--brand)]"
       />
@@ -56,7 +58,7 @@ export default function LoginForm({ next }: { next: string }) {
         disabled={pending || !password || !username}
         className="w-full rounded bg-[var(--brand)] px-3 py-2.5 text-sm text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
       >
-        {pending ? "Verificando…" : "Entrar"}
+        {pending ? tr("Verificando…") : tr("Entrar")}
       </button>
       {error && <p className="text-sm text-red-600">{error}</p>}
     </form>

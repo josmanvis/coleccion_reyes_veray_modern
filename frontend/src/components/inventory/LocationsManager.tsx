@@ -13,6 +13,7 @@ import {
 } from "@/lib/inventory/location-types";
 import ConfirmDialog from "./ConfirmDialog";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 const FIELD =
   "rounded border border-[var(--stroke)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
@@ -43,6 +44,7 @@ export default function LocationsManager({
   unparsed: UnitUsage[];
   withoutLocation: number;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [pending, setPending] = useState(false);
@@ -62,7 +64,7 @@ export default function LocationsManager({
       notify(ok);
       router.refresh();
     } catch (error) {
-      notify((error as Error).message, "error");
+      notify(tr((error as Error).message), "error");
     }
     setPending(false);
     setConfirm(null);
@@ -85,11 +87,11 @@ export default function LocationsManager({
         {[
           { label: "Edificios", value: byBuilding.size },
           { label: "Lugares distintos", value: usage.length },
-          { label: "Obras ubicadas", value: totalPlaced },
-          { label: "Sin ubicación", value: withoutLocation },
+          { label: tr("Obras ubicadas"), value: totalPlaced },
+          { label: tr("Sin ubicación"), value: withoutLocation },
         ].map((stat) => (
           <div key={stat.label} className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-3)]">{stat.label}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-3)]">{tr(stat.label)}</p>
             <p className="mt-1 text-lg font-semibold leading-none text-[var(--ink-1)]">{stat.value}</p>
           </div>
         ))}
@@ -98,11 +100,11 @@ export default function LocationsManager({
       {needsTidy.length > 0 && (
         <section>
           <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
-            Grafías por unificar · {needsTidy.length}
+            {tr("Grafías por unificar · {n}", { n: needsTidy.length })}
           </h2>
           <p className="mt-2 max-w-[75ch] text-sm text-[var(--ink-3)]">
-            El mismo lugar está escrito de varias formas. Unificar reescribe la columna
-            «Localización» de esas obras a una sola grafía; no mueve nada físicamente.
+            
+            {tr("El mismo lugar está escrito de varias formas. Unificar reescribe la columna «Localización» de esas obras a una sola grafía; no mueve nada físicamente.")}
           </p>
           <ul className="mt-3 space-y-2">
             {needsTidy.map((place) => (
@@ -111,7 +113,7 @@ export default function LocationsManager({
                 className="flex flex-wrap items-center gap-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-2.5"
               >
                 <span className="font-medium text-[var(--ink-1)]">{place.canonical}</span>
-                <span className="text-xs text-[var(--ink-3)]">{place.count} obras</span>
+                <span className="text-xs text-[var(--ink-3)]">{tr("{n} obras", { n: place.count })}</span>
                 <span className="min-w-0 flex-1 truncate font-mono text-xs text-[var(--ink-3)]">
                   {place.spellings.map((s) => `"${s.raw}"`).join("  ")}
                 </span>
@@ -120,15 +122,16 @@ export default function LocationsManager({
                   disabled={pending}
                   onClick={() =>
                     setConfirm({
-                      title: `¿Unificar a «${place.canonical}»?`,
-                      body: `${place.spellings.length} grafías distintas pasarán a escribirse igual en ${place.count} obras.`,
+                      title: tr("¿Unificar a «{canonical}»?", { canonical: place.canonical }),
+                      body: tr("{length} grafías distintas pasarán a escribirse igual en {count} obras.", { length: place.spellings.length, count: place.count }),
                       run: () =>
-                        run(() => post({ action: "normalize", key: place.key }), "Grafías unificadas"),
+                        run(() => post({ action: "normalize", key: place.key }), tr("Grafías unificadas")),
                     })
                   }
                   className={`${BTN} shrink-0 border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
                 >
-                  Unificar
+                  
+                  {tr("Unificar")}
                 </button>
               </li>
             ))}
@@ -138,17 +141,18 @@ export default function LocationsManager({
 
       <section>
         <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
-          Dónde está la colección
+          
+          {tr("Dónde está la colección")}
         </h2>
         <div className="mt-3 space-y-6">
           {[...byBuilding.entries()].map(([code, places]) => (
             <div key={code} className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)]">
               <header className="flex flex-wrap items-baseline gap-3 border-b border-[var(--stroke-soft)] px-4 py-2.5">
                 <h3 className="text-lg text-[var(--ink-1)]">
-                  {code === "—" ? "Sin edificio" : `Edificio ${code}`}
+                  {code === "—" ? tr("Sin edificio") : tr("Edificio {code}", { code })}
                 </h3>
                 <span className="text-xs text-[var(--ink-3)]">
-                  {places.length} lugares · {places.reduce((s, p) => s + p.count, 0)} obras
+                  {tr("{n} lugares · {m} obras", { n: places.length, m: places.reduce((s, p) => s + p.count, 0) })}
                 </span>
               </header>
               <ul className="divide-y divide-[var(--stroke-soft)]">
@@ -157,19 +161,20 @@ export default function LocationsManager({
                     <span className="min-w-0 flex-1 truncate text-sm text-[var(--ink-1)]">
                       {place.kind ? (
                         <span className="mr-2 rounded bg-[var(--hover)] px-1.5 py-0.5 text-xs font-medium text-[var(--ink-2)]">
-                          {UNIT_LABELS[place.kind]}
+                          {tr(UNIT_LABELS[place.kind])}
                         </span>
                       ) : null}
                       {place.canonical || place.spellings[0]?.raw}
                     </span>
                     <span className="shrink-0 text-xs tabular-nums text-[var(--ink-3)]">
-                      {place.count} obras
+                      {tr("{n} obras", { n: place.count })}
                     </span>
                     <Link
                       href={`/inventory?location=${encodeURIComponent(place.spellings[0].raw)}`}
                       className="shrink-0 text-xs font-medium text-[var(--ink-2)] underline-offset-2 hover:underline"
                     >
-                      Ver
+                      
+                      {tr("Ver")}
                     </Link>
                   </li>
                 ))}
@@ -182,11 +187,12 @@ export default function LocationsManager({
       {unparsed.length > 0 && (
         <section>
           <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
-            Sin edificio reconocido
+            
+            {tr("Sin edificio reconocido")}
           </h2>
           <p className="mt-2 text-sm text-[var(--ink-3)]">
-            Estas obras registran un lugar que no es 480 ni 482 — casas de familia, préstamos y
-            similares. Se dejan como están.
+            
+            {tr("Estas obras registran un lugar que no es 480 ni 482 — casas de familia, préstamos y similares. Se dejan como están.")}
           </p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {unparsed.flatMap((g) => g.spellings).map((s) => (
@@ -203,16 +209,17 @@ export default function LocationsManager({
 
       <section>
         <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
-          Registro de edificios y unidades
+          
+          {tr("Registro de edificios y unidades")}
         </h2>
         <p className="mt-2 max-w-[75ch] text-sm text-[var(--ink-3)]">
-          Da de alta gavetas, cajas, palomares o archivos por adelantado — en cualquier edificio —
-          para poder asignarlos aunque todavía no haya obras dentro.
+          
+          {tr("Da de alta gavetas, cajas, palomares o archivos por adelantado — en cualquier edificio — para poder asignarlos aunque todavía no haya obras dentro.")}
         </p>
 
         <div className="mt-4 grid gap-6 lg:grid-cols-2">
           <div>
-            <h3 className="mb-2 text-xs font-medium text-[var(--ink-3)]">Edificios</h3>
+            <h3 className="mb-2 text-xs font-medium text-[var(--ink-3)]">{tr("Edificios")}</h3>
             <ul className="mb-3 space-y-1.5">
               {buildings.map((building) => (
                 <li
@@ -228,23 +235,24 @@ export default function LocationsManager({
                     disabled={pending}
                     onClick={() =>
                       setConfirm({
-                        title: `¿Eliminar el edificio ${building.code}?`,
-                        body: "Se borran también sus unidades registradas. No cambia la columna «Localización» de ninguna obra.",
+                        title: tr("¿Eliminar el edificio {code}?", { code: building.code }),
+                        body: tr("Se borran también sus unidades registradas. No cambia la columna «Localización» de ninguna obra."),
                         run: () =>
                           run(
                             () => post({ action: "delete_building", id: building.id }),
-                            "Edificio eliminado"
+                            tr("Edificio eliminado")
                           ),
                       })
                     }
                     className="shrink-0 text-xs text-red-700 hover:underline"
                   >
-                    Eliminar
+                    
+                    {tr("Eliminar")}
                   </button>
                 </li>
               ))}
               {buildings.length === 0 && (
-                <li className="text-sm text-[var(--ink-3)]">Todavía no hay edificios registrados.</li>
+                <li className="text-sm text-[var(--ink-3)]">{tr("Todavía no hay edificios registrados.")}</li>
               )}
             </ul>
             <form
@@ -253,20 +261,20 @@ export default function LocationsManager({
                 e.preventDefault();
                 run(
                   () => post({ action: "create_building", ...newBuilding }),
-                  `Edificio ${newBuilding.code} añadido`
+                  tr("Edificio {code} añadido", { code: newBuilding.code })
                 ).then(() => setNewBuilding({ code: "", name: "" }));
               }}
             >
               <input
                 value={newBuilding.code}
                 onChange={(e) => setNewBuilding({ ...newBuilding, code: e.target.value })}
-                placeholder="Código (480)"
+                placeholder={tr("Código (480)")}
                 className={`${FIELD} w-32`}
               />
               <input
                 value={newBuilding.name}
                 onChange={(e) => setNewBuilding({ ...newBuilding, name: e.target.value })}
-                placeholder="Nombre (opcional)"
+                placeholder={tr("Nombre (opcional)")}
                 className={`${FIELD} flex-1`}
               />
               <button
@@ -274,14 +282,15 @@ export default function LocationsManager({
                 disabled={!newBuilding.code.trim() || pending}
                 className={`${BTN} border-[var(--brand)] bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]`}
               >
-                Añadir
+                
+                {tr("Añadir")}
               </button>
             </form>
           </div>
 
           <div>
             <h3 className="mb-2 text-xs font-medium text-[var(--ink-3)]">
-              Unidades registradas ({units.length})
+              {tr("Unidades registradas ({n})", { n: units.length })}
             </h3>
             <ul className="mb-3 max-h-64 space-y-1.5 overflow-y-auto pr-1">
               {units.map((unit) => (
@@ -290,23 +299,24 @@ export default function LocationsManager({
                   className="flex items-center gap-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-3 py-2 text-sm"
                 >
                   <span className="text-[var(--ink-1)]">
-                    {unit.building} · {UNIT_LABELS[unit.kind]} {unit.label}
-                    {unit.room ? ` · Sala ${unit.room}` : ""}
+                    {unit.building} · {tr(UNIT_LABELS[unit.kind])} {unit.label}
+                    {unit.room ? ` · ${tr("Sala {room}", { room: unit.room })}` : ""}
                   </span>
                   <button
                     type="button"
                     disabled={pending}
                     onClick={() =>
-                      run(() => post({ action: "delete_unit", id: unit.id }), "Unidad eliminada")
+                      run(() => post({ action: "delete_unit", id: unit.id }), tr("Unidad eliminada"))
                     }
                     className="ml-auto shrink-0 text-xs text-red-700 hover:underline"
                   >
-                    Quitar
+                    
+                    {tr("Quitar")}
                   </button>
                 </li>
               ))}
               {units.length === 0 && (
-                <li className="text-sm text-[var(--ink-3)]">Ninguna unidad dada de alta todavía.</li>
+                <li className="text-sm text-[var(--ink-3)]">{tr("Ninguna unidad dada de alta todavía.")}</li>
               )}
             </ul>
 
@@ -323,7 +333,7 @@ export default function LocationsManager({
                       label: newUnit.label,
                       room: newUnit.room,
                     }),
-                  "Unidad añadida"
+                  tr("Unidad añadida")
                 ).then(() => setNewUnit({ ...newUnit, label: "", room: "" }));
               }}
             >
@@ -332,7 +342,7 @@ export default function LocationsManager({
                 onChange={(e) => setNewUnit({ ...newUnit, building_id: e.target.value })}
                 className={`${FIELD} w-28`}
               >
-                <option value="">Edificio</option>
+                <option value="">{tr("Edificio")}</option>
                 {buildings.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.code}
@@ -346,20 +356,20 @@ export default function LocationsManager({
               >
                 {UNIT_KINDS.map((k) => (
                   <option key={k} value={k}>
-                    {UNIT_LABELS[k]}
+                    {tr(UNIT_LABELS[k])}
                   </option>
                 ))}
               </select>
               <input
                 value={newUnit.label}
                 onChange={(e) => setNewUnit({ ...newUnit, label: e.target.value })}
-                placeholder="Número"
+                placeholder={tr("Número")}
                 className={`${FIELD} w-24`}
               />
               <input
                 value={newUnit.room}
                 onChange={(e) => setNewUnit({ ...newUnit, room: e.target.value })}
-                placeholder="Sala"
+                placeholder={tr("Sala")}
                 className={`${FIELD} w-20`}
               />
               <button
@@ -367,7 +377,8 @@ export default function LocationsManager({
                 disabled={!newUnit.building_id || !newUnit.label.trim() || pending}
                 className={`${BTN} border-[var(--brand)] bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]`}
               >
-                Añadir
+                
+                {tr("Añadir")}
               </button>
             </form>
           </div>
@@ -378,7 +389,7 @@ export default function LocationsManager({
         open={confirm !== null}
         title={confirm?.title ?? ""}
         body={confirm?.body}
-        confirmLabel="Confirmar"
+        confirmLabel={tr("Confirmar")}
         pending={pending}
         onConfirm={() => confirm?.run()}
         onCancel={() => setConfirm(null)}

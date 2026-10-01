@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 };
 
 import ChatWidget from "@/components/ChatWidget";
+import I18nProvider from "@/components/I18nProvider";
 
 export default async function RootLayout({
   children,
@@ -38,8 +39,10 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${serif.variable} ${display.variable} ${ui.variable}`}>
       <body className="antialiased min-h-screen selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
-        {children}
-        <ChatWidget locale={locale} />
+        <I18nProvider locale={locale}>
+          {children}
+          <ChatWidget locale={locale} />
+        </I18nProvider>
       </body>
     </html>
   );

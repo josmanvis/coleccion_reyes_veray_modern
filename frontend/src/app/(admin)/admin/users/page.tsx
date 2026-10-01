@@ -3,11 +3,16 @@ import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/ses
 import { listUsers } from "@/lib/inventory/users";
 import { CARD, MUTED } from "@/components/inventory/ui";
 import UsersManager from "@/components/inventory/UsersManager";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Usuarios · CRVMGMT" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Usuarios · CRVMGMT") };
+}
 
 export default async function UsersPage() {
+  const tr = await getTr();
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   const allowed = session ? canManageUsers(session.role) : false;
@@ -16,10 +21,10 @@ export default async function UsersPage() {
     <>
       <div className="border-b border-[var(--stroke-soft)] bg-[var(--surface)]">
         <div className="px-6 py-3">
-          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">Usuarios</h1>
+          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">{tr("Usuarios")}</h1>
           <p className={`mt-0.5 text-sm ${MUTED}`}>
-            Cuentas de CRVMGMT. Las contraseñas no se guardan en texto plano: se restablecen, no se
-            consultan.
+            
+            {tr("Cuentas de CRVMGMT. Las contraseñas no se guardan en texto plano: se restablecen, no se consultan.")}
           </p>
         </div>
       </div>
@@ -29,7 +34,8 @@ export default async function UsersPage() {
           <UsersManager users={listUsers()} actorRole={session!.role} actorId={session!.userId} />
         ) : (
           <div className={`${CARD} p-4 text-sm ${MUTED}`}>
-            Solo un administrador puede gestionar usuarios.
+            
+            {tr("Solo un administrador puede gestionar usuarios.")}
           </div>
         )}
       </div>

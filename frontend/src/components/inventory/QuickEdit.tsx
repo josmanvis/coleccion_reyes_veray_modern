@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FIELD_BY_KEY, QUICK_EDIT_KEYS } from "@/lib/inventory/fields";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 export type QuickValues = Record<string, string>;
 
@@ -24,6 +25,7 @@ export default function QuickEdit({
   title: string;
   values: QuickValues;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [open, setOpen] = useState(false);
@@ -63,15 +65,13 @@ export default function QuickEdit({
 
     if (response.ok) {
       notify(
-        `#${registro}: ${changed.length} campo${changed.length === 1 ? "" : "s"} actualizado${
-          changed.length === 1 ? "" : "s"
-        }`
+        tr(changed.length === 1 ? "#{registro}: {n} campo actualizado" : "#{registro}: {n} campos actualizados", { registro, n: changed.length })
       );
       setOpen(false);
       router.refresh();
     } else {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo guardar", "error");
+      notify(tr(body.error || "No se pudo guardar"), "error");
     }
     setPending(false);
   }
@@ -83,14 +83,15 @@ export default function QuickEdit({
         onClick={openPanel}
         className="rounded border border-[var(--stroke)] px-2 py-1 text-xs text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
       >
-        Editar
+        
+        {tr("Editar")}
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <button
             type="button"
-            aria-label="Cerrar"
+            aria-label={tr("Cerrar")}
             onClick={() => setOpen(false)}
             className="absolute inset-0 cursor-default bg-black/20"
           />
@@ -98,17 +99,18 @@ export default function QuickEdit({
           <aside
             role="dialog"
             aria-modal="true"
-            aria-label={`Editar ${title}`}
+            aria-label={tr("Editar {title}", { title })}
             className="relative flex h-full w-full max-w-[460px] flex-col border-l border-[var(--stroke)] bg-[var(--surface)] shadow-xl"
           >
             <header className="border-b border-[var(--stroke-soft)] px-5 py-4">
-              <p className="font-mono text-xs text-[var(--ink-3)]">CRV #{registro}</p>
+              <p className="font-mono text-xs text-[var(--ink-3)]">{tr("CRV #{n}", { n: registro })}</p>
               <h2 className="mt-0.5 text-base font-semibold leading-tight">{title}</h2>
               <Link
                 href={`/admin/artwork/${encodeURIComponent(refId)}`}
                 className="mt-1.5 inline-block text-xs text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-1)] hover:underline"
               >
-                Editar todos los campos →
+                
+                {tr("Editar todos los campos →")}
               </Link>
             </header>
 
@@ -122,7 +124,7 @@ export default function QuickEdit({
                 return (
                   <label key={key} className="flex flex-col gap-1">
                     <span className="flex items-center gap-1.5 text-xs text-[var(--ink-3)]">
-                      {field.label}
+                      {tr(field.label)}
                       {isDirty && <span className="size-1.5 rounded-full bg-amber-500" />}
                     </span>
                     {isLong ? (
@@ -149,10 +151,8 @@ export default function QuickEdit({
             <footer className="flex items-center gap-3 border-t border-[var(--stroke-soft)] px-5 py-3">
               <span className="text-xs text-[var(--ink-3)]">
                 {changed.length === 0
-                  ? "Sin cambios"
-                  : `${changed.length} campo${changed.length === 1 ? "" : "s"} modificado${
-                      changed.length === 1 ? "" : "s"
-                    }`}
+                  ? tr("Sin cambios")
+                  : tr(changed.length === 1 ? "{n} campo modificado" : "{n} campos modificados", { n: changed.length })}
               </span>
               <div className="ml-auto flex items-center gap-2">
                 <button
@@ -160,7 +160,8 @@ export default function QuickEdit({
                   onClick={() => setOpen(false)}
                   className="rounded border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
                 >
-                  Cancelar
+                  
+                  {tr("Cancelar")}
                 </button>
                 <button
                   type="button"
@@ -168,7 +169,7 @@ export default function QuickEdit({
                   disabled={changed.length === 0 || pending}
                   className="rounded bg-[var(--brand)] px-4 py-1.5 text-sm text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
                 >
-                  {pending ? "Guardando…" : "Guardar"}
+                  {pending ? tr("Guardando…") : tr("Guardar")}
                 </button>
               </div>
             </footer>

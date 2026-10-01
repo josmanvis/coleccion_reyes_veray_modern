@@ -9,9 +9,13 @@ import SettingsForm from "@/components/inventory/SettingsForm";
 import AppearanceCard from "@/components/inventory/AppearanceCard";
 import LanguageCard from "@/components/inventory/LanguageCard";
 import { getLocale } from "@/lib/i18n-server";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Ajustes · CRVMGMT" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Ajustes · CRVMGMT") };
+}
 
 /**
  * The addresses another machine would type. Only IPv4 and only real interfaces:
@@ -26,6 +30,7 @@ function networkAddresses(port: string): string[] {
 }
 
 export default async function SettingsPage() {
+  const tr = await getTr();
   const store = await cookies();
   const host = (await headers()).get("host") ?? "";
   const port = host.includes(":") ? host.slice(host.lastIndexOf(":") + 1) : "9182";
@@ -37,11 +42,11 @@ export default async function SettingsPage() {
     <>
       <div className="border-b border-[var(--stroke-soft)] bg-[var(--surface)]">
         <div className="px-6 py-3">
-          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">Ajustes</h1>
+          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">{tr("Ajustes")}</h1>
           <p className={`mt-0.5 text-sm ${MUTED}`}>
             {session && canManageUsers(session.role)
-              ? "Preferencias de CRVMGMT y de tu cuenta."
-              : "Tu cuenta. Los ajustes generales los cambia un administrador."}
+              ? tr("Preferencias de CRVMGMT y de tu cuenta.")
+              : tr("Tu cuenta. Los ajustes generales los cambia un administrador.")}
           </p>
         </div>
       </div>

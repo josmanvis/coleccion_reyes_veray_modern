@@ -6,6 +6,7 @@ import { Check, Palette, Trash2, Upload } from "lucide-react";
 import { ACCENT_PRESETS, accentTokens, initialsOf, normalizeHex } from "@/lib/inventory/theme";
 import { BTN, CARD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * Each person's own accent and picture.
@@ -30,6 +31,7 @@ export default function AppearanceCard({
   accent: string;
   avatar: string | null;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [chosen, setChosen] = useState(normalizeHex(accent));
@@ -47,10 +49,10 @@ export default function AppearanceCard({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        notify(data.error || "No se pudo guardar", "error");
+        notify(tr(data.error || "No se pudo guardar"), "error");
         return false;
       }
-      notify("Apariencia actualizada");
+      notify(tr("Apariencia actualizada"));
       // The accent lives on the shell, which the server renders.
       router.refresh();
       return true;
@@ -74,7 +76,7 @@ export default function AppearanceCard({
     canvas.height = AVATAR_PX;
 
     const context = canvas.getContext("2d");
-    if (!context) throw new Error("El navegador no pudo procesar la imagen");
+    if (!context) throw new Error(tr("El navegador no pudo procesar la imagen"));
     context.drawImage(
       bitmap,
       (bitmap.width - side) / 2,
@@ -96,7 +98,7 @@ export default function AppearanceCard({
     if (!file) return;
 
     if (!/^image\//.test(file.type)) {
-      notify("Elige un archivo de imagen", "error");
+      notify(tr("Elige un archivo de imagen"), "error");
       return;
     }
     try {
@@ -104,7 +106,7 @@ export default function AppearanceCard({
       setPicture(dataUrl);
       if (!(await save({ avatar: dataUrl }))) setPicture(avatar);
     } catch (error) {
-      notify((error as Error).message, "error");
+      notify(tr((error as Error).message), "error");
     }
   }
 
@@ -114,15 +116,17 @@ export default function AppearanceCard({
     <section className={`${CARD} p-4`}>
       <h2 className="flex items-center gap-2 text-sm font-semibold">
         <Palette size={16} strokeWidth={1.75} aria-hidden />
-        Apariencia
+        
+        {tr("Apariencia")}
       </h2>
       <p className={`mt-1 text-sm ${MUTED}`}>
-        Tu color y tu imagen. Solo cambian lo que tú ves, y la inicial que ven los demás.
+        
+        {tr("Tu color y tu imagen. Solo cambian lo que tú ves, y la inicial que ven los demás.")}
       </p>
 
       <div className="mt-3 flex flex-wrap items-start gap-6">
         <div>
-          <span className={LABEL}>Imagen</span>
+          <span className={LABEL}>{tr("Imagen")}</span>
           <div className="flex items-center gap-2">
             <span className="grid h-14 w-14 place-items-center overflow-hidden rounded-full ring-1 ring-[var(--stroke)]">
               {picture ? (
@@ -153,7 +157,8 @@ export default function AppearanceCard({
                 className={BTN}
               >
                 <Upload size={14} strokeWidth={1.75} aria-hidden />
-                Subir
+                
+                {tr("Subir")}
               </button>
               {picture && (
                 <button
@@ -166,7 +171,8 @@ export default function AppearanceCard({
                   className={BTN}
                 >
                   <Trash2 size={14} strokeWidth={1.75} aria-hidden />
-                  Quitar
+                  
+                  {tr("Quitar")}
                 </button>
               )}
             </div>
@@ -174,7 +180,7 @@ export default function AppearanceCard({
         </div>
 
         <div className="min-w-[260px] flex-1">
-          <span className={LABEL}>Color</span>
+          <span className={LABEL}>{tr("Color")}</span>
           <div className="flex flex-wrap gap-1.5">
             {ACCENT_PRESETS.map((preset) => (
               <button
@@ -182,8 +188,8 @@ export default function AppearanceCard({
                 type="button"
                 onClick={() => void pickAccent(preset.hex)}
                 disabled={pending}
-                aria-label={preset.label}
-                title={preset.label}
+                aria-label={tr(preset.label)}
+                title={tr(preset.label)}
                 className="grid h-8 w-8 place-items-center rounded-full ring-offset-2 transition-transform hover:scale-110 disabled:opacity-60"
                 style={{
                   background: preset.hex,
@@ -199,14 +205,14 @@ export default function AppearanceCard({
           </div>
 
           <label className="mt-3 flex items-center gap-2">
-            <span className="text-xs font-semibold text-[var(--ink-2)]">O el tuyo</span>
+            <span className="text-xs font-semibold text-[var(--ink-2)]">{tr("O el tuyo")}</span>
             <input
               type="color"
               value={chosen}
               onChange={(event) => setChosen(normalizeHex(event.target.value))}
               onBlur={() => void pickAccent(chosen)}
               className="h-8 w-12 cursor-pointer rounded-[var(--radius)] border border-[var(--stroke)] bg-[var(--surface)] p-0.5"
-              aria-label="Color personalizado"
+              aria-label={tr("Color personalizado")}
             />
             <code className="font-mono text-xs text-[var(--ink-3)]">{chosen}</code>
           </label>

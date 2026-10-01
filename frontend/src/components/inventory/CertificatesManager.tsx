@@ -15,6 +15,7 @@ import {
 import { BADGE, BTN, BTN_PRIMARY, BTN_SUBTLE, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
+import { useTr } from "@/components/I18nProvider";
 
 export type CertificateRow = CertificateRecord & {
   /** The linked ficha, for the "Obra" column. */
@@ -23,8 +24,8 @@ export type CertificateRow = CertificateRecord & {
 
 type Filter = "todos" | CertificateType | "revisar";
 
-function typeLabel(type: string): string {
-  const word = (CERTIFICATE_COPY[type as CertificateType]?.heading ?? type).replace("Certificado de ", "");
+function typeLabel(type: string, tr: (es: string) => string): string {
+  const word = tr((CERTIFICATE_COPY[type as CertificateType]?.heading ?? type).replace("Certificado de ", ""));
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
@@ -39,6 +40,7 @@ function sortKey(registro: string | null): string {
  * its type and number, so fixing either renames it.
  */
 export default function CertificatesManager({ rows }: { rows: CertificateRow[] }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [query, setQuery] = useState("");
@@ -65,7 +67,7 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
       if (group.length < 2) continue;
       [...group]
         .sort((a, b) => a.id - b.id)
-        .forEach((row, index) => result.set(row.id, `versión ${index + 1} de ${group.length}`));
+        .forEach((row, index) => result.set(row.id, tr("versión {v} de {length}", { v: index + 1, length: group.length })));
     }
     return result;
   }, [rows]);
@@ -119,10 +121,10 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
         added++;
       } else {
         const body = await response.json().catch(() => ({}));
-        notify(`${file.name}: ${body.error || "no se pudo guardar"}`, "error");
+        notify(`${file.name}: ${tr(body.error || "no se pudo guardar")}`, "error");
       }
     }
-    if (added) notify(`${added} certificado(s) guardado(s)`);
+    if (added) notify(tr("{n} certificado(s) guardado(s)", { n: added }));
     if (upload.current) upload.current.value = "";
     setBusy(false);
     router.refresh();
@@ -141,11 +143,11 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
     setBusy(false);
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo guardar", "error");
+      notify(tr(body.error || "No se pudo guardar"), "error");
       return;
     }
     const updated = (await response.json()) as CertificateRecord;
-    notify(`Guardado como ${certificateDisplayName(updated.type, updated.registro)}`);
+    notify(tr("Guardado como {name}", { name: certificateDisplayName(updated.type, updated.registro) }));
     setEditing(null);
     router.refresh();
   }
@@ -156,10 +158,10 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
     const response = await fetch(`/api/admin/certificates/${removing.id}`, { method: "DELETE" });
     setBusy(false);
     if (response.ok) {
-      notify("Certificado eliminado");
+      notify(tr("Certificado eliminado"));
       router.refresh();
     } else {
-      notify("No se pudo eliminar", "error");
+      notify(tr("No se pudo eliminar"), "error");
     }
     setRemoving(null);
   }
@@ -187,17 +189,17 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por CRV, artista, título o persona…"
+          placeholder={tr("Buscar por CRV, artista, título o persona…")}
           className={`${FIELD} max-w-[360px]`}
         />
         <select
           value={order}
           onChange={(e) => setOrder(e.target.value as "fecha" | "crv")}
           className={`${FIELD} w-auto`}
-          aria-label="Ordenar"
+          aria-label={tr("Ordenar")}
         >
-          <option value="fecha">Más recientes</option>
-          <option value="crv">Por número CRV</option>
+          <option value="fecha">{tr("Más recientes")}</option>
+          <option value="crv">{tr("Por número CRV")}</option>
         </select>
         <div className="ml-auto">
           <input
@@ -210,19 +212,19 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
           />
           <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={() => upload.current?.click()}>
             <Upload size={15} strokeWidth={1.75} aria-hidden />
-            {busy ? "Guardando…" : "Subir certificado"}
+            {busy ? tr("Guardando…") : tr("Subir certificado")}
           </button>
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {chip("todos", "Todos")}
-        {CERTIFICATE_TYPES.map((type) => chip(type, typeLabel(type)))}
-        {counts.revisar > 0 && chip("revisar", "Por revisar")}
+        {chip("todos", tr("Todos"))}
+        {CERTIFICATE_TYPES.map((type) => chip(type, typeLabel(type, tr)))}
+        {counts.revisar > 0 && chip("revisar", tr("Por revisar"))}
       </div>
 
       <div className={`${CARD} mt-4 overflow-hidden`}>
-        {visible.length === 0 && <p className={`px-4 py-8 text-center text-sm ${MUTED}`}>Ningún certificado coincide.</p>}
+        {visible.length === 0 && <p className={`px-4 py-8 text-center text-sm ${MUTED}`}>{tr("Ningún certificado coincide.")}</p>}
         <ul className="divide-y divide-[var(--stroke-soft)]">
           {visible.map((row) => {
             const open = expanded === row.id;
@@ -250,7 +252,8 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
                         {needsReview(row) && (
                           <span className={BADGE.warning}>
                             <AlertTriangle size={12} className="mr-1" aria-hidden />
-                            Revisar
+                            
+                            {tr("Revisar")}
                           </span>
                         )}
                       </span>
@@ -264,7 +267,7 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
                     {row.party || <span className={MUTED}>—</span>}
                   </span>
                   <span className={`w-[150px] text-xs ${MUTED}`}>
-                    {row.issued_on ? spanishDate(row.issued_on) : "Sin fecha"}
+                    {row.issued_on ? spanishDate(row.issued_on) : tr("Sin fecha")}
                   </span>
 
                   <span className="ml-auto flex items-center gap-1">
@@ -272,23 +275,24 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
                       <a
                         href={`/api/admin/certificates/${row.id}/file`}
                         className={BTN_SUBTLE}
-                        title={`Descargar ${name}.${row.file_ext}`}
+                        title={tr("Descargar {file}", { file: `${name}.${row.file_ext}` })}
                       >
                         <Download size={15} strokeWidth={1.75} aria-hidden />
-                        <span className="sr-only">Descargar</span>
+                        <span className="sr-only">{tr("Descargar")}</span>
                       </a>
                     ) : (
-                      <span className={`px-2 text-xs ${MUTED}`} title="Emitido antes de que se guardaran los archivos">
-                        sin archivo
+                      <span className={`px-2 text-xs ${MUTED}`} title={tr("Emitido antes de que se guardaran los archivos")}>
+                        
+                        {tr("sin archivo")}
                       </span>
                     )}
-                    <button type="button" className={BTN_SUBTLE} onClick={() => setEditing(row)} title="Editar">
+                    <button type="button" className={BTN_SUBTLE} onClick={() => setEditing(row)} title={tr("Editar")}>
                       <Pencil size={15} strokeWidth={1.75} aria-hidden />
-                      <span className="sr-only">Editar</span>
+                      <span className="sr-only">{tr("Editar")}</span>
                     </button>
-                    <button type="button" className={BTN_SUBTLE} onClick={() => setRemoving(row)} title="Eliminar">
+                    <button type="button" className={BTN_SUBTLE} onClick={() => setRemoving(row)} title={tr("Eliminar")}>
                       <Trash2 size={15} strokeWidth={1.75} aria-hidden />
-                      <span className="sr-only">Eliminar</span>
+                      <span className="sr-only">{tr("Eliminar")}</span>
                     </button>
                   </span>
                 </div>
@@ -304,29 +308,29 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
                       {row.body_text ? (
                         <pre className="whitespace-pre-wrap font-[inherit] text-[var(--ink-2)]">{row.body_text}</pre>
                       ) : (
-                        <p className={MUTED}>Generado por la app; descarga el PDF para verlo.</p>
+                        <p className={MUTED}>{tr("Generado por la app; descarga el PDF para verlo.")}</p>
                       )}
                     </div>
                     <dl className="space-y-1.5 text-xs">
                       <div>
-                        <dt className={MUTED}>Ficha</dt>
+                        <dt className={MUTED}>{tr("Ficha")}</dt>
                         <dd>
                           {row.artwork ? (
                             <Link href={`/inventory/${encodeURIComponent(row.artwork.ref)}`} className="text-[var(--brand)] hover:underline">
                               {row.artwork.ref} · {row.artwork.title}
                             </Link>
                           ) : (
-                            "Sin enlazar"
+                            tr("Sin enlazar")
                           )}
                         </dd>
                       </div>
                       <div>
-                        <dt className={MUTED}>Origen</dt>
-                        <dd>{row.source === "generado" ? `Generado en la app (${row.code})` : "Word, archivo existente"}</dd>
+                        <dt className={MUTED}>{tr("Origen")}</dt>
+                        <dd>{row.source === "generado" ? tr("Generado en la app ({code})", { code: row.code }) : tr("Word, archivo existente")}</dd>
                       </div>
                       {row.original_name && (
                         <div>
-                          <dt className={MUTED}>Archivo original</dt>
+                          <dt className={MUTED}>{tr("Archivo original")}</dt>
                           <dd className="break-words">{row.original_name}</dd>
                         </div>
                       )}
@@ -341,52 +345,53 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
 
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button type="button" aria-label="Cerrar" onClick={() => setEditing(null)} className="absolute inset-0 cursor-default bg-black/20" />
+          <button type="button" aria-label={tr("Cerrar")} onClick={() => setEditing(null)} className="absolute inset-0 cursor-default bg-black/20" />
           <form
             onSubmit={onSave}
             role="dialog"
             aria-modal="true"
-            aria-label="Editar certificado"
+            aria-label={tr("Editar certificado")}
             className={`${CARD} relative w-full max-w-[480px] p-5`}
           >
-            <h2 className="text-base font-semibold">Editar certificado</h2>
+            <h2 className="text-base font-semibold">{tr("Editar certificado")}</h2>
             <p className={`mt-1 text-xs ${MUTED}`}>
-              El nombre se forma con el tipo y el número: «Certificado de &lt;tipo&gt; CRV &lt;número&gt;».
+              {tr("El nombre se forma con el tipo y el número: «Certificado de <tipo> CRV <número>».")}
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label>
-                <span className={LABEL}>Tipo</span>
+                <span className={LABEL}>{tr("Tipo")}</span>
                 <select name="type" defaultValue={editing.type} className={FIELD}>
                   {CERTIFICATE_TYPES.map((type) => (
                     <option key={type} value={type}>
-                      {typeLabel(type)}
+                      {typeLabel(type, tr)}
                     </option>
                   ))}
                 </select>
               </label>
               <label>
-                <span className={LABEL}>Número CRV</span>
-                <input name="registro" defaultValue={editing.registro ?? ""} placeholder="1254.a" className={FIELD} />
+                <span className={LABEL}>{tr("Número CRV")}</span>
+                <input name="registro" defaultValue={editing.registro ?? ""} placeholder={tr("1254.a")} className={FIELD} />
               </label>
               <label className="sm:col-span-2">
-                <span className={LABEL}>Persona o entidad</span>
+                <span className={LABEL}>{tr("Persona o entidad")}</span>
                 <input name="party" defaultValue={editing.party ?? ""} className={FIELD} />
               </label>
               <label>
-                <span className={LABEL}>Fecha otorgado</span>
+                <span className={LABEL}>{tr("Fecha otorgado")}</span>
                 <input type="date" name="issued_on" defaultValue={editing.issued_on ?? ""} className={FIELD} />
               </label>
               <label className="sm:col-span-2">
-                <span className={LABEL}>Notas (vacío para marcarlo como revisado)</span>
+                <span className={LABEL}>{tr("Notas (vacío para marcarlo como revisado)")}</span>
                 <textarea name="notes" defaultValue={editing.notes ?? ""} rows={3} className={FIELD} />
               </label>
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <button type="button" className={BTN} onClick={() => setEditing(null)}>
-                Cancelar
+                
+                {tr("Cancelar")}
               </button>
               <button type="submit" className={BTN_PRIMARY} disabled={busy}>
-                {busy ? "Guardando…" : "Guardar"}
+                {busy ? tr("Guardando…") : tr("Guardar")}
               </button>
             </div>
           </form>
@@ -395,10 +400,10 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
 
       <ConfirmDialog
         open={removing !== null}
-        title="¿Eliminar este certificado?"
-        body="Sale del registro. El archivo se mueve a la papelera de certificados en el servidor, no se borra."
+        title={tr("¿Eliminar este certificado?")}
+        body={tr("Sale del registro. El archivo se mueve a la papelera de certificados en el servidor, no se borra.")}
         detail={removing ? certificateDisplayName(removing.type, removing.registro) : null}
-        confirmLabel="Eliminar"
+        confirmLabel={tr("Eliminar")}
         tone="danger"
         pending={busy}
         onConfirm={onDelete}

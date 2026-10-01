@@ -3,12 +3,15 @@ import Image from "next/image";
 import { artistName, formatMoney, titleCase } from "@/lib/inventory/fields";
 import type { ArtworkRow } from "@/lib/inventory/db";
 import { StatusPill } from "./InventoryTable";
+import { getTr } from "@/lib/i18n-server";
 
-export default function InventoryGrid({ rows }: { rows: ArtworkRow[] }) {
+export default async function InventoryGrid({ rows }: { rows: ArtworkRow[] }) {
+  const tr = await getTr();
   if (rows.length === 0) {
     return (
       <p className="px-5 py-16 text-center text-sm text-[var(--ink-3)]">
-        Ninguna obra coincide con estos filtros.
+        
+        {tr("Ninguna obra coincide con estos filtros.")}
       </p>
     );
   }
@@ -29,7 +32,8 @@ export default function InventoryGrid({ rows }: { rows: ArtworkRow[] }) {
               />
             ) : (
               <span className="flex size-full items-center justify-center text-xs text-[var(--ink-3)]">
-                sin imagen
+                
+                {tr("sin imagen")}
               </span>
             )}
             <span className="absolute left-1.5 top-1.5 rounded bg-white/90 px-1.5 py-0.5 font-mono text-[11px] text-[var(--ink-2)]">
@@ -37,7 +41,7 @@ export default function InventoryGrid({ rows }: { rows: ArtworkRow[] }) {
             </span>
           </div>
           <p className="mt-2 line-clamp-1 text-sm">
-            {row.title ? titleCase(String(row.title)) : "Sin título"}
+            {row.title ? titleCase(String(row.title)) : tr("Sin título")}
           </p>
           <p className="line-clamp-1 text-xs text-[var(--ink-3)]">{artistName(row)}</p>
           <div className="mt-1 flex items-center justify-between gap-2">

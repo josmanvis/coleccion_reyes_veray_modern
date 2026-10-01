@@ -5,6 +5,7 @@ import { useState } from "react";
 import { FOR_SALE_CODE, withForSale } from "@/lib/inventory/fields";
 import ConfirmDialog from "./ConfirmDialog";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * Flips the "Ventas" code that decides whether a work is offered for sale on the
@@ -26,6 +27,7 @@ export default function SaleToggle({
   /** "pill" is the compact form used inside the inventory table. */
   variant?: "full" | "pill";
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [forSale, setForSale] = useState(initial);
@@ -51,12 +53,12 @@ export default function SaleToggle({
       setCurrent(body.sales ?? null);
       notify(
         next
-          ? `CRV #${registro} marcada en venta (${FOR_SALE_CODE})`
-          : `CRV #${registro} ya no está en venta`
+          ? tr("CRV #{registro} marcada en venta ({FOR_SALE_CODE})", { registro, FOR_SALE_CODE })
+          : tr("CRV #{registro} ya no está en venta", { registro })
       );
       router.refresh();
     } else {
-      notify(body.error || "No se pudo cambiar", "error");
+      notify(tr(body.error || "No se pudo cambiar"), "error");
     }
     setPending(false);
     setAsking(false);
@@ -65,19 +67,19 @@ export default function SaleToggle({
   const dialog = (
     <ConfirmDialog
       open={asking}
-      title={next ? "¿Marcar en venta?" : "¿Quitar de venta?"}
+      title={next ? tr("¿Marcar en venta?") : tr("¿Quitar de venta?")}
       body={
         next
-          ? `La obra CRV #${registro} aparecerá como disponible en el sitio público.`
-          : `La obra CRV #${registro} dejará de ofrecerse en el sitio público.`
+          ? tr("La obra CRV #{n} aparecerá como disponible en el sitio público.", { n: registro })
+          : tr("La obra CRV #{n} dejará de ofrecerse en el sitio público.", { n: registro })
       }
       detail={
         <>
-          Ventas: {current === null ? "(vacío)" : `"${current}"`} →{" "}
-          {preview === null ? "(vacío)" : `"${preview}"`}
+          {tr("Ventas:")} {current === null ? tr("(vacío)") : `"${current}"`} →{" "}
+          {preview === null ? tr("(vacío)") : `"${preview}"`}
         </>
       }
-      confirmLabel={next ? "Marcar en venta" : "Quitar de venta"}
+      confirmLabel={next ? tr("Marcar en venta") : tr("Quitar de venta")}
       pending={pending}
       onConfirm={apply}
       onCancel={() => setAsking(false)}
@@ -91,7 +93,7 @@ export default function SaleToggle({
           type="button"
           onClick={() => setAsking(true)}
           disabled={pending}
-          title={forSale ? "En venta — clic para quitar" : "Marcar en venta"}
+          title={forSale ? tr("En venta — clic para quitar") : tr("Marcar en venta")}
           aria-pressed={forSale}
           className={`inline-block whitespace-nowrap rounded border px-2 py-0.5 text-xs font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand)] disabled:opacity-40 ${
             forSale
@@ -99,7 +101,7 @@ export default function SaleToggle({
               : "border-[var(--stroke)] bg-[var(--surface)] text-[var(--ink-3)] hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
           }`}
         >
-          {pending ? "…" : forSale ? "En venta" : "—"}
+          {pending ? "…" : forSale ? tr("En venta") : "—"}
         </button>
         {dialog}
       </>
@@ -119,14 +121,14 @@ export default function SaleToggle({
             : "border border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)]"
         }`}
       >
-        {forSale ? "En venta · quitar" : "Marcar en venta"}
+        {forSale ? tr("En venta · quitar") : tr("Marcar en venta")}
       </button>
       <span className="text-xs text-[var(--ink-3)]">
         {forSale
-          ? "Aparece como disponible en el sitio público."
-          : "No se ofrece en el sitio público."}
+          ? tr("Aparece como disponible en el sitio público.")
+          : tr("No se ofrece en el sitio público.")}
         <span className="ml-1 font-mono text-[var(--ink-3)]">
-          Ventas: {current === null ? "(vacío)" : current}
+          {tr("Ventas:")} {current === null ? tr("(vacío)") : current}
         </span>
       </span>
       {dialog}

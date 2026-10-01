@@ -6,6 +6,7 @@ import { deaccessionStatus, IN_INVENTORY_STATUS } from "@/lib/inventory/fields";
 import SaleToggle from "./SaleToggle";
 import ConfirmDialog from "./ConfirmDialog";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 function Heading({ children }: { children: React.ReactNode }) {
   return (
@@ -37,6 +38,7 @@ export default function ArtworkActions({
   deaccessed: boolean;
   status: string | null;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
 
@@ -56,15 +58,15 @@ export default function ArtworkActions({
     if (response.ok) {
       notify(
         action === "deaccession"
-          ? `CRV #${registro} de-accessada`
-          : `CRV #${registro} devuelta al inventario`
+          ? tr("CRV #{registro} de-accessada", { registro })
+          : tr("CRV #{registro} devuelta al inventario", { registro })
       );
       setShowNote(false);
       setNote("");
       router.refresh();
     } else {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo cambiar el estatus", "error");
+      notify(tr(body.error || "No se pudo cambiar el estatus"), "error");
     }
     setPending(false);
     setAsking(null);
@@ -77,12 +79,12 @@ export default function ArtworkActions({
     });
 
     if (response.ok) {
-      notify(`CRV #${registro} eliminada`);
+      notify(tr("CRV #{n} eliminada", { n: registro }));
       router.push("/inventory");
       router.refresh();
     } else {
       const body = await response.json().catch(() => ({}));
-      notify(body.error || "No se pudo eliminar", "error");
+      notify(tr(body.error || "No se pudo eliminar"), "error");
       setPending(false);
       setAsking(null);
     }
@@ -94,19 +96,19 @@ export default function ArtworkActions({
   return (
     <div className="space-y-8">
       <section>
-        <Heading>Venta</Heading>
+        <Heading>{tr("Venta")}</Heading>
         <div className="mt-3">
           <SaleToggle refId={refId} registro={registro} sales={sales} initial={forSale} />
         </div>
       </section>
 
       <section>
-        <Heading>Estatus</Heading>
+        <Heading>{tr("Estatus")}</Heading>
         <p className="mt-2 text-sm text-[var(--ink-3)]">
           {deaccessed
-            ? "Esta obra está fuera del inventario."
-            : "Al de-accessar, la obra sale del inventario activo y de la galería pública."}
-          {status && <span className="ml-1 text-[var(--ink-1)]">Actual: {status}</span>}
+            ? tr("Esta obra está fuera del inventario.")
+            : tr("Al de-accessar, la obra sale del inventario activo y de la galería pública.")}
+          {status && <span className="ml-1 text-[var(--ink-1)]">{tr("Actual: {status}", { status })}</span>}
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -117,7 +119,8 @@ export default function ArtworkActions({
               disabled={pending}
               className={`${buttonBase} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
-              Devolver a inventario
+              
+              {tr("Devolver a inventario")}
             </button>
           ) : showNote ? (
             <>
@@ -125,7 +128,7 @@ export default function ArtworkActions({
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Motivo o destino (opcional)"
+                placeholder={tr("Motivo o destino (opcional)")}
                 autoFocus
                 className="w-64 rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]"
               />
@@ -135,7 +138,8 @@ export default function ArtworkActions({
                 disabled={pending}
                 className={`${buttonBase} border-[var(--brand)] bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]`}
               >
-                De-accessar
+                
+                {tr("De-accessar")}
               </button>
               <button
                 type="button"
@@ -145,7 +149,8 @@ export default function ArtworkActions({
                 }}
                 className="rounded px-2 py-2 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]"
               >
-                Cancelar
+                
+                {tr("Cancelar")}
               </button>
             </>
           ) : (
@@ -154,17 +159,18 @@ export default function ArtworkActions({
               onClick={() => setShowNote(true)}
               className={`${buttonBase} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
-              De-accessar
+              
+              {tr("De-accessar")}
             </button>
           )}
         </div>
       </section>
 
       <section>
-        <Heading>Eliminar</Heading>
+        <Heading>{tr("Eliminar")}</Heading>
         <p className="mt-2 text-sm text-[var(--ink-3)]">
-          Borra la ficha de la base de datos. No se puede deshacer — para retirar una obra de la
-          colección conservando su historial, usa de-accession.
+          
+          {tr("Borra la ficha de la base de datos. No se puede deshacer — para retirar una obra de la colección conservando su historial, usa de-accession.")}
         </p>
 
         <div className="mt-3">
@@ -174,17 +180,18 @@ export default function ArtworkActions({
             disabled={pending}
             className={`${buttonBase} border-red-300 text-red-800 hover:border-red-500 hover:bg-red-50 focus-visible:outline-red-700`}
           >
-            Eliminar obra
+            
+            {tr("Eliminar obra")}
           </button>
         </div>
       </section>
 
       <ConfirmDialog
         open={asking === "deaccession"}
-        title="¿De-accessar esta obra?"
-        body={`CRV #${registro} saldrá del inventario activo y dejará de aparecer en la galería pública.`}
-        detail={<>Estatus: &quot;{deaccessionStatus(note)}&quot;</>}
-        confirmLabel="De-accessar"
+        title={tr("¿De-accessar esta obra?")}
+        body={tr("CRV #{n} saldrá del inventario activo y dejará de aparecer en la galería pública.", { n: registro })}
+        detail={tr("Estatus: \"{status}\"", { status: deaccessionStatus(note) })}
+        confirmLabel={tr("De-accessar")}
         pending={pending}
         onConfirm={() => changeStatus("deaccession")}
         onCancel={() => setAsking(null)}
@@ -192,10 +199,10 @@ export default function ArtworkActions({
 
       <ConfirmDialog
         open={asking === "reinstate"}
-        title="¿Devolver al inventario?"
-        body={`CRV #${registro} volverá a contarse como parte de la colección activa.`}
-        detail={<>Estatus: &quot;{IN_INVENTORY_STATUS}&quot;</>}
-        confirmLabel="Devolver"
+        title={tr("¿Devolver al inventario?")}
+        body={tr("CRV #{n} volverá a contarse como parte de la colección activa.", { n: registro })}
+        detail={tr("Estatus: \"{status}\"", { status: IN_INVENTORY_STATUS })}
+        confirmLabel={tr("Devolver")}
         pending={pending}
         onConfirm={() => changeStatus("reinstate")}
         onCancel={() => setAsking(null)}
@@ -203,10 +210,10 @@ export default function ArtworkActions({
 
       <ConfirmDialog
         open={asking === "delete"}
-        title={`¿Eliminar CRV #${registro} para siempre?`}
-        body="La ficha se borra de la base de datos y no se puede recuperar salvo volviendo a importar la hoja de cálculo."
+        title={tr("¿Eliminar CRV #{registro} para siempre?", { registro })}
+        body={tr("La ficha se borra de la base de datos y no se puede recuperar salvo volviendo a importar la hoja de cálculo.")}
         tone="danger"
-        confirmLabel="Sí, eliminar"
+        confirmLabel={tr("Sí, eliminar")}
         pending={pending}
         onConfirm={remove}
         onCancel={() => setAsking(null)}

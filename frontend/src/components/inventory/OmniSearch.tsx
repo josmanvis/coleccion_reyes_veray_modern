@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
+import { useTr } from "@/components/I18nProvider";
 
 type Hit = { kind: string; id: string; title: string; subtitle: string; href: string };
 type Results = { query: string; total: number; groups: Array<{ kind: string; label: string; hits: Hit[] }> };
@@ -16,6 +17,7 @@ const EMPTY: Results = { query: "", total: 0, groups: [] };
  * and is navigable from the keyboard.
  */
 export default function OmniSearch() {
+  const tr = useTr();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Results>(EMPTY);
@@ -109,7 +111,7 @@ export default function OmniSearch() {
         aria-expanded={open && visible.total > 0}
         aria-controls="omnisearch-results"
         value={query}
-        placeholder="Buscar obras, artistas, ubicaciones…"
+        placeholder={tr("Buscar obras, artistas, ubicaciones…")}
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);
@@ -121,7 +123,7 @@ export default function OmniSearch() {
       {query ? (
         <button
           type="button"
-          aria-label="Limpiar"
+          aria-label={tr("Limpiar")}
           onClick={() => {
             setQuery("");
             inputRef.current?.focus();
@@ -132,7 +134,8 @@ export default function OmniSearch() {
         </button>
       ) : (
         <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-[var(--stroke)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--ink-3)]">
-          ⌘K
+          
+          {tr("⌘K")}
         </kbd>
       )}
 
@@ -144,13 +147,13 @@ export default function OmniSearch() {
         >
           {visible.total === 0 ? (
             <p className="px-3 py-6 text-center text-sm text-[var(--ink-3)]">
-              Sin resultados para “{query.trim()}”
+              {tr("Sin resultados para “{q}”", { q: query.trim() })}
             </p>
           ) : (
             visible.groups.map((group) => (
               <div key={group.kind}>
                 <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--ink-3)]">
-                  {group.label}
+                  {tr(group.label)}
                 </p>
                 {group.hits.map((hit) => {
                   index += 1;

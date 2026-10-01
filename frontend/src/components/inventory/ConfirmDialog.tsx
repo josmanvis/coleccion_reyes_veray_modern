@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTr } from "@/components/I18nProvider";
 
 export type ConfirmTone = "default" | "danger";
 
@@ -33,6 +34,7 @@ export default function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const tr = useTr();
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -95,7 +97,7 @@ export default function ConfirmDialog({
                 : "bg-[var(--brand)] hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]"
             }`}
           >
-            {pending ? "Guardando…" : confirmLabel}
+            {pending ? tr("Guardando…") : confirmLabel}
           </button>
         </div>
       </div>

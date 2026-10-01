@@ -8,6 +8,7 @@ import { BookOpen, Check, ExternalLink, Images, Link2Off, RefreshCw, Save, Searc
 import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { GENDERS, type ArtistProfile } from "@/lib/inventory/artist-fields";
 import { useToast } from "./ToastProvider";
+import { useDateLocale, useTr } from "@/components/I18nProvider";
 
 type Work = {
   ref: string;
@@ -33,6 +34,7 @@ export default function ArtistDetail({
   works: Work[];
   profile: ArtistProfile;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [tab, setTab] = useState<Tab>("obras");
@@ -50,7 +52,7 @@ export default function ArtistDetail({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        notify(data.error || "No se pudo completar", "error");
+        notify(tr(data.error || "No se pudo completar"), "error");
         return null;
       }
       if (data.profile) {
@@ -73,7 +75,7 @@ export default function ArtistDetail({
     <div className="space-y-4">
       <div
         role="tablist"
-        aria-label="Secciones del artista"
+        aria-label={tr("Secciones del artista")}
         className="flex gap-1 border-b border-[var(--stroke-soft)]"
       >
         {tabs.map((entry) => {
@@ -93,7 +95,7 @@ export default function ArtistDetail({
               }`}
             >
               <Icon size={15} strokeWidth={1.75} aria-hidden />
-              {entry.label}
+              {tr(entry.label)}
               {entry.count !== undefined && (
                 <span className={`${MUTED} text-xs`}>({entry.count})</span>
               )}
@@ -142,10 +144,11 @@ export default function ArtistDetail({
 }
 
 function WorksGrid({ works }: { works: Work[] }) {
+  const tr = useTr();
   if (works.length === 0) {
     return (
       <div className={`${CARD} p-8 text-center`}>
-        <p className={`text-sm ${MUTED}`}>No hay obras de este artista.</p>
+        <p className={`text-sm ${MUTED}`}>{tr("No hay obras de este artista.")}</p>
       </div>
     );
   }
@@ -168,7 +171,7 @@ function WorksGrid({ works }: { works: Work[] }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className={`text-xs ${MUTED}`}>Sin imagen</span>
+                <span className={`text-xs ${MUTED}`}>{tr("Sin imagen")}</span>
               )}
             </div>
             <div className="p-2.5">
@@ -193,6 +196,7 @@ function ProfileForm({
   pending: boolean;
   onSave: (patch: Record<string, string>) => void;
 }) {
+  const tr = useTr();
   return (
     <form
       action={(form) =>
@@ -206,28 +210,29 @@ function ProfileForm({
       }
       className={`${CARD} p-4`}
     >
-      <h2 className="text-sm font-semibold">Datos del artista</h2>
+      <h2 className="text-sm font-semibold">{tr("Datos del artista")}</h2>
       <p className={`mt-1 text-sm ${MUTED}`}>
-        El registro de la colección. Nada de Wikipedia llega aquí por su cuenta.
+        
+        {tr("El registro de la colección. Nada de Wikipedia llega aquí por su cuenta.")}
       </p>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label>
-          <span className={LABEL}>Género</span>
+          <span className={LABEL}>{tr("Género")}</span>
           <select name="gender" defaultValue={profile.gender} className={FIELD}>
             {GENDERS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {tr(option.label)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          <span className={LABEL}>Nacionalidad</span>
+          <span className={LABEL}>{tr("Nacionalidad")}</span>
           <input name="nationality" defaultValue={profile.nationality} className={FIELD} />
         </label>
         <label>
-          <span className={LABEL}>Nacimiento (AAAA, AAAA-MM o AAAA-MM-DD)</span>
+          <span className={LABEL}>{tr("Nacimiento (AAAA, AAAA-MM o AAAA-MM-DD)")}</span>
           <input
             name="birth_date"
             defaultValue={profile.birth_date}
@@ -236,16 +241,16 @@ function ProfileForm({
           />
         </label>
         <label>
-          <span className={LABEL}>Defunción</span>
+          <span className={LABEL}>{tr("Defunción")}</span>
           <input
             name="death_date"
             defaultValue={profile.death_date}
-            placeholder="En blanco si vive"
+            placeholder={tr("En blanco si vive")}
             className={FIELD}
           />
         </label>
         <label className="sm:col-span-2">
-          <span className={LABEL}>Notas</span>
+          <span className={LABEL}>{tr("Notas")}</span>
           <textarea name="notes" defaultValue={profile.notes} rows={4} className={FIELD} />
         </label>
       </div>
@@ -253,7 +258,7 @@ function ProfileForm({
       <div className="mt-3">
         <button type="submit" disabled={pending} className={BTN_PRIMARY}>
           <Save size={15} strokeWidth={1.75} aria-hidden />
-          {pending ? "Guardando…" : "Guardar datos"}
+          {pending ? tr("Guardando…") : tr("Guardar datos")}
         </button>
       </div>
     </form>
@@ -274,6 +279,7 @@ function Suggestion({
   onAccept: () => void;
   pending: boolean;
 }) {
+  const tr = useTr();
   if (!value) return null;
   const same = current === value;
 
@@ -282,11 +288,11 @@ function Suggestion({
       <span className="w-28 shrink-0 text-xs font-semibold text-[var(--ink-2)]">{label}</span>
       <span className="text-[var(--ink-1)]">{value}</span>
       {same ? (
-        <span className={`${BADGE.success} ml-auto`}>ya registrado</span>
+        <span className={`${BADGE.success} ml-auto`}>{tr("ya registrado")}</span>
       ) : (
         <button type="button" onClick={onAccept} disabled={pending} className={`${BTN} ml-auto`}>
           <Check size={14} strokeWidth={2} aria-hidden />
-          {current ? "Reemplazar" : "Usar"}
+          {current ? tr("Reemplazar") : tr("Usar")}
         </button>
       )}
     </li>
@@ -312,6 +318,8 @@ function WikiTab({
   onUnlink: () => void;
   onAccept: (field: string, value: string) => void;
 }) {
+  const tr = useTr();
+  const loc = useDateLocale();
   const wiki = profile.wiki;
 
   return (
@@ -321,26 +329,27 @@ function WikiTab({
         className={`${CARD} flex flex-wrap items-end gap-3 p-4`}
       >
         <label className="min-w-[260px] flex-1">
-          <span className={LABEL}>Buscar en Wikipedia</span>
+          <span className={LABEL}>{tr("Buscar en Wikipedia")}</span>
           <input name="query" defaultValue={wiki?.title || name} className={FIELD} />
         </label>
         <button type="submit" disabled={pending} className={BTN_PRIMARY}>
           <Search size={15} strokeWidth={1.75} aria-hidden />
-          {pending ? "Buscando…" : "Buscar"}
+          {pending ? tr("Buscando…") : tr("Buscar")}
         </button>
         {wiki && (
           <button type="button" onClick={onUnlink} disabled={pending} className={BTN}>
             <Link2Off size={15} strokeWidth={1.75} aria-hidden />
-            Desvincular
+            
+            {tr("Desvincular")}
           </button>
         )}
       </form>
 
       {candidates !== null && (
         <div className={`${CARD} p-4`}>
-          <h2 className="text-sm font-semibold">Resultados</h2>
+          <h2 className="text-sm font-semibold">{tr("Resultados")}</h2>
           {candidates.length === 0 ? (
-            <p className={`mt-2 text-sm ${MUTED}`}>Wikipedia no devolvió artículos.</p>
+            <p className={`mt-2 text-sm ${MUTED}`}>{tr("Wikipedia no devolvió artículos.")}</p>
           ) : (
             <ul className="mt-2 divide-y divide-[var(--stroke-soft)]">
               {candidates.map((candidate) => (
@@ -361,7 +370,8 @@ function WikiTab({
                     disabled={pending}
                     className={BTN}
                   >
-                    Vincular
+                    
+                    {tr("Vincular")}
                   </button>
                 </li>
               ))}
@@ -395,14 +405,16 @@ function WikiTab({
                 {wiki.extract}
               </p>
               <p className={`mt-3 text-xs ${MUTED}`}>
-                Texto de Wikipedia (CC BY-SA), no de la colección.{" "}
+                
+                {tr("Texto de Wikipedia (CC BY-SA), no de la colección.")}{" "}
                 <a
                   href={wiki.url}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-[var(--brand)] hover:underline"
                 >
-                  Ver artículo
+                  
+                  {tr("Ver artículo")}
                   <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
                 </a>
               </p>
@@ -414,34 +426,35 @@ function WikiTab({
             wiki.suggestions.gender ||
             wiki.suggestions.nationality) && (
             <div className="mt-4 border-t border-[var(--stroke-soft)] pt-3">
-              <h3 className="text-sm font-semibold">Datos sugeridos</h3>
+              <h3 className="text-sm font-semibold">{tr("Datos sugeridos")}</h3>
               <p className={`mt-0.5 text-sm ${MUTED}`}>
-                De Wikidata. Se copian al registro solo si lo decides, uno por uno.
+                
+                {tr("De Wikidata. Se copian al registro solo si lo decides, uno por uno.")}
               </p>
               <ul className="mt-2">
                 <Suggestion
-                  label="Nacimiento"
+                  label={tr("Nacimiento")}
                   value={wiki.suggestions.birthDate}
                   current={profile.birth_date}
                   onAccept={() => onAccept("birth_date", wiki.suggestions.birthDate!)}
                   pending={pending}
                 />
                 <Suggestion
-                  label="Defunción"
+                  label={tr("Defunción")}
                   value={wiki.suggestions.deathDate}
                   current={profile.death_date}
                   onAccept={() => onAccept("death_date", wiki.suggestions.deathDate!)}
                   pending={pending}
                 />
                 <Suggestion
-                  label="Género"
+                  label={tr("Género")}
                   value={wiki.suggestions.gender}
                   current={profile.gender}
                   onAccept={() => onAccept("gender", wiki.suggestions.gender!)}
                   pending={pending}
                 />
                 <Suggestion
-                  label="Nacionalidad"
+                  label={tr("Nacionalidad")}
                   value={wiki.suggestions.nationality}
                   current={profile.nationality}
                   onAccept={() => onAccept("nationality", wiki.suggestions.nationality!)}
@@ -454,7 +467,7 @@ function WikiTab({
           {wiki.fetchedAt && (
             <p className={`mt-3 flex items-center gap-1 text-xs ${MUTED}`}>
               <RefreshCw size={11} strokeWidth={1.75} aria-hidden />
-              Consultado el {new Date(wiki.fetchedAt).toLocaleDateString("es")}
+              {tr("Consultado el {date}", { date: new Date(wiki.fetchedAt).toLocaleDateString(loc) })}
             </p>
           )}
         </div>
@@ -462,7 +475,8 @@ function WikiTab({
         candidates === null && (
           <div className={`${CARD} p-8 text-center`}>
             <p className={`text-sm ${MUTED}`}>
-              Este artista no está vinculado a Wikipedia todavía. Busca arriba para vincularlo.
+              
+              {tr("Este artista no está vinculado a Wikipedia todavía. Busca arriba para vincularlo.")}
             </p>
           </div>
         )

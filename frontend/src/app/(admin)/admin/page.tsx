@@ -10,10 +10,14 @@ import {
   type StatusGroup,
 } from "@/lib/inventory/fields";
 import ImportPanel from "@/components/inventory/ImportPanel";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Panel · Inventario" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Panel · Inventario") };
+}
 
 function Stat({
   label,
@@ -34,6 +38,7 @@ function Stat({
 }
 
 export default async function AdminPage() {
+  const tr = await getTr();
   const { totals, byStatus, topArtists, recent } = stats();
   const quality = dataQuality();
   const artists = artistReview();
@@ -46,9 +51,9 @@ export default async function AdminPage() {
     <main className="mx-auto max-w-[1400px] px-5 py-6">
       <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
         <div>
-          <h1 className="text-3xl leading-none">Panel</h1>
+          <h1 className="text-3xl leading-none">{tr("Panel")}</h1>
           <p className="mt-1.5 text-sm text-[var(--ink-3)]">
-            Base de datos local · {formatNumber(totals.total)} obras
+            {tr("Base de datos local · {n} obras", { n: formatNumber(totals.total) })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -56,64 +61,68 @@ export default async function AdminPage() {
             href="/admin/artwork/new"
             className="rounded border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--ink-1)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
           >
-            + Nueva obra
+            
+            {tr("+ Nueva obra")}
           </Link>
           <Link
             href="/inventory"
             className="rounded bg-[var(--brand)] px-3 py-1.5 text-sm text-white transition hover:bg-[var(--brand-hover)]"
           >
-            Ir al inventario
+            
+            {tr("Ir al inventario")}
           </Link>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-        <Stat label="Obras" value={formatNumber(totals.total)} />
+        <Stat label={tr("Obras")} value={formatNumber(totals.total)} />
         <Stat
-          label="En inventario"
+          label={tr("En inventario")}
           value={formatNumber(inInventory?.count ?? 0)}
           hint={formatMoney(inInventory?.value_total ?? 0)}
         />
         <Stat
-          label="Artistas"
+          label={tr("Artistas")}
           value={formatNumber(totals.artists)}
           hint={
             pendingArtists > 0 ? (
               <Link href="/admin/artists" className="text-amber-700 underline-offset-2 hover:underline">
-                {formatNumber(pendingArtists)} nombres por revisar
+                {tr("{n} nombres por revisar", { n: formatNumber(pendingArtists) })}
               </Link>
             ) : (
               <Link href="/admin/artists" className="underline-offset-2 hover:underline">
-                Nombres unificados
+                
+                {tr("Nombres unificados")}
               </Link>
             )
           }
         />
         <Stat
-          label="Valor declarado"
+          label={tr("Valor declarado")}
           value={formatMoney(totals.value_total)}
-          hint={`Compra: ${formatMoney(totals.purchase_total)}`}
+          hint={tr("Compra: {v}", { v: formatMoney(totals.purchase_total) })}
         />
         <Stat
-          label="En venta"
+          label={tr("En venta")}
           value={formatNumber(totals.for_sale)}
           hint={
             <Link href="/inventory?forSale=1" className="underline-offset-2 hover:underline">
-              Ver las obras marcadas
+              {tr("Ver las obras marcadas")}
             </Link>
           }
         />
         <Stat
-          label="Con imagen"
+          label={tr("Con imagen")}
           value={formatNumber(totals.with_image)}
-          hint={`${formatNumber(quality.missingImage)} sin enlazar`}
+          hint={tr("{v} sin enlazar", { v: formatNumber(quality.missingImage) })}
         />
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <section>
           <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-            Por estatus
+            
+            {tr("Por estatus")}
           </h2>
           <ul className="mt-3 space-y-2">
             {byStatus.map((row) => (
@@ -123,7 +132,7 @@ export default async function AdminPage() {
                   className="group flex items-center gap-3 text-sm"
                 >
                   <span className="w-32 shrink-0 text-[var(--ink-2)] group-hover:text-[var(--ink-1)]">
-                    {STATUS_GROUPS[row.value as StatusGroup] ?? row.value}
+                    {tr(STATUS_GROUPS[row.value as StatusGroup] ?? row.value)}
                   </span>
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--hover)]">
                     <span
@@ -140,7 +149,8 @@ export default async function AdminPage() {
           </ul>
 
           <h2 className="mt-8 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-            Artistas con más obras
+            
+            {tr("Artistas con más obras")}
           </h2>
           <ul className="mt-3 space-y-1.5">
             {topArtists.map((row) => (
@@ -171,66 +181,74 @@ export default async function AdminPage() {
           <ImportPanel />
 
           <h2 className="mt-8 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-            Exportar
+            
+            {tr("Exportar")}
           </h2>
           <div className="mt-3 flex flex-wrap gap-2 text-sm">
             <a
               href="/api/admin/export?format=json&shape=website"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
-              JSON para el sitio web
+              
+              {tr("JSON para el sitio web")}
             </a>
             <a
               href="/api/admin/export?format=json&shape=website&forSale=1"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
-              JSON solo en venta
+              
+              {tr("JSON solo en venta")}
             </a>
             <a
               href="/api/admin/export?format=json&shape=full"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
-              JSON completo
+              
+              {tr("JSON completo")}
             </a>
             <a
               href="/api/admin/export?format=csv"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
-              CSV completo
+              
+              {tr("CSV completo")}
             </a>
           </div>
           <p className="mt-2 text-xs text-[var(--ink-3)]">
-            El JSON para el sitio web incluye solo las obras en inventario, con el mismo formato que
-            consume la galería pública.
+            
+            {tr("El JSON para el sitio web incluye solo las obras en inventario, con el mismo formato que consume la galería pública.")}
           </p>
 
           <h2 className="mt-8 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-            Calidad de los datos
+            
+            {tr("Calidad de los datos")}
           </h2>
           <div className="mt-3 flex flex-wrap gap-2 text-sm">
             <Link
               href="/inventory?withImage=0"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
             >
-              {formatNumber(quality.missingImage)} sin imagen
+              {tr("{n} sin imagen", { n: formatNumber(quality.missingImage) })}
             </Link>
             <span className="rounded border border-[var(--stroke-soft)] px-3 py-1.5 text-[var(--ink-3)]">
-              {formatNumber(quality.missingValue)} sin valor actual
+              {tr("{n} sin valor actual", { n: formatNumber(quality.missingValue) })}
             </span>
             <span className="rounded border border-[var(--stroke-soft)] px-3 py-1.5 text-[var(--ink-3)]">
-              {formatNumber(quality.missingLocation)} sin localización
+              {tr("{n} sin localización", { n: formatNumber(quality.missingLocation) })}
             </span>
           </div>
           <p className="mt-3 text-xs text-[var(--ink-3)]">
-            Campos menos completos:{" "}
+            
+            {tr("Campos menos completos:")}{" "}
             {quality.emptyFields
               .slice(0, 6)
-              .map((f) => `${f.label} (${f.filled})`)
+              .map((f) => `${tr(f.label)} (${f.filled})`)
               .join(" · ")}
           </p>
 
           <h2 className="mt-8 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-            Editadas recientemente
+            
+            {tr("Editadas recientemente")}
           </h2>
           <ul className="mt-3 space-y-1.5 text-sm">
             {recent.map((row) => (
@@ -240,7 +258,7 @@ export default async function AdminPage() {
                   className="flex-1 truncate text-[var(--ink-1)] hover:text-[var(--ink-1)]"
                 >
                   <span className="font-mono text-xs text-[var(--ink-3)]">{row.registro}</span>{" "}
-                  {row.title ? titleCase(row.title) : "Sin título"}
+                  {row.title ? titleCase(row.title) : tr("Sin título")}
                 </Link>
                 <span className="shrink-0 text-xs text-[var(--ink-3)]">{row.updated_at}</span>
               </li>

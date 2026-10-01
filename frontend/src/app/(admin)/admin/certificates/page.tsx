@@ -3,12 +3,17 @@ import { listCertificates } from "@/lib/inventory/certificate-log";
 import { artistName, titleCase } from "@/lib/inventory/fields";
 import CertificatesManager, { type CertificateRow } from "@/components/inventory/CertificatesManager";
 import { PAGE } from "@/components/inventory/ui";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Certificados · Inventario" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Certificados · Inventario") };
+}
 
 export default async function CertificatesPage() {
+  const tr = await getTr();
   const certificates = listCertificates();
 
   const refs = [...new Set(certificates.map((c) => c.ref).filter(Boolean))];
@@ -37,11 +42,9 @@ export default async function CertificatesPage() {
   return (
     <main className={PAGE}>
       <div className="pb-5">
-        <h1 className="text-3xl leading-none">Certificados</h1>
+        <h1 className="text-3xl leading-none">{tr("Certificados")}</h1>
         <p className="mt-1.5 max-w-[75ch] text-sm text-[var(--ink-3)]">
-          Todos los certificados de obsequio, adquisición y donación: los de Word emitidos antes de la
-          app y los PDF que genera cada ficha. Cada uno se nombra «Certificado de &lt;tipo&gt; CRV
-          &lt;número&gt;».
+          {tr("Todos los certificados de obsequio, adquisición y donación: los de Word emitidos antes de la app y los PDF que genera cada ficha. Cada uno se nombra «Certificado de <tipo> CRV <número>».")}
         </p>
       </div>
       <CertificatesManager rows={rows} />

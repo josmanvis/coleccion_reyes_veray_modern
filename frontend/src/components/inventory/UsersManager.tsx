@@ -7,6 +7,7 @@ import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { ROLE_LABELS, ROLES, type Role } from "@/lib/inventory/session";
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
+import { useTr } from "@/components/I18nProvider";
 
 type User = {
   id: number;
@@ -34,6 +35,7 @@ export default function UsersManager({
   actorRole: string;
   actorId: number;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [pending, setPending] = useState(false);
@@ -54,7 +56,7 @@ export default function UsersManager({
       notify(done);
       router.refresh();
     } else {
-      notify(data.error || "No se pudo completar", "error");
+      notify(tr(data.error || "No se pudo completar"), "error");
     }
     setPending(false);
     return response.ok;
@@ -63,7 +65,7 @@ export default function UsersManager({
   async function create(event: React.FormEvent) {
     event.preventDefault();
     const password = draft.password;
-    if (await post({ action: "create", ...draft }, `Usuario ${draft.username} creado`)) {
+    if (await post({ action: "create", ...draft }, tr("Usuario {username} creado", { username: draft.username }))) {
       setIssued({ username: draft.username, password });
       setDraft({ username: "", name: "", role: "staff", password: suggestPassword() });
     }
@@ -74,20 +76,21 @@ export default function UsersManager({
       <section className={`${CARD} p-4`}>
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <UserPlus size={16} strokeWidth={1.75} aria-hidden />
-          Nuevo usuario
+          
+          {tr("Nuevo usuario")}
         </h2>
         <form onSubmit={create} className="mt-3 grid gap-3 sm:grid-cols-4">
           <label>
-            <span className={LABEL}>Usuario</span>
+            <span className={LABEL}>{tr("Usuario")}</span>
             <input
               value={draft.username}
               onChange={(e) => setDraft({ ...draft, username: e.target.value })}
-              placeholder="mruiz"
+              placeholder={tr("mruiz")}
               className={FIELD}
             />
           </label>
           <label>
-            <span className={LABEL}>Nombre</span>
+            <span className={LABEL}>{tr("Nombre")}</span>
             <input
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
@@ -95,7 +98,7 @@ export default function UsersManager({
             />
           </label>
           <label>
-            <span className={LABEL}>Rol</span>
+            <span className={LABEL}>{tr("Rol")}</span>
             <select
               value={draft.role}
               onChange={(e) => setDraft({ ...draft, role: e.target.value as Role })}
@@ -109,7 +112,7 @@ export default function UsersManager({
             </select>
           </label>
           <label>
-            <span className={LABEL}>Contraseña inicial</span>
+            <span className={LABEL}>{tr("Contraseña inicial")}</span>
             <div className="flex gap-1">
               <input
                 value={draft.password}
@@ -120,7 +123,7 @@ export default function UsersManager({
                 type="button"
                 onClick={() => setDraft({ ...draft, password: suggestPassword() })}
                 className={BTN}
-                title="Generar otra"
+                title={tr("Generar otra")}
               >
                 ↻
               </button>
@@ -128,18 +131,20 @@ export default function UsersManager({
           </label>
           <div className="sm:col-span-4">
             <button type="submit" disabled={pending || !draft.username} className={BTN_PRIMARY}>
-              Crear usuario
+              
+              {tr("Crear usuario")}
             </button>
             <span className={`ml-3 text-xs ${MUTED}`}>
-              Se le pedirá cambiarla la primera vez que entre.
+              
+              {tr("Se le pedirá cambiarla la primera vez que entre.")}
             </span>
           </div>
         </form>
 
         {issued && (
           <p className="mt-3 rounded-[var(--radius)] border border-[color:var(--success)]/30 bg-[var(--success-soft)] px-3 py-2 text-sm text-[var(--success)]">
-            Entrega esta contraseña a <strong>{issued.username}</strong>:{" "}
-            <span className="font-mono">{issued.password}</span> — no volverá a mostrarse.
+            {tr("Entrega esta contraseña a {user}:", { user: issued.username })}{" "}
+            <span className="font-mono">{issued.password}</span> — {tr("no volverá a mostrarse.")}
           </p>
         )}
       </section>
@@ -148,11 +153,11 @@ export default function UsersManager({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--stroke)] bg-[var(--surface-alt)] text-left text-xs font-semibold text-[var(--ink-2)]">
-              <th className="px-4 py-2">Usuario</th>
-              <th className="px-4 py-2">Nombre</th>
-              <th className="px-4 py-2">Rol</th>
-              <th className="px-4 py-2">Último acceso</th>
-              <th className="px-4 py-2 text-right">Acciones</th>
+              <th className="px-4 py-2">{tr("Usuario")}</th>
+              <th className="px-4 py-2">{tr("Nombre")}</th>
+              <th className="px-4 py-2">{tr("Rol")}</th>
+              <th className="px-4 py-2">{tr("Último acceso")}</th>
+              <th className="px-4 py-2 text-right">{tr("Acciones")}</th>
             </tr>
           </thead>
           <tbody>
@@ -162,7 +167,7 @@ export default function UsersManager({
                 <td className="px-4 py-2">
                   {user.name}
                   {user.must_change === 1 && (
-                    <span className={`ml-2 ${BADGE.warning}`}>debe cambiar contraseña</span>
+                    <span className={`ml-2 ${BADGE.warning}`}>{tr("debe cambiar contraseña")}</span>
                   )}
                 </td>
                 <td className="px-4 py-2">
@@ -185,7 +190,8 @@ export default function UsersManager({
                       className={BTN}
                     >
                       <KeyRound size={14} strokeWidth={1.75} aria-hidden />
-                      Restablecer
+                      
+                      {tr("Restablecer")}
                     </button>
                     {user.role !== "superadmin" && user.id !== actorId && (
                       <button
@@ -194,12 +200,12 @@ export default function UsersManager({
                         onClick={() =>
                           post(
                             { action: "active", id: user.id, active: !user.active },
-                            user.active ? "Usuario desactivado" : "Usuario activado"
+                            user.active ? tr("Usuario desactivado") : tr("Usuario activado")
                           )
                         }
                         className={BTN}
                       >
-                        {user.active ? "Desactivar" : "Activar"}
+                        {user.active ? tr("Desactivar") : tr("Activar")}
                       </button>
                     )}
                   </div>
@@ -212,16 +218,16 @@ export default function UsersManager({
 
       <ConfirmDialog
         open={resetting !== null}
-        title={`¿Restablecer la contraseña de ${resetting?.username ?? ""}?`}
-        body="La contraseña anterior deja de funcionar y se le pedirá cambiar esta la próxima vez que entre."
-        detail={<>Nueva contraseña: <span className="font-mono">{resetPassword}</span></>}
-        confirmLabel="Restablecer"
+        title={tr("¿Restablecer la contraseña de {v}?", { v: resetting?.username ?? "" })}
+        body={tr("La contraseña anterior deja de funcionar y se le pedirá cambiar esta la próxima vez que entre.")}
+        detail={<>{tr("Nueva contraseña:")} <span className="font-mono">{resetPassword}</span></>}
+        confirmLabel={tr("Restablecer")}
         pending={pending}
         onConfirm={async () => {
           if (!resetting) return;
           const ok = await post(
             { action: "reset", id: resetting.id, password: resetPassword },
-            `Contraseña de ${resetting.username} restablecida`
+            tr("Contraseña de {username} restablecida", { username: resetting.username })
           );
           if (ok) setIssued({ username: resetting.username, password: resetPassword });
           setResetting(null);

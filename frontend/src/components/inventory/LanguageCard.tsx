@@ -6,8 +6,10 @@ import { Globe } from "lucide-react";
 import { CARD, MUTED, LABEL, FIELD } from "./ui";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n";
 import { setLocaleCookie } from "@/lib/locale-action";
+import { useTr } from "@/components/I18nProvider";
 
 export default function LanguageCard({ currentLocale }: { currentLocale: Locale }) {
+  const tr = useTr();
   const router = useRouter();
   const [current, setCurrent] = useState<Locale>(currentLocale);
   const [pending, startTransition] = useTransition();
@@ -25,14 +27,16 @@ export default function LanguageCard({ currentLocale }: { currentLocale: Locale 
     <section className={`${CARD} p-4`}>
       <h2 className="flex items-center gap-2 text-sm font-semibold">
         <Globe size={16} strokeWidth={1.75} aria-hidden />
-        Idioma
+        
+        {tr("Idioma")}
       </h2>
       <p className={`mt-1 text-sm ${MUTED}`}>
-        El idioma en el que ves el sitio público y las salas de visualización.
+        
+        {tr("El idioma en el que ves el sitio público y las salas de visualización.")}
       </p>
 
       <div className="mt-4 max-w-xs">
-        <span className={LABEL}>Idioma</span>
+        <span className={LABEL}>{tr("Idioma")}</span>
         <select
           value={current}
           onChange={(e) => choose(e.target.value as Locale)}

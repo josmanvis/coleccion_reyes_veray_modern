@@ -9,16 +9,21 @@ import Pagination from "@/components/inventory/Pagination";
 import { hrefWith, toURLSearchParams, type SearchParams } from "@/components/inventory/query";
 import { BTN, BTN_PRIMARY, BTN_SUBTLE, CARD, MUTED } from "@/components/inventory/ui";
 import { Download, LayoutGrid, Plus, Table2 } from "lucide-react";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Inventario · Colección Reyes-Veray" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Inventario · Colección Reyes-Veray") };
+}
 
 export default async function InventoryPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const tr = await getTr();
   const params = await searchParams;
   const search = toURLSearchParams(params);
   const view = params.view === "grid" ? "grid" : "table";
@@ -45,17 +50,17 @@ export default async function InventoryPage({
       <div className="shrink-0 border-b border-[var(--stroke-soft)] bg-[var(--surface)]">
         <div className="flex flex-wrap items-center gap-3 px-6 py-3">
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">Inventario</h1>
+            <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">{tr("Inventario")}</h1>
             <p className={`mt-0.5 text-sm ${MUTED}`}>
-              {formatNumber(total)} obras
-              {activeCount > 0 && " filtradas"} · {formatMoney(pageValue)} en esta página
+              {tr(activeCount > 0 ? "{n} obras filtradas" : "{n} obras", { n: formatNumber(total) })} ·{" "}
+              {tr("{v} en esta página", { v: formatMoney(pageValue) })}
             </p>
           </div>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <div
               role="group"
-              aria-label="Vista"
+              aria-label={tr("Vista")}
               className="flex overflow-hidden rounded-[var(--radius)] border border-[var(--stroke)]"
             >
               <Link
@@ -68,7 +73,8 @@ export default async function InventoryPage({
                 }`}
               >
                 <Table2 size={15} strokeWidth={1.75} aria-hidden />
-                Tabla
+                
+                {tr("Tabla")}
               </Link>
               <Link
                 href={hrefWith("/inventory", params, { view: "grid", page: undefined })}
@@ -80,20 +86,24 @@ export default async function InventoryPage({
                 }`}
               >
                 <LayoutGrid size={15} strokeWidth={1.75} aria-hidden />
-                Galería
+                
+                {tr("Galería")}
               </Link>
             </div>
 
             <a href={`/api/admin/export?format=csv&${exportSearch.toString()}`} className={BTN_SUBTLE}>
               <Download size={15} strokeWidth={1.75} aria-hidden />
-              Exportar CSV
+              
+              {tr("Exportar CSV")}
             </a>
             <Link href="/admin/artwork/new" className={BTN}>
               <Plus size={15} strokeWidth={1.75} aria-hidden />
-              Nueva obra
+              
+              {tr("Nueva obra")}
             </Link>
             <Link href="/admin" className={BTN_PRIMARY}>
-              Panel
+              
+              {tr("Panel")}
             </Link>
           </div>
         </div>

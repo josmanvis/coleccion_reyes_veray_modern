@@ -19,6 +19,7 @@ import { certificatesForArtwork } from "@/lib/inventory/certificate-log";
 import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
 import { CARD, MUTED } from "@/components/inventory/ui";
 import { Award, Download } from "lucide-react";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +28,13 @@ type Props = { params: Promise<{ registro: string }> };
 export async function generateMetadata({ params }: Props) {
   const { registro } = await params;
   const artwork = getArtwork(registro);
-  if (!artwork) return { title: "No encontrada" };
-  return { title: `${titleCase(String(artwork.title ?? registro))} · Inventario` };
+  const tr = await getTr();
+  if (!artwork) return { title: tr("No encontrada") };
+  return { title: `${titleCase(String(artwork.title ?? registro))} · ${tr("Inventario")}` };
 }
 
 export default async function ArtworkPage({ params }: Props) {
+  const tr = await getTr();
   const { registro } = await params;
   const artwork = getArtwork(registro);
   if (!artwork) notFound();
@@ -60,7 +63,8 @@ export default async function ArtworkPage({ params }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3 pb-6">
         <Link href="/inventory" className="inline-flex items-center gap-1.5 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]">
           <ArrowLeft size={15} strokeWidth={1.75} aria-hidden />
-          Volver al inventario
+          
+          {tr("Volver al inventario")}
         </Link>
         <div className="flex items-center gap-2 text-sm">
           {PUBLIC_SITE_ENABLED && artwork.website_slug && (
@@ -69,7 +73,8 @@ export default async function ArtworkPage({ params }: Props) {
               className="rounded border border-[var(--stroke)] px-3 py-1.5 text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
             >
               <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
-              Ver en el sitio
+              
+              {tr("Ver en el sitio")}
             </Link>
           )}
           <CertificatePanel
@@ -82,7 +87,8 @@ export default async function ArtworkPage({ params }: Props) {
             className="rounded bg-[var(--brand)] px-3 py-1.5 text-white transition hover:bg-[var(--brand-hover)]"
           >
             <Pencil size={15} strokeWidth={1.75} aria-hidden />
-            Editar
+            
+            {tr("Editar")}
           </Link>
         </div>
       </div>
@@ -101,22 +107,23 @@ export default async function ArtworkPage({ params }: Props) {
               />
             ) : (
               <span className="flex size-full items-center justify-center text-sm text-[var(--ink-3)]">
-                Sin imagen enlazada
+                
+                {tr("Sin imagen enlazada")}
               </span>
             )}
           </div>
 
           <dl className="mt-5 space-y-2 text-sm">
             <div className="flex justify-between gap-4 border-b border-[var(--stroke-soft)] pb-2">
-              <dt className="text-[var(--ink-3)]">Valor actual</dt>
+              <dt className="text-[var(--ink-3)]">{tr("Valor actual")}</dt>
               <dd className="tabular-nums">{formatMoney(artwork.current_value)}</dd>
             </div>
             <div className="flex justify-between gap-4 border-b border-[var(--stroke-soft)] pb-2">
-              <dt className="text-[var(--ink-3)]">Precio de compra</dt>
+              <dt className="text-[var(--ink-3)]">{tr("Precio de compra")}</dt>
               <dd className="tabular-nums">{formatMoney(artwork.purchase_price)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-[var(--ink-3)]">Última actualización</dt>
+              <dt className="text-[var(--ink-3)]">{tr("Última actualización")}</dt>
               <dd className="text-[var(--ink-2)]">{artwork.updated_at}</dd>
             </div>
           </dl>
@@ -125,7 +132,7 @@ export default async function ArtworkPage({ params }: Props) {
         <div>
           <p className="font-mono text-xs text-[var(--ink-3)]">CRV #{artwork.registro}</p>
           <h1 className="mt-1 text-4xl leading-tight">
-            {artwork.title ? titleCase(String(artwork.title)) : "Sin título"}
+            {artwork.title ? titleCase(String(artwork.title)) : tr("Sin título")}
           </h1>
           <p className="mt-1 text-lg text-[var(--ink-2)]">
             {artistHref ? (
@@ -151,7 +158,7 @@ export default async function ArtworkPage({ params }: Props) {
               return (
                 <section key={group}>
                   <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-                    {GROUP_LABELS[group]}
+                    {tr(GROUP_LABELS[group])}
                   </h2>
                   <dl className="mt-3 grid gap-x-8 gap-y-3 sm:grid-cols-2">
                     {fields.map((field) => {
@@ -159,7 +166,7 @@ export default async function ArtworkPage({ params }: Props) {
                       const isLong = field.type === "longtext";
                       return (
                         <div key={field.key} className={isLong ? "sm:col-span-2" : ""}>
-                          <dt className="text-xs text-[var(--ink-3)]">{field.label}</dt>
+                          <dt className="text-xs text-[var(--ink-3)]">{tr(field.label)}</dt>
                           <dd
                             className={`mt-0.5 text-sm ${
                               isLong ? "whitespace-pre-line leading-relaxed text-[var(--ink-1)]" : ""
@@ -183,9 +190,10 @@ export default async function ArtworkPage({ params }: Props) {
         <section className="mt-10">
           <h2 className={`flex items-center gap-2 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide ${MUTED}`}>
             <Award size={14} strokeWidth={1.75} aria-hidden />
-            Certificados ({issued.length})
+            {tr("Certificados ({n})", { n: issued.length })}
             <Link href="/admin/certificates" className="ml-auto normal-case tracking-normal hover:text-[var(--ink-1)]">
-              Ver todos
+              
+              {tr("Ver todos")}
             </Link>
           </h2>
           <div className={`${CARD} mt-3 divide-y divide-[var(--stroke-soft)]`}>

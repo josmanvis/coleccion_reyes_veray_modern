@@ -4,9 +4,13 @@ import { listShifts, openShift, totalsByUser } from "@/lib/inventory/timeclock";
 import { listUsers } from "@/lib/inventory/users";
 import { MUTED } from "@/components/inventory/ui";
 import HoursBoard from "@/components/inventory/HoursBoard";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Horas · CRVMGMT" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Horas · CRVMGMT") };
+}
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
 
@@ -22,6 +26,7 @@ function defaultRange() {
 }
 
 export default async function HoursPage({ searchParams }: { searchParams: Search }) {
+  const tr = await getTr();
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   const params = await searchParams;
@@ -41,11 +46,11 @@ export default async function HoursPage({ searchParams }: { searchParams: Search
     <>
       <div className="border-b border-[var(--stroke-soft)] bg-[var(--surface)]">
         <div className="px-6 py-3">
-          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">Horas</h1>
+          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">{tr("Horas")}</h1>
           <p className={`mt-0.5 text-sm ${MUTED}`}>
             {isAdmin
-              ? "Entradas y salidas del equipo. Solo el superadministrador puede corregirlas."
-              : "Tus entradas y salidas."}
+              ? tr("Entradas y salidas del equipo. Solo el superadministrador puede corregirlas.")
+              : tr("Tus entradas y salidas.")}
           </p>
         </div>
       </div>

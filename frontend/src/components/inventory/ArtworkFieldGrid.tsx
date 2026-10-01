@@ -1,5 +1,6 @@
 "use client";
 
+import { useTr } from "@/components/I18nProvider";
 import { FIELDS, GROUP_LABELS, type FieldGroup } from "@/lib/inventory/fields";
 
 export type Values = Record<string, string>;
@@ -22,6 +23,7 @@ export default function ArtworkFieldGrid({
   /** Off while creating, where every filled field would otherwise look edited. */
   showDirty?: boolean;
 }) {
+  const tr = useTr();
   const groups = Object.keys(GROUP_LABELS) as FieldGroup[];
 
   return (
@@ -29,7 +31,7 @@ export default function ArtworkFieldGrid({
       {groups.map((group) => (
         <section key={group}>
           <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
-            {GROUP_LABELS[group]}
+            {tr(GROUP_LABELS[group])}
           </h2>
           <div className="mt-3 grid gap-x-6 gap-y-4 sm:grid-cols-2">
             {FIELDS.filter((f) => f.group === group).map((field) => {
@@ -43,7 +45,7 @@ export default function ArtworkFieldGrid({
                   className={`flex flex-col gap-1 ${isLong ? "sm:col-span-2" : ""}`}
                 >
                   <span className="flex items-center gap-1.5 text-xs text-[var(--ink-3)]">
-                    {field.label}
+                    {tr(field.label)}
                     {isDirty && <span className="size-1.5 rounded-full bg-amber-500" />}
                   </span>
                   {isLong ? (

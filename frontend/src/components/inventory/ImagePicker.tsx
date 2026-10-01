@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MediaRow } from "@/lib/inventory/blocks";
 import { useToast } from "./ToastProvider";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * Upload-and-choose dialog shared by every block that takes an image. Uploads
@@ -22,6 +23,7 @@ export default function ImagePicker({
   onClose: () => void;
   onPick: (urls: string[]) => void;
 }) {
+  const tr = useTr();
   const { notify } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<MediaRow[]>([]);
@@ -72,9 +74,9 @@ export default function ImagePicker({
         setSelected((current) =>
           multiple ? [...current, ...added.map((m) => m.url)] : [added[0]?.url].filter(Boolean)
         );
-        notify(`${added.length} imagen${added.length === 1 ? "" : "es"} subida${added.length === 1 ? "" : "s"}`);
+        notify(tr(added.length === 1 ? "{n} imagen subida" : "{n} imágenes subidas", { n: added.length }));
       } else {
-        notify(body.error || "No se pudo subir la imagen", "error");
+        notify(tr(body.error || "No se pudo subir la imagen"), "error");
       }
       setUploading(false);
     },
@@ -95,11 +97,11 @@ export default function ImagePicker({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Elegir imagen"
+      aria-label={tr("Elegir imagen")}
     >
       <button
         type="button"
-        aria-label="Cerrar"
+        aria-label={tr("Cerrar")}
         onClick={onClose}
         className="absolute inset-0 cursor-default bg-[#242424]/40 backdrop-blur-[2px]"
       />
@@ -107,14 +109,15 @@ export default function ImagePicker({
       <div className="relative flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-[var(--stroke)] bg-[var(--surface)] shadow-2xl">
         <header className="flex items-center justify-between border-b border-[var(--stroke-soft)] px-5 py-3">
           <h2 className="text-lg text-[var(--ink-1)]">
-            {multiple ? "Elegir imágenes" : "Elegir imagen"}
+            {multiple ? tr("Elegir imágenes") : tr("Elegir imagen")}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded px-2 py-1 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]"
           >
-            Cerrar
+            
+            {tr("Cerrar")}
           </button>
         </header>
 
@@ -135,17 +138,19 @@ export default function ImagePicker({
             }`}
           >
             <p className="text-sm text-[var(--ink-2)]">
-              Arrastra imágenes aquí o{" "}
+              
+              {tr("Arrastra imágenes aquí o")}{" "}
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
                 className="font-medium text-[var(--ink-1)] underline underline-offset-2"
               >
-                búscalas en tu computadora
+                
+                {tr("búscalas en tu computadora")}
               </button>
             </p>
-            <p className="mt-1 text-xs text-[var(--ink-3)]">JPG, PNG, WebP, AVIF, GIF o SVG · máx. 12 MB</p>
-            {uploading && <p className="mt-2 text-sm text-[var(--ink-1)]">Subiendo…</p>}
+            <p className="mt-1 text-xs text-[var(--ink-3)]">{tr("JPG, PNG, WebP, AVIF, GIF o SVG · máx. 12 MB")}</p>
+            {uploading && <p className="mt-2 text-sm text-[var(--ink-1)]">{tr("Subiendo…")}</p>}
             <input
               ref={inputRef}
               type="file"
@@ -162,10 +167,11 @@ export default function ImagePicker({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {loading ? (
-            <p className="py-10 text-center text-sm text-[var(--ink-3)]">Cargando…</p>
+            <p className="py-10 text-center text-sm text-[var(--ink-3)]">{tr("Cargando…")}</p>
           ) : media.length === 0 ? (
             <p className="py-10 text-center text-sm text-[var(--ink-3)]">
-              Todavía no has subido ninguna imagen.
+              
+              {tr("Todavía no has subido ninguna imagen.")}
             </p>
           ) : (
             <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
@@ -205,8 +211,8 @@ export default function ImagePicker({
         <footer className="flex items-center justify-between gap-3 border-t border-[var(--stroke-soft)] px-5 py-3">
           <p className="text-xs text-[var(--ink-3)]">
             {selected.length > 0
-              ? `${selected.length} seleccionada${selected.length === 1 ? "" : "s"}`
-              : "Ninguna seleccionada"}
+              ? tr(selected.length === 1 ? "{n} seleccionada" : "{n} seleccionadas", { n: selected.length })
+              : tr("Ninguna seleccionada")}
           </p>
           <div className="flex gap-2">
             <button
@@ -214,7 +220,8 @@ export default function ImagePicker({
               onClick={onClose}
               className="rounded border border-[var(--stroke)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
             >
-              Cancelar
+              
+              {tr("Cancelar")}
             </button>
             <button
               type="button"
@@ -225,7 +232,8 @@ export default function ImagePicker({
               }}
               className="rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
             >
-              Usar
+              
+              {tr("Usar")}
             </button>
           </div>
         </footer>

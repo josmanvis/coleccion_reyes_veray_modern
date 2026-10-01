@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPageBySlug } from "@/lib/inventory/pages";
 import PageEditor from "@/components/inventory/PageEditor";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,12 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const page = getPageBySlug(slug);
-  return { title: page ? `${page.title} · Contenido` : "No encontrada" };
+  const tr = await getTr();
+  return { title: page ? `${page.title} · ${tr("Contenido")}` : tr("No encontrada") };
 }
 
 export default async function EditPage({ params }: Props) {
+  const tr = await getTr();
   const { slug } = await params;
   const page = getPageBySlug(slug);
   if (!page) notFound();
@@ -29,7 +32,8 @@ export default async function EditPage({ params }: Props) {
           href="/admin/content"
           className="rounded border border-[var(--stroke)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
         >
-          Todas las páginas
+          
+          {tr("Todas las páginas")}
         </Link>
       </div>
 

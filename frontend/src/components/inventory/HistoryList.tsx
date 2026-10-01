@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, Monitor, Wifi } from "lucide-react";
 import { BADGE, BTN, CARD, MUTED } from "./ui";
 import { initialsOf, bubbleColor } from "@/lib/inventory/theme";
+import { useDateLocale, useTr } from "@/components/I18nProvider";
 
 type Change = { field: string; label?: string; before: string; after: string };
 
@@ -25,10 +26,10 @@ type Entry = {
 };
 
 /** Times are stored UTC; the reader wants their own clock. */
-function when(at: string): string {
+function when(at: string, loc: string): string {
   // SQLite's datetime() has no zone marker, but is UTC.
   const parsed = new Date(at.includes("T") ? at : `${at.replace(" ", "T")}Z`);
-  return parsed.toLocaleString("es", {
+  return parsed.toLocaleString(loc, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -56,6 +57,8 @@ export default function HistoryList({
   page: number;
   perPage: number;
 }) {
+  const tr = useTr();
+  const loc = useDateLocale();
   const router = useRouter();
   const params = useSearchParams();
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -70,7 +73,7 @@ export default function HistoryList({
   if (entries.length === 0) {
     return (
       <div className={`${CARD} p-8 text-center`}>
-        <p className={`text-sm ${MUTED}`}>No hay movimientos que coincidan.</p>
+        <p className={`text-sm ${MUTED}`}>{tr("No hay movimientos que coincidan.")}</p>
       </div>
     );
   }
@@ -96,7 +99,7 @@ export default function HistoryList({
 
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--ink-1)]">
-                    <span className="font-medium">{entry.user_name}</span>
+                    <span className="font-medium">{tr(entry.user_name)}</span>
                     <span className={BADGE.neutral}>{entry.action}</span>
                     <span className={MUTED}>{entry.entity}</span>
                   </p>
@@ -115,7 +118,7 @@ export default function HistoryList({
                     ) : (
                       <Monitor size={12} strokeWidth={1.75} aria-hidden />
                     )}
-                    {when(entry.at)}
+                    {when(entry.at, loc)}
                     {entry.origin && ` · ${entry.origin}`}
                   </p>
                 </div>
@@ -147,7 +150,7 @@ export default function HistoryList({
                             scope="row"
                             className="w-40 py-1 pr-3 text-left text-xs font-semibold text-[var(--ink-2)]"
                           >
-                            {change.label || change.field}
+                            {tr(change.label || change.field)}
                           </th>
                           <td className="py-1 pr-3 text-[var(--ink-3)] line-through">
                             {change.before || "—"}
@@ -158,7 +161,7 @@ export default function HistoryList({
                     </tbody>
                   </table>
                   <p className={`mt-2 break-all font-mono text-[10px] ${MUTED}`}>
-                    firma {entry.hash.slice(0, 32)}…
+                    {tr("firma {hash}…", { hash: entry.hash.slice(0, 32) })}
                   </p>
                 </div>
               )}
@@ -170,7 +173,7 @@ export default function HistoryList({
       {pages > 1 && (
         <div className="flex items-center gap-2 border-t border-[var(--stroke-soft)] px-4 py-2.5">
           <span className={`text-sm ${MUTED}`}>
-            {total} movimiento(s) · página {page} de {pages}
+            {tr("{total} movimiento(s) · página {page} de {pages}", { total, page, pages })}
           </span>
           <div className="ml-auto flex gap-2">
             <button
@@ -179,7 +182,8 @@ export default function HistoryList({
               disabled={page <= 1}
               className={BTN}
             >
-              Anterior
+              
+              {tr("Anterior")}
             </button>
             <button
               type="button"
@@ -187,7 +191,8 @@ export default function HistoryList({
               disabled={page >= pages}
               className={BTN}
             >
-              Siguiente
+              
+              {tr("Siguiente")}
             </button>
           </div>
         </div>

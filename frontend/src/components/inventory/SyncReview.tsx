@@ -6,6 +6,7 @@ import { AlertTriangle, Check, FolderOpen, RefreshCw, Trash2 } from "lucide-reac
 import { BTN, BTN_DANGER, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
+import { useTr } from "@/components/I18nProvider";
 
 type Status = { mode: string; available: boolean; detail: string };
 type Field = {
@@ -52,6 +53,7 @@ export default function SyncReview({
     fields: Field[];
   };
 }) {
+  const tr = useTr();
   const router = useRouter();
   // Present only inside CRVMGMT; read as an external value so it is correct on
   // the first client render without writing state from an effect.
@@ -113,10 +115,10 @@ export default function SyncReview({
     if (response.ok) {
       setDatabases(data.databases ?? []);
       setDatabase(data.databases?.[0] ?? "");
-      notify(`${picked.name} abierto en FileMaker`);
+      notify(tr("{name} abierto en FileMaker", { name: picked.name }));
       await refresh();
     } else {
-      notify(data.error || "FileMaker no pudo abrir el archivo", "error");
+      notify(tr(data.error || "FileMaker no pudo abrir el archivo"), "error");
     }
     setPending(false);
   }
@@ -134,7 +136,7 @@ export default function SyncReview({
       await refresh();
       router.refresh();
     } else {
-      notify(data.error || "No se pudo completar", "error");
+      notify(tr(data.error || "No se pudo completar"), "error");
     }
     setPending(false);
     setAsking(false);
@@ -146,10 +148,10 @@ export default function SyncReview({
       <div className={`${CARD} flex items-start gap-3 p-4`}>
         <AlertTriangle size={18} strokeWidth={1.75} aria-hidden className="mt-0.5 text-[var(--warning)]" />
         <div>
-          <h2 className="text-sm font-semibold">Solo disponible en la app de escritorio</h2>
+          <h2 className="text-sm font-semibold">{tr("Solo disponible en la app de escritorio")}</h2>
           <p className={`mt-1 text-sm ${MUTED}`}>
-            La conexión con FileMaker Pro necesita acceso al sistema, que el navegador no permite.
-            Abre CRVMGMT para sincronizar.
+            
+            {tr("La conexión con FileMaker Pro necesita acceso al sistema, que el navegador no permite. Abre CRVMGMT para sincronizar.")}
           </p>
         </div>
       </div>
@@ -159,15 +161,16 @@ export default function SyncReview({
   return (
     <div className="space-y-4">
       <section className={`${CARD} p-4`}>
-        <h2 className="text-sm font-semibold">Conexión con FileMaker Pro</h2>
+        <h2 className="text-sm font-semibold">{tr("Conexión con FileMaker Pro")}</h2>
 
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
           <div className="rounded-[var(--radius)] border border-[var(--stroke-soft)] p-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold">AppleScript</p>
+              <p className="text-sm font-semibold">{tr("AppleScript")}</p>
               <button type="button" onClick={chooseFile} disabled={pending} className={BTN}>
                 <FolderOpen size={15} strokeWidth={1.75} aria-hidden />
-                Elegir archivo…
+                
+                {tr("Elegir archivo…")}
               </button>
             </div>
             {filePath && (
@@ -176,11 +179,11 @@ export default function SyncReview({
               </p>
             )}
             <p className={`mt-1 text-xs ${applescript?.available ? "text-[var(--success)]" : MUTED}`}>
-              {applescript?.detail ?? "Comprobando…"}
+              {applescript?.detail ?? tr("Comprobando…")}
             </p>
             {databases.length > 0 && (
               <label className="mt-2 block">
-                <span className={LABEL}>Archivo de FileMaker a usar</span>
+                <span className={LABEL}>{tr("Archivo de FileMaker a usar")}</span>
                 <select value={database} onChange={(e) => setDatabase(e.target.value)} className={FIELD}>
                   {databases.map((name) => (
                     <option key={name} value={name}>
@@ -193,22 +196,22 @@ export default function SyncReview({
           </div>
 
           <div className="rounded-[var(--radius)] border border-[var(--stroke-soft)] p-3">
-            <p className="text-sm font-semibold">ODBC</p>
+            <p className="text-sm font-semibold">{tr("ODBC")}</p>
             <p className={`mt-1 text-xs ${odbc?.available ? "text-[var(--success)]" : MUTED}`}>
-              {odbc?.detail ?? "Comprobando…"}
+              {odbc?.detail ?? tr("Comprobando…")}
             </p>
             <label className="mt-2 block">
-              <span className={LABEL}>Cadena de conexión</span>
+              <span className={LABEL}>{tr("Cadena de conexión")}</span>
               <input
                 value={connectionString}
                 onChange={(e) => setConnectionString(e.target.value)}
                 onBlur={() => refresh(connectionString)}
-                placeholder="DSN=CRV;UID=admin;PWD=…"
+                placeholder={tr("DSN=CRV;UID=admin;PWD=…")}
                 className={FIELD}
               />
             </label>
             <label className="mt-2 block">
-              <span className={LABEL}>Tabla</span>
+              <span className={LABEL}>{tr("Tabla")}</span>
               <input value={table} onChange={(e) => setTable(e.target.value)} className={FIELD} />
             </label>
           </div>
@@ -218,22 +221,24 @@ export default function SyncReview({
           <button
             type="button"
             disabled={!applescript?.available || !database || pending}
-            onClick={() => post({ action: "compare", mode: "applescript", database }, "Comparación lista")}
+            onClick={() => post({ action: "compare", mode: "applescript", database }, tr("Comparación lista"))}
             className={BTN_PRIMARY}
           >
             <RefreshCw size={15} strokeWidth={1.75} aria-hidden />
-            Comparar por AppleScript
+            
+            {tr("Comparar por AppleScript")}
           </button>
           <button
             type="button"
             disabled={!odbc?.available || !table || pending}
             onClick={() =>
-              post({ action: "compare", mode: "odbc", connectionString, table }, "Comparación lista")
+              post({ action: "compare", mode: "odbc", connectionString, table }, tr("Comparación lista"))
             }
             className={BTN}
           >
             <RefreshCw size={15} strokeWidth={1.75} aria-hidden />
-            Comparar por ODBC
+            
+            {tr("Comparar por ODBC")}
           </button>
         </div>
       </section>
@@ -243,11 +248,15 @@ export default function SyncReview({
           <div className="flex flex-wrap items-center gap-3 border-b border-[var(--stroke-soft)] px-4 py-3">
             <div>
               <h2 className="text-sm font-semibold">
-                {run.counts.fields} diferencias en {run.counts.records} obras
+                {tr("{a} diferencias en {b} obras", { a: run.counts.fields, b: run.counts.records })}
               </h2>
               <p className={`mt-0.5 text-xs ${MUTED}`}>
-                {run.counts.undecided} sin decidir · {run.counts.inbound} hacia CRVMGMT ·{" "}
-                {run.counts.outbound} hacia FileMaker · {run.counts.applied} aplicadas
+                {tr("{a} sin decidir · {b} hacia CRVMGMT · {c} hacia FileMaker · {d} aplicadas", {
+                  a: run.counts.undecided,
+                  b: run.counts.inbound,
+                  c: run.counts.outbound,
+                  d: run.counts.applied,
+                })}
               </p>
             </div>
             <div className="ml-auto flex flex-wrap gap-2">
@@ -258,15 +267,17 @@ export default function SyncReview({
                 className={BTN_PRIMARY}
               >
                 <Check size={15} strokeWidth={1.75} aria-hidden />
-                Aplicar decisiones
+                
+                {tr("Aplicar decisiones")}
               </button>
               <button
                 type="button"
-                onClick={() => post({ action: "discard", runId: run.id }, "Comparación descartada")}
+                onClick={() => post({ action: "discard", runId: run.id }, tr("Comparación descartada"))}
                 className={BTN_DANGER}
               >
                 <Trash2 size={15} strokeWidth={1.75} aria-hidden />
-                Descartar
+                
+                {tr("Descartar")}
               </button>
             </div>
           </div>
@@ -274,11 +285,11 @@ export default function SyncReview({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--stroke)] bg-[var(--surface-alt)] text-left text-xs font-semibold text-[var(--ink-2)]">
-                <th className="px-3 py-2">Obra</th>
-                <th className="px-3 py-2">Campo</th>
-                <th className="px-3 py-2">CRVMGMT</th>
-                <th className="px-3 py-2">FileMaker</th>
-                <th className="px-3 py-2 text-right">Dirección</th>
+                <th className="px-3 py-2">{tr("Obra")}</th>
+                <th className="px-3 py-2">{tr("Campo")}</th>
+                <th className="px-3 py-2">{tr("CRVMGMT")}</th>
+                <th className="px-3 py-2">{tr("FileMaker")}</th>
+                <th className="px-3 py-2 text-right">{tr("Dirección")}</th>
               </tr>
             </thead>
             <tbody>
@@ -288,10 +299,10 @@ export default function SyncReview({
                     <span className="font-mono text-xs text-[var(--ink-3)]">{field.registro}</span>
                     <span className="ml-2">{field.title || ""}</span>
                     {field.kind !== "both" && (
-                      <span className={`ml-2 text-xs ${MUTED}`}>({KIND_LABEL[field.kind]})</span>
+                      <span className={`ml-2 text-xs ${MUTED}`}>({tr(KIND_LABEL[field.kind])})</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-[var(--ink-2)]">{field.label}</td>
+                  <td className="px-3 py-2 text-[var(--ink-2)]">{tr(field.label)}</td>
                   <td className="max-w-[220px] truncate px-3 py-2">{field.app_value || "—"}</td>
                   <td className="max-w-[220px] truncate px-3 py-2">{field.fm_value || "—"}</td>
                   <td className="px-3 py-2">
@@ -306,7 +317,8 @@ export default function SyncReview({
                             : "border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)]"
                         }`}
                       >
-                        ← FileMaker
+                        
+                        {tr("← FileMaker")}
                       </button>
                       <button
                         type="button"
@@ -318,7 +330,8 @@ export default function SyncReview({
                             : "border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)]"
                         }`}
                       >
-                        CRVMGMT →
+                        
+                        {tr("CRVMGMT →")}
                       </button>
                     </div>
                   </td>
@@ -331,20 +344,22 @@ export default function SyncReview({
 
       <ConfirmDialog
         open={asking}
-        title="¿Aplicar las decisiones?"
-        body="Se escribirá en ambos sistemas según la dirección elegida para cada campo."
+        title={tr("¿Aplicar las decisiones?")}
+        body={tr("Se escribirá en ambos sistemas según la dirección elegida para cada campo.")}
         detail={
           run ? (
             <>
-              {run.counts.inbound} campo(s) hacia CRVMGMT · {run.counts.outbound} campo(s) escritos en
-              el archivo de FileMaker.
+              {tr("{a} campo(s) hacia CRVMGMT · {b} campo(s) escritos en el archivo de FileMaker.", {
+                a: run.counts.inbound,
+                b: run.counts.outbound,
+              })}
             </>
           ) : null
         }
-        confirmLabel="Aplicar"
+        confirmLabel={tr("Aplicar")}
         pending={pending}
         onConfirm={() =>
-          post({ action: "apply", runId: run?.id, database, connectionString, table }, "Sincronización aplicada")
+          post({ action: "apply", runId: run?.id, database, connectionString, table }, tr("Sincronización aplicada"))
         }
         onCancel={() => setAsking(false)}
       />

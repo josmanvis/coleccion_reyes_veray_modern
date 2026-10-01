@@ -6,6 +6,7 @@ import { Check, FileSpreadsheet, Trash2, X } from "lucide-react";
 import { BTN, BTN_DANGER, BTN_PRIMARY, CARD, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
+import { useTr } from "@/components/I18nProvider";
 
 type FieldDiff = { key: string; label: string; before: string; after: string };
 type Change = {
@@ -37,6 +38,7 @@ export default function ImportReview({
   session: Session | null;
   changes: Change[];
 }) {
+  const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
   const [file, setFile] = useState<File | null>(null);
@@ -65,10 +67,10 @@ export default function ImportReview({
     const response = await fetch("/api/admin/import/preview", { method: "POST", body });
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
-      notify(`${data.session?.counts?.total ?? 0} cambios para revisar`);
+      notify(tr("{v} cambios para revisar", { v: data.session?.counts?.total ?? 0 }));
       router.refresh();
     } else {
-      notify(data.error || "No se pudo leer el archivo", "error");
+      notify(tr(data.error || "No se pudo leer el archivo"), "error");
     }
     setPending(false);
   }
@@ -82,13 +84,13 @@ export default function ImportReview({
     });
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
-      if (action === "apply") notify(`${data.applied} registro(s) actualizados`);
-      if (action === "skip") notify(`${data.skipped} descartados de la revisión`);
-      if (action === "discard") notify("Revisión descartada");
+      if (action === "apply") notify(tr("{n} registro(s) actualizados", { n: data.applied }));
+      if (action === "skip") notify(tr("{skipped} descartados de la revisión", { skipped: data.skipped }));
+      if (action === "discard") notify(tr("Revisión descartada"));
       setSelected(new Set());
       router.refresh();
     } else {
-      notify(data.error || "No se pudo completar", "error");
+      notify(tr(data.error || "No se pudo completar"), "error");
     }
     setPending(false);
     setAsking(null);
@@ -97,10 +99,10 @@ export default function ImportReview({
   return (
     <div className="space-y-4">
       <section className={`${CARD} p-4`}>
-        <h2 className="text-sm font-semibold">Archivo de FileMaker</h2>
+        <h2 className="text-sm font-semibold">{tr("Archivo de FileMaker")}</h2>
         <p className={`mt-1 text-sm ${MUTED}`}>
-          Exporta desde FileMaker en .xlsx (Records → Show All Records primero). Se compara con
-          los registros y no se escribe nada hasta que confirmes cada cambio.
+          
+          {tr("Exporta desde FileMaker en .xlsx (Records → Show All Records primero). Se compara con los registros y no se escribe nada hasta que confirmes cada cambio.")}
         </p>
         <form onSubmit={upload} className="mt-3 flex flex-wrap items-center gap-2">
           <input
@@ -111,7 +113,7 @@ export default function ImportReview({
           />
           <button type="submit" disabled={!file || pending} className={BTN_PRIMARY}>
             <FileSpreadsheet size={15} strokeWidth={1.75} aria-hidden />
-            {pending ? "Comparando…" : "Comparar con los registros"}
+            {pending ? tr("Comparando…") : tr("Comparar con los registros")}
           </button>
         </form>
       </section>
@@ -122,8 +124,12 @@ export default function ImportReview({
             <div className="min-w-0">
               <h2 className="truncate text-sm font-semibold">{session.filename}</h2>
               <p className={`mt-0.5 text-xs ${MUTED}`}>
-                {session.counts.total} cambios · {session.counts.nuevas} nuevas ·{" "}
-                {session.counts.cambios} actualizaciones · {session.counts.applied} aplicados
+                {tr("{a} cambios · {b} nuevas · {c} actualizaciones · {d} aplicados", {
+                  a: session.counts.total,
+                  b: session.counts.nuevas,
+                  c: session.counts.cambios,
+                  d: session.counts.applied,
+                })}
               </p>
             </div>
 
@@ -134,7 +140,7 @@ export default function ImportReview({
                 disabled={waiting.length === 0}
                 className={BTN}
               >
-                Seleccionar todo ({waiting.length})
+                {tr("Seleccionar todo ({n})", { n: waiting.length })}
               </button>
               <button
                 type="button"
@@ -143,7 +149,8 @@ export default function ImportReview({
                 className={BTN}
               >
                 <X size={15} strokeWidth={1.75} aria-hidden />
-                Descartar selección
+                
+                {tr("Descartar selección")}
               </button>
               <button
                 type="button"
@@ -152,11 +159,12 @@ export default function ImportReview({
                 className={BTN_PRIMARY}
               >
                 <Check size={15} strokeWidth={1.75} aria-hidden />
-                Aplicar {selected.size > 0 ? `(${selected.size})` : ""}
+                {selected.size > 0 ? tr("Aplicar ({n})", { n: selected.size }) : tr("Aplicar")}
               </button>
               <button type="button" onClick={() => setAsking("discard")} className={BTN_DANGER}>
                 <Trash2 size={15} strokeWidth={1.75} aria-hidden />
-                Descartar revisión
+                
+                {tr("Descartar revisión")}
               </button>
             </div>
           </div>
@@ -173,7 +181,7 @@ export default function ImportReview({
                       checked={selected.has(change.id)}
                       disabled={done}
                       onChange={() => toggle(change.id)}
-                      aria-label={`Seleccionar ${change.registro ?? change.ref}`}
+                      aria-label={tr("Seleccionar {id}", { id: change.registro ?? change.ref })}
                       className="size-4 accent-[var(--brand)]"
                     />
                     <span
@@ -183,13 +191,13 @@ export default function ImportReview({
                           : "border-[color:var(--brand)]/30 bg-[var(--brand-soft)] text-[var(--brand-hover)]"
                       }`}
                     >
-                      {change.kind === "new" ? "Nueva" : "Cambio"}
+                      {change.kind === "new" ? tr("Nueva") : tr("Cambio")}
                     </span>
                     <span className="font-mono text-xs text-[var(--ink-3)]">
                       {change.registro ?? change.ref}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm">
-                      {change.title || "Sin título"}
+                      {change.title || tr("Sin título")}
                       {change.artist && <span className={`ml-2 text-xs ${MUTED}`}>{change.artist}</span>}
                     </span>
                     <button
@@ -204,11 +212,11 @@ export default function ImportReview({
                       }
                       className="shrink-0 text-xs font-semibold text-[var(--brand-hover)] hover:underline"
                     >
-                      {change.diff.length} campo{change.diff.length === 1 ? "" : "s"}
+                      {tr(change.diff.length === 1 ? "{n} campo" : "{n} campos", { n: change.diff.length })}
                     </button>
                     {done && (
                       <span className={`shrink-0 text-xs ${MUTED}`}>
-                        {change.status === "applied" ? "Aplicado" : "Descartado"}
+                        {change.status === "applied" ? tr("Aplicado") : tr("Descartado")}
                       </span>
                     )}
                   </div>
@@ -223,9 +231,9 @@ export default function ImportReview({
                                 {entry.label}
                               </td>
                               <td className="py-1 pr-3 text-[var(--danger)] line-through">
-                                {entry.before || "(vacío)"}
+                                {entry.before || tr("(vacío)")}
                               </td>
-                              <td className="py-1 text-[var(--success)]">{entry.after || "(vacío)"}</td>
+                              <td className="py-1 text-[var(--success)]">{entry.after || tr("(vacío)")}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -241,18 +249,18 @@ export default function ImportReview({
 
       <ConfirmDialog
         open={asking === "apply"}
-        title="¿Aplicar los cambios seleccionados?"
-        body={`Se escribirán ${selected.size} registro(s) en el inventario.`}
-        confirmLabel="Aplicar"
+        title={tr("¿Aplicar los cambios seleccionados?")}
+        body={tr("Se escribirán {size} registro(s) en el inventario.", { size: selected.size })}
+        confirmLabel={tr("Aplicar")}
         pending={pending}
         onConfirm={() => post("apply", [...selected])}
         onCancel={() => setAsking(null)}
       />
       <ConfirmDialog
         open={asking === "discard"}
-        title="¿Descartar toda la revisión?"
-        body="Se elimina la comparación. Los registros no cambian."
-        confirmLabel="Descartar"
+        title={tr("¿Descartar toda la revisión?")}
+        body={tr("Se elimina la comparación. Los registros no cambian.")}
+        confirmLabel={tr("Descartar")}
         tone="danger"
         pending={pending}
         onConfirm={() => post("discard")}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bubbleColor, initialsOf } from "@/lib/inventory/theme";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * Who else is in CRVMGMT, as a row of bubbles.
@@ -48,6 +49,7 @@ function tabToken(): string {
 }
 
 export default function PresenceBar() {
+  const tr = useTr();
   const [users, setUsers] = useState<Present[]>([]);
   const [me, setMe] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -133,7 +135,7 @@ export default function PresenceBar() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="app-no-drag flex items-center -space-x-1.5 rounded-full p-0.5 transition-colors hover:bg-white/15"
-        aria-label={`${users.length} persona(s) en CRVMGMT`}
+        aria-label={tr("{length} persona(s) en CRVMGMT", { length: users.length })}
         aria-expanded={open}
       >
         {shown.map((user) => (
@@ -157,7 +159,8 @@ export default function PresenceBar() {
           />
           <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-[var(--radius)] border border-[var(--stroke-soft)] bg-[var(--surface)] shadow-[var(--shadow-16)]">
             <p className="border-b border-[var(--stroke-soft)] px-3 py-2 text-xs font-semibold text-[var(--ink-2)]">
-              En CRVMGMT ahora
+              
+              {tr("En CRVMGMT ahora")}
             </p>
             <ul className="max-h-80 overflow-auto py-1">
               {ordered.map((user) => (
@@ -167,11 +170,11 @@ export default function PresenceBar() {
                     <p className="truncate text-sm font-medium text-[var(--ink-1)]">
                       {user.name}
                       {user.userId === me && (
-                        <span className="ml-1 text-[var(--ink-3)]">(tú)</span>
+                        <span className="ml-1 text-[var(--ink-3)]">{tr("(tú)")}</span>
                       )}
                     </p>
                     <p className="truncate text-xs text-[var(--ink-3)]">
-                      {stateLabel(user)} · {user.origin}
+                      {stateLabel(user, tr)} · {user.origin}
                     </p>
                   </div>
                 </li>
@@ -184,11 +187,11 @@ export default function PresenceBar() {
   );
 }
 
-function stateLabel(user: Present): string {
-  if (user.state === "active") return "Trabajando";
-  if (user.state === "idle") return "Inactivo";
+function stateLabel(user: Present, tr: (es: string, vars?: Record<string, string | number>) => string): string {
+  if (user.state === "active") return tr("Trabajando");
+  if (user.state === "idle") return tr("Inactivo");
   const minutes = Math.round(user.secondsAgo / 60);
-  return minutes < 1 ? "En otra ventana" : `Ausente ${minutes} min`;
+  return minutes < 1 ? tr("En otra ventana") : tr("Ausente {n} min", { n: minutes });
 }
 
 function Bubble({
@@ -200,6 +203,7 @@ function Bubble({
   isMe: boolean;
   onCanvas?: boolean;
 }) {
+  const tr = useTr();
   const tint = user.accent?.trim() || bubbleColor(user.name);
   // Idle and away fade rather than change shape, so the row stays scannable.
   const opacity = user.state === "active" ? 1 : user.state === "idle" ? 0.65 : 0.4;
@@ -207,7 +211,7 @@ function Bubble({
   return (
     <span
       className="relative inline-grid h-7 w-7 shrink-0 place-items-center rounded-full"
-      title={`${user.name} — ${stateLabel(user)}`}
+      title={`${user.name} — ${stateLabel(user, tr)}`}
       style={{ opacity }}
     >
       {user.avatar ? (
@@ -245,7 +249,7 @@ function Bubble({
         }`}
         aria-hidden
       />
-      {isMe && <span className="sr-only">Tú</span>}
+      {isMe && <span className="sr-only">{tr("Tú")}</span>}
     </span>
   );
 }

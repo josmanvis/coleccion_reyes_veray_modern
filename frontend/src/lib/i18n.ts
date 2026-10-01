@@ -10,6 +10,8 @@
  * project-client-server-module-split).
  */
 
+import { ADMIN_EN } from "./i18n-admin";
+
 export const LOCALES = ["en", "es"] as const;
 
 export type Locale = (typeof LOCALES)[number];
@@ -253,6 +255,31 @@ export function t(
     }
   }
   return text;
+}
+
+/**
+ * Admin copy is keyed by its Spanish text — the language the interface was
+ * written in — and `ADMIN_EN` holds the English. A string with no entry falls
+ * back to the Spanish rather than rendering blank; `scripts/check-i18n.mjs`
+ * lists any that are missing.
+ */
+export function tr(
+  locale: Locale,
+  es: string,
+  vars?: Record<string, string | number>
+): string {
+  let text = locale === "en" ? (ADMIN_EN[es] ?? es) : es;
+  if (vars) {
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.replaceAll(`{${name}}`, String(value));
+    }
+  }
+  return text;
+}
+
+/** The BCP 47 tag the browser's date formatting should use. */
+export function dateLocaleOf(locale: Locale): string {
+  return locale === "en" ? "en-US" : "es";
 }
 
 export function isLocale(value: unknown): value is Locale {

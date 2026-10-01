@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { MergeScope } from "@/lib/inventory/artists";
+import { useTr } from "@/components/I18nProvider";
 
 export type MergeCardVariant = {
   artist_last: string;
@@ -66,6 +67,7 @@ export default function ArtistMergeCard({
   total,
   tone = "duplicate",
 }: Props) {
+  const tr = useTr();
   const router = useRouter();
   const [chosen, setChosen] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -102,7 +104,7 @@ export default function ArtistMergeCard({
       setChosen(null);
       router.refresh();
     } else {
-      setError(body.error || "No se pudo unificar");
+      setError(tr(body.error || "No se pudo unificar"));
     }
     setPending(false);
   }
@@ -116,7 +118,7 @@ export default function ArtistMergeCard({
       <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="text-lg leading-tight">{title}</h3>
         <p className="shrink-0 text-xs text-[var(--ink-3)]">
-          {variants.length} grafías · {total} obra{total === 1 ? "" : "s"}
+          {tr("{n} grafías", { n: variants.length })} · {tr(total === 1 ? "{n} obra" : "{n} obras", { n: total })}
         </p>
       </header>
       {hint && <p className="mt-0.5 text-xs text-[var(--ink-3)]">{hint}</p>}
@@ -156,7 +158,8 @@ export default function ArtistMergeCard({
                 </span>
                 {index === 0 && (
                   <span className="shrink-0 rounded bg-[var(--hover)] px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-[var(--ink-3)]">
-                    más usada
+                    
+                    {tr("más usada")}
                   </span>
                 )}
                 {warning && (
@@ -181,14 +184,14 @@ export default function ArtistMergeCard({
           className="rounded bg-[var(--brand)] px-3 py-1.5 text-sm text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
         >
           {pending
-            ? "Unificando…"
+            ? tr("Unificando…")
             : selected
-              ? `Usar esta grafía en ${affected} obra${affected === 1 ? "" : "s"}`
-              : "Elige la grafía correcta"}
+              ? tr(affected === 1 ? "Usar esta grafía en {n} obra" : "Usar esta grafía en {n} obras", { n: affected })
+              : tr("Elige la grafía correcta")}
         </button>
         {done !== null && (
           <span className="text-sm text-emerald-700">
-            {done} obra{done === 1 ? "" : "s"} actualizada{done === 1 ? "" : "s"}
+            {tr(done === 1 ? "{n} obra actualizada" : "{n} obras actualizadas", { n: done })}
           </span>
         )}
         {error && <span className="text-sm text-red-600">{error}</span>}

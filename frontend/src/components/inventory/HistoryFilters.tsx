@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { BTN, BTN_PRIMARY, CARD, FIELD, LABEL } from "./ui";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * Filters kept in the URL rather than in component state, so a particular view
@@ -19,6 +20,7 @@ export default function HistoryFilters({
   };
   canFilterUser: boolean;
 }) {
+  const tr = useTr();
   const router = useRouter();
   const params = useSearchParams();
   const value = (key: string) => params?.get(key) ?? "";
@@ -36,23 +38,23 @@ export default function HistoryFilters({
   return (
     <form action={apply} className={`${CARD} grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6`}>
       <label className="lg:col-span-2">
-        <span className={LABEL}>Buscar</span>
+        <span className={LABEL}>{tr("Buscar")}</span>
         <input
           name="q"
           defaultValue={value("q")}
-          placeholder="Obra, persona, resumen…"
+          placeholder={tr("Obra, persona, resumen…")}
           className={FIELD}
         />
       </label>
 
       {canFilterUser && (
         <label>
-          <span className={LABEL}>Quién</span>
+          <span className={LABEL}>{tr("Quién")}</span>
           <select name="user" defaultValue={value("user")} className={FIELD}>
-            <option value="">Todos</option>
+            <option value="">{tr("Todos")}</option>
             {facets.users.map((user) => (
               <option key={`${user.id}-${user.name}`} value={user.id ?? ""}>
-                {user.name} ({user.n})
+                {tr(user.name)} ({user.n})
               </option>
             ))}
           </select>
@@ -60,9 +62,9 @@ export default function HistoryFilters({
       )}
 
       <label>
-        <span className={LABEL}>Qué</span>
+        <span className={LABEL}>{tr("Qué")}</span>
         <select name="entity" defaultValue={value("entity")} className={FIELD}>
-          <option value="">Todo</option>
+          <option value="">{tr("Todo")}</option>
           {facets.entities.map((entity) => (
             <option key={entity} value={entity}>
               {entity}
@@ -72,9 +74,9 @@ export default function HistoryFilters({
       </label>
 
       <label>
-        <span className={LABEL}>Acción</span>
+        <span className={LABEL}>{tr("Acción")}</span>
         <select name="action" defaultValue={value("action")} className={FIELD}>
-          <option value="">Todas</option>
+          <option value="">{tr("Todas")}</option>
           {facets.actions.map((action) => (
             <option key={action} value={action}>
               {action}
@@ -84,24 +86,26 @@ export default function HistoryFilters({
       </label>
 
       <label>
-        <span className={LABEL}>Desde</span>
+        <span className={LABEL}>{tr("Desde")}</span>
         <input type="date" name="from" defaultValue={value("from")} className={FIELD} />
       </label>
 
       <label>
-        <span className={LABEL}>Hasta</span>
+        <span className={LABEL}>{tr("Hasta")}</span>
         <input type="date" name="to" defaultValue={value("to")} className={FIELD} />
       </label>
 
       <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-6">
         <button type="submit" className={BTN_PRIMARY}>
           <Search size={15} strokeWidth={1.75} aria-hidden />
-          Filtrar
+          
+          {tr("Filtrar")}
         </button>
         {active && (
           <button type="button" onClick={() => router.push("/admin/history")} className={BTN}>
             <X size={15} strokeWidth={1.75} aria-hidden />
-            Limpiar
+            
+            {tr("Limpiar")}
           </button>
         )}
       </div>

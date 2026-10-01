@@ -20,6 +20,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
+import { useTr } from "@/components/I18nProvider";
 
 const STORAGE_KEY = "crv_rail_collapsed";
 const RAIL_EVENT = "crv:rail";
@@ -69,6 +70,7 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 export default function NavRail() {
+  const tr = useTr();
   const pathname = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
 
@@ -83,7 +85,7 @@ export default function NavRail() {
 
   return (
     <nav
-      aria-label="Secciones"
+      aria-label={tr("Secciones")}
       data-collapsed={collapsed}
       // Inline width: a layout-critical dimension should not depend on an
       // arbitrary Tailwind utility being generated.
@@ -96,7 +98,7 @@ export default function NavRail() {
             type="button"
             onClick={toggle}
             aria-expanded={!collapsed}
-            title={collapsed ? "Expandir menú" : "Contraer menú"}
+            title={collapsed ? tr("Expandir menú") : tr("Contraer menú")}
             className="rounded-[var(--radius)] p-1.5 text-[var(--ink-2)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
           >
             {collapsed ? (
@@ -104,7 +106,7 @@ export default function NavRail() {
             ) : (
               <PanelLeftClose size={18} strokeWidth={1.75} aria-hidden />
             )}
-            <span className="sr-only">{collapsed ? "Expandir menú" : "Contraer menú"}</span>
+            <span className="sr-only">{collapsed ? tr("Expandir menú") : tr("Contraer menú")}</span>
           </button>
         </div>
         <ul className="space-y-0.5 p-2">
@@ -116,7 +118,7 @@ export default function NavRail() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? tr(item.label) : undefined}
                 className={`relative flex items-center gap-3 rounded-[var(--radius)] py-2 text-sm transition-colors ${
                   collapsed ? "justify-center px-2" : "px-3"
                 } ${
@@ -133,7 +135,7 @@ export default function NavRail() {
                   }`}
                 />
                 <Icon size={18} strokeWidth={1.75} aria-hidden className="shrink-0" />
-                {collapsed ? <span className="sr-only">{item.label}</span> : item.label}
+                {collapsed ? <span className="sr-only">{tr(item.label)}</span> : tr(item.label)}
               </Link>
             </li>
           );

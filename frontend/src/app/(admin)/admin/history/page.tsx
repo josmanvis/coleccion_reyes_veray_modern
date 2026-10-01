@@ -5,9 +5,13 @@ import { auditFacets, listEntries, verifyChain } from "@/lib/inventory/audit";
 import { CARD, MUTED } from "@/components/inventory/ui";
 import HistoryFilters from "@/components/inventory/HistoryFilters";
 import HistoryList from "@/components/inventory/HistoryList";
+import { getTr } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Historial · CRVMGMT" };
+export async function generateMetadata() {
+  const tr = await getTr();
+  return { title: tr("Historial · CRVMGMT") };
+}
 
 const PER_PAGE = 60;
 
@@ -18,6 +22,7 @@ function one(value: string | string[] | undefined): string {
 }
 
 export default async function HistoryPage({ searchParams }: { searchParams: Search }) {
+  const tr = await getTr();
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   const params = await searchParams;
@@ -47,11 +52,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Sear
     <>
       <div className="border-b border-[var(--stroke-soft)] bg-[var(--surface)]">
         <div className="px-6 py-3">
-          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">Historial</h1>
+          <h1 className="text-xl font-semibold leading-tight text-[var(--ink-1)]">{tr("Historial")}</h1>
           <p className={`mt-0.5 text-sm ${MUTED}`}>
             {isAdmin
-              ? "Todo lo que se ha hecho en CRVMGMT, firmado y en orden."
-              : "Lo que tú has hecho en CRVMGMT."}
+              ? tr("Todo lo que se ha hecho en CRVMGMT, firmado y en orden.")
+              : tr("Lo que tú has hecho en CRVMGMT.")}
           </p>
         </div>
       </div>
@@ -81,12 +86,12 @@ export default async function HistoryPage({ searchParams }: { searchParams: Sear
             <div>
               <p className="text-sm font-medium text-[var(--ink-1)]">
                 {chain.ok
-                  ? `${chain.total} entrada(s) verificadas`
-                  : `Historial alterado en la entrada ${chain.brokenAt}`}
+                  ? tr("{n} entrada(s) verificadas", { n: chain.total })
+                  : tr("Historial alterado en la entrada {n}", { n: chain.brokenAt ?? "" })}
               </p>
               <p className={`mt-0.5 text-sm ${MUTED}`}>
                 {chain.ok
-                  ? "Cada entrada conserva su firma y enlaza con la anterior."
+                  ? tr("Cada entrada conserva su firma y enlaza con la anterior.")
                   : chain.reason}
               </p>
             </div>

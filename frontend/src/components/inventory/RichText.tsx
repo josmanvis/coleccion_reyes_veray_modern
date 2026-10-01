@@ -3,6 +3,7 @@
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
+import { useTr } from "@/components/I18nProvider";
 
 /**
  * The editor for `text` blocks, which store HTML.
@@ -52,6 +53,7 @@ export default function RichText({
   value: string;
   onChange: (html: string) => void;
 }) {
+  const tr = useTr();
   const editor = useEditor({
     // Required in the App Router: rendering on the server first would hydrate
     // against different markup.
@@ -100,7 +102,7 @@ export default function RichText({
   function setLink() {
     if (!editor) return;
     const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Dirección del enlace", previous ?? "https://");
+    const url = window.prompt(tr("Dirección del enlace"), previous ?? "https://");
     if (url === null) return;
     if (url === "") {
       editor.chain().focus().unsetLink().run();
@@ -115,79 +117,79 @@ export default function RichText({
         <ToolbarButton
           editor={editor}
           label={<strong>B</strong>}
-          title="Negrita"
+          title={tr("Negrita")}
           isActive={editor.isActive("bold")}
           onClick={() => editor.chain().focus().toggleBold().run()}
         />
         <ToolbarButton
           editor={editor}
           label={<em>I</em>}
-          title="Cursiva"
+          title={tr("Cursiva")}
           isActive={editor.isActive("italic")}
           onClick={() => editor.chain().focus().toggleItalic().run()}
         />
         <span className="mx-1 h-4 w-px bg-[var(--stroke-soft)]" />
         <ToolbarButton
           editor={editor}
-          label="H2"
-          title="Encabezado 2"
+          label={tr("H2")}
+          title={tr("Encabezado 2")}
           isActive={editor.isActive("heading", { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         />
         <ToolbarButton
           editor={editor}
-          label="H3"
-          title="Encabezado 3"
+          label={tr("H3")}
+          title={tr("Encabezado 3")}
           isActive={editor.isActive("heading", { level: 3 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         />
         <span className="mx-1 h-4 w-px bg-[var(--stroke-soft)]" />
         <ToolbarButton
           editor={editor}
-          label="• Lista"
-          title="Lista con viñetas"
+          label={tr("• Lista")}
+          title={tr("Lista con viñetas")}
           isActive={editor.isActive("bulletList")}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         />
         <ToolbarButton
           editor={editor}
-          label="1. Lista"
-          title="Lista numerada"
+          label={tr("1. Lista")}
+          title={tr("Lista numerada")}
           isActive={editor.isActive("orderedList")}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         />
         <ToolbarButton
           editor={editor}
           label="❝"
-          title="Cita"
+          title={tr("Cita")}
           isActive={editor.isActive("blockquote")}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
         />
         <span className="mx-1 h-4 w-px bg-[var(--stroke-soft)]" />
         <ToolbarButton
           editor={editor}
-          label="Enlace"
-          title="Añadir o editar enlace"
+          label={tr("Enlace")}
+          title={tr("Añadir o editar enlace")}
           isActive={editor.isActive("link")}
           onClick={setLink}
         />
         <ToolbarButton
           editor={editor}
-          label="Limpiar"
-          title="Quitar formato"
+          label={tr("Limpiar")}
+          title={tr("Quitar formato")}
           onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
         />
         <div className="ml-auto flex items-center gap-0.5">
           <ToolbarButton
             editor={editor}
             label="↶"
-            title="Deshacer"
+            title={tr("Deshacer")}
             onClick={() => editor.chain().focus().undo().run()}
           />
           <ToolbarButton
             editor={editor}
             label="↷"
-            title="Rehacer"
+            title={tr("Rehacer")}
             onClick={() => editor.chain().focus().redo().run()}
           />
         </div>

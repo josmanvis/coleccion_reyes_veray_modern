@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Clock, Pencil, Trash2 } from "lucide-react";
 import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
+import { useDateLocale, useTr } from "@/components/I18nProvider";
 
 type Shift = {
   id: number;
@@ -31,17 +32,17 @@ function hours(minutes: number): string {
 }
 
 /** Stored UTC, shown on the reader's clock. */
-function day(iso: string): string {
-  return new Date(iso).toLocaleDateString("es", {
+function day(iso: string, loc: string): string {
+  return new Date(iso).toLocaleDateString(loc, {
     weekday: "short",
     day: "2-digit",
     month: "short",
   });
 }
 
-function time(iso: string | null): string {
+function time(iso: string | null, loc: string): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" });
 }
 
 /**
@@ -86,6 +87,8 @@ export default function HoursBoard({
   isAdmin: boolean;
   openShiftId: number | null;
 }) {
+  const tr = useTr();
+  const loc = useDateLocale();
   const router = useRouter();
   const { notify } = useToast();
   const [editing, setEditing] = useState<Shift | null>(null);
@@ -104,7 +107,7 @@ export default function HoursBoard({
     if (!editing) return;
     const reason = String(form.get("reason") ?? "").trim();
     if (!reason) {
-      notify("Indica el motivo del ajuste", "error");
+      notify(tr("Indica el motivo del ajuste"), "error");
       return;
     }
 
@@ -124,10 +127,10 @@ export default function HoursBoard({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        notify(data.error || "No se pudo ajustar", "error");
+        notify(tr(data.error || "No se pudo ajustar"), "error");
         return;
       }
-      notify("Horas ajustadas · queda en el historial");
+      notify(tr("Horas ajustadas · queda en el historial"));
       setEditing(null);
       router.refresh();
     } finally {
@@ -137,11 +140,11 @@ export default function HoursBoard({
 
   async function remove(shift: Shift) {
     const reason = window.prompt(
-      `Eliminar la jornada de ${shift.userName} del ${day(shift.startedAt)}.\n\nMotivo (queda registrado):`
+      tr("Eliminar la jornada de {userName} del {v}.\n\nMotivo (queda registrado):", { userName: shift.userName, v: day(shift.startedAt, loc) })
     );
     if (reason === null) return;
     if (!reason.trim()) {
-      notify("Hace falta un motivo", "error");
+      notify(tr("Hace falta un motivo"), "error");
       return;
     }
 
@@ -152,10 +155,10 @@ export default function HoursBoard({
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      notify(data.error || "No se pudo eliminar", "error");
+      notify(tr(data.error || "No se pudo eliminar"), "error");
       return;
     }
-    notify("Jornada eliminada · queda en el historial");
+    notify(tr("Jornada eliminada · queda en el historial"));
     router.refresh();
   }
 
@@ -164,9 +167,9 @@ export default function HoursBoard({
       <form action={filter} className={`${CARD} flex flex-wrap items-end gap-3 p-4`}>
         {isAdmin && (
           <label className="min-w-[200px]">
-            <span className={LABEL}>Persona</span>
+            <span className={LABEL}>{tr("Persona")}</span>
             <select name="user" defaultValue={selectedUser ?? ""} className={FIELD}>
-              <option value="">Todo el equipo</option>
+              <option value="">{tr("Todo el equipo")}</option>
               {people.map((person) => (
                 <option key={person.id} value={person.id}>
                   {person.name}
@@ -176,31 +179,32 @@ export default function HoursBoard({
           </label>
         )}
         <label>
-          <span className={LABEL}>Desde</span>
+          <span className={LABEL}>{tr("Desde")}</span>
           <input type="date" name="from" defaultValue={from} className={FIELD} />
         </label>
         <label>
-          <span className={LABEL}>Hasta</span>
+          <span className={LABEL}>{tr("Hasta")}</span>
           <input type="date" name="to" defaultValue={to} className={FIELD} />
         </label>
         <button type="submit" className={BTN_PRIMARY}>
-          Ver
+          
+          {tr("Ver")}
         </button>
         <p className="ml-auto flex items-center gap-1.5 text-sm font-semibold text-[var(--ink-1)]">
           <Clock size={16} strokeWidth={1.75} aria-hidden />
-          {hours(totalMinutes)} en total
+          {tr("{h} en total", { h: hours(totalMinutes) })}
         </p>
       </form>
 
       {totals.length > 1 && (
         <div className={`${CARD} p-4`}>
-          <h2 className="text-sm font-semibold">Por persona</h2>
+          <h2 className="text-sm font-semibold">{tr("Por persona")}</h2>
           <ul className="mt-2 divide-y divide-[var(--stroke-soft)]">
             {totals.map((total) => (
               <li key={total.userId} className="flex items-center gap-3 py-1.5 text-sm">
                 <span className="font-medium text-[var(--ink-1)]">{total.userName}</span>
-                {total.open > 0 && <span className={BADGE.success}>en curso</span>}
-                <span className={`ml-auto ${MUTED}`}>{total.shifts} jornada(s)</span>
+                {total.open > 0 && <span className={BADGE.success}>{tr("en curso")}</span>}
+                <span className={`ml-auto ${MUTED}`}>{tr("{n} jornada(s)", { n: total.shifts })}</span>
                 <span className="w-28 text-right font-semibold text-[var(--ink-1)]">
                   {hours(total.minutes)}
                 </span>
@@ -212,19 +216,19 @@ export default function HoursBoard({
 
       <div className={`${CARD} overflow-hidden`}>
         {shifts.length === 0 ? (
-          <p className={`p-8 text-center text-sm ${MUTED}`}>No hay jornadas en este rango.</p>
+          <p className={`p-8 text-center text-sm ${MUTED}`}>{tr("No hay jornadas en este rango.")}</p>
         ) : (
           <table className="w-full border-separate border-spacing-0 text-sm">
             <thead>
               <tr className="bg-[var(--surface-alt)] text-left text-xs font-semibold text-[var(--ink-2)]">
-                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">Día</th>
+                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">{tr("Día")}</th>
                 {isAdmin && (
-                  <th className="border-b border-[var(--stroke-soft)] px-4 py-2">Persona</th>
+                  <th className="border-b border-[var(--stroke-soft)] px-4 py-2">{tr("Persona")}</th>
                 )}
-                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">Entrada</th>
-                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">Salida</th>
-                <th className="border-b border-[var(--stroke-soft)] px-4 py-2 text-right">Total</th>
-                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">Nota</th>
+                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">{tr("Entrada")}</th>
+                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">{tr("Salida")}</th>
+                <th className="border-b border-[var(--stroke-soft)] px-4 py-2 text-right">{tr("Total")}</th>
+                <th className="border-b border-[var(--stroke-soft)] px-4 py-2">{tr("Nota")}</th>
                 {canAdjust && <th className="border-b border-[var(--stroke-soft)] px-4 py-2" />}
               </tr>
             </thead>
@@ -232,7 +236,7 @@ export default function HoursBoard({
               {shifts.map((shift) => (
                 <tr key={shift.id} className="hover:bg-[var(--hover)]">
                   <td className="border-b border-[var(--stroke-soft)] px-4 py-2 text-[var(--ink-1)]">
-                    {day(shift.startedAt)}
+                    {day(shift.startedAt, loc)}
                   </td>
                   {isAdmin && (
                     <td className="border-b border-[var(--stroke-soft)] px-4 py-2">
@@ -240,14 +244,14 @@ export default function HoursBoard({
                     </td>
                   )}
                   <td className="border-b border-[var(--stroke-soft)] px-4 py-2">
-                    {time(shift.startedAt)}
+                    {time(shift.startedAt, loc)}
                   </td>
                   <td className="border-b border-[var(--stroke-soft)] px-4 py-2">
                     {shift.endedAt ? (
-                      time(shift.endedAt)
+                      time(shift.endedAt, loc)
                     ) : (
                       <span className={BADGE.success}>
-                        {shift.id === openShiftId ? "tu jornada" : "en curso"}
+                        {shift.id === openShiftId ? tr("tu jornada") : tr("en curso")}
                       </span>
                     )}
                   </td>
@@ -261,7 +265,8 @@ export default function HoursBoard({
                         className={`${BADGE.warning} ml-1`}
                         title={`${shift.editedByName}: ${shift.editReason}`}
                       >
-                        ajustada
+                        
+                        {tr("ajustada")}
                       </span>
                     )}
                   </td>
@@ -272,7 +277,7 @@ export default function HoursBoard({
                           type="button"
                           onClick={() => setEditing(shift)}
                           className="rounded-[var(--radius)] p-1.5 text-[var(--ink-2)] transition-colors hover:bg-[var(--selected)]"
-                          aria-label={`Ajustar jornada de ${shift.userName}`}
+                          aria-label={tr("Ajustar jornada de {userName}", { userName: shift.userName })}
                         >
                           <Pencil size={15} strokeWidth={1.75} aria-hidden />
                         </button>
@@ -280,7 +285,7 @@ export default function HoursBoard({
                           type="button"
                           onClick={() => void remove(shift)}
                           className="rounded-[var(--radius)] p-1.5 text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
-                          aria-label={`Eliminar jornada de ${shift.userName}`}
+                          aria-label={tr("Eliminar jornada de {userName}", { userName: shift.userName })}
                         >
                           <Trash2 size={15} strokeWidth={1.75} aria-hidden />
                         </button>
@@ -299,17 +304,17 @@ export default function HoursBoard({
           <form
             action={submitAdjust}
             className={`${CARD} w-full max-w-md p-4`}
-            aria-label="Ajustar jornada"
+            aria-label={tr("Ajustar jornada")}
           >
-            <h2 className="text-sm font-semibold">Ajustar jornada</h2>
+            <h2 className="text-sm font-semibold">{tr("Ajustar jornada")}</h2>
             <p className={`mt-1 text-sm ${MUTED}`}>
-              {editing.userName} · {day(editing.startedAt)}. El cambio queda firmado en el
-              historial con tu nombre y el motivo.
+              {editing.userName} · {day(editing.startedAt, loc)}.{" "}
+              {tr("El cambio queda firmado en el historial con tu nombre y el motivo.")}
             </p>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label>
-                <span className={LABEL}>Entrada</span>
+                <span className={LABEL}>{tr("Entrada")}</span>
                 <input
                   type="datetime-local"
                   name="startedAt"
@@ -319,7 +324,7 @@ export default function HoursBoard({
                 />
               </label>
               <label>
-                <span className={LABEL}>Salida</span>
+                <span className={LABEL}>{tr("Salida")}</span>
                 <input
                   type="datetime-local"
                   name="endedAt"
@@ -328,14 +333,14 @@ export default function HoursBoard({
                 />
               </label>
               <label className="sm:col-span-2">
-                <span className={LABEL}>Nota</span>
+                <span className={LABEL}>{tr("Nota")}</span>
                 <input name="note" defaultValue={editing.note} className={FIELD} />
               </label>
               <label className="sm:col-span-2">
-                <span className={LABEL}>Motivo del ajuste (obligatorio)</span>
+                <span className={LABEL}>{tr("Motivo del ajuste (obligatorio)")}</span>
                 <input
                   name="reason"
-                  placeholder="Olvidó marcar la salida"
+                  placeholder={tr("Olvidó marcar la salida")}
                   className={FIELD}
                   required
                 />
@@ -344,10 +349,11 @@ export default function HoursBoard({
 
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setEditing(null)} className={BTN}>
-                Cancelar
+                
+                {tr("Cancelar")}
               </button>
               <button type="submit" disabled={pending} className={BTN_PRIMARY}>
-                {pending ? "Guardando…" : "Guardar ajuste"}
+                {pending ? tr("Guardando…") : tr("Guardar ajuste")}
               </button>
             </div>
           </form>
