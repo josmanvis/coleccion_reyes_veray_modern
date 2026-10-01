@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   Award,
   Boxes,
@@ -71,12 +71,76 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+type Tip = { label: string; top: number; left: number };
+
+/**
+ * Labels for the icon-only rail. Fixed-positioned from the icon's rect, so the
+ * rail's own overflow cannot clip them. The first one waits a beat; moving
+ * along the rail while one is showing swaps the label at once, the way native
+ * toolbars behave.
+ */
+function useRailTip() {
+  const [tip, setTip] = useState<Tip | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warmUntil = useRef(0);
+
+  const clear = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+
+  const show = useCallback((label: string, target: HTMLElement) => {
+    clear();
+    const rect = target.getBoundingClientRect();
+    const next = { label, top: rect.top + rect.height / 2, left: rect.right + 10 };
+    if (Date.now() < warmUntil.current) setTip(next);
+    else timer.current = setTimeout(() => setTip(next), 350);
+  }, []);
+
+  const hide = useCallback(() => {
+    clear();
+    setTip((current) => {
+      if (current) warmUntil.current = Date.now() + 400;
+      return null;
+    });
+  }, []);
+
+  useEffect(() => clear, []);
+
+  return { tip, show, hide };
+}
+
+function RailTooltip({ tip }: { tip: Tip }) {
+  return (
+    <div
+      aria-hidden
+      style={{ top: tip.top, left: tip.left }}
+      className="rail-tip pointer-events-none fixed z-[60] whitespace-nowrap rounded-[6px] bg-[#242424] px-2.5 py-1.5 text-xs font-semibold text-white shadow-[var(--shadow-16)]"
+    >
+      <span className="absolute -left-1 top-1/2 size-2 -translate-y-1/2 rotate-45 rounded-[1px] bg-[#242424]" />
+      <span className="relative">{tip.label}</span>
+    </div>
+  );
+}
+
 export default function NavRail() {
   const tr = useTr();
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
   const menu = useContextMenu();
+  const { tip, show, hide } = useRailTip();
+
+  // Labels only stand in for missing text: an expanded rail needs none.
+  const tipProps = (label: string, always = false) =>
+    collapsed || always
+      ? {
+          onMouseEnter: (event: React.MouseEvent<HTMLElement>) => show(label, event.currentTarget),
+          onMouseLeave: hide,
+          onFocus: (event: React.FocusEvent<HTMLElement>) => show(label, event.currentTarget),
+          onBlur: hide,
+        }
+      : {};
 
   const toggle = useCallback(() => {
     try {
@@ -103,6 +167,7 @@ export default function NavRail() {
           },
         ])(event);
       }}
+      onScroll={hide}
       data-collapsed={collapsed}
       // Inline width: a layout-critical dimension should not depend on an
       // arbitrary Tailwind utility being generated.
@@ -116,9 +181,12 @@ export default function NavRail() {
         <div className={`flex p-2 pb-0 ${collapsed ? "justify-center" : "justify-end"}`}>
           <button
             type="button"
-            onClick={toggle}
+            onClick={() => {
+              hide();
+              toggle();
+            }}
             aria-expanded={!collapsed}
-            title={collapsed ? tr("Expandir menú") : tr("Contraer menú")}
+            {...tipProps(collapsed ? tr("Expandir menú") : tr("Contraer menú"), true)}
             className="rounded-[var(--radius)] p-1.5 text-[var(--ink-2)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
           >
             {collapsed ? (
@@ -138,7 +206,7 @@ export default function NavRail() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                title={collapsed ? tr(item.label) : undefined}
+                {...tipProps(tr(item.label))}
                 className={`relative flex items-center gap-3 rounded-[var(--radius)] py-2 text-sm transition-colors ${
                   collapsed ? "justify-center px-2" : "px-3"
                 } ${
@@ -162,6 +230,7 @@ export default function NavRail() {
         })}
         </ul>
       </div>
+      {tip && <RailTooltip key={tip.label} tip={tip} />}
     </nav>
   );
 }
