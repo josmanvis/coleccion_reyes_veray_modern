@@ -386,6 +386,15 @@ export function artistHrefFor(
   return slug ? `/${slug}` : null;
 }
 
+/** The admin artist page (bio, data, works) for a row, or null when the row has no artist. */
+export function adminArtistHrefFor(
+  row: Record<string, unknown>,
+  index: Map<string, string>
+): string | null {
+  const slug = index.get(artistKey(row));
+  return slug ? `/admin/artists/${encodeURIComponent(slug)}` : null;
+}
+
 // --- Works offered for sale --------------------------------------------------
 
 /**

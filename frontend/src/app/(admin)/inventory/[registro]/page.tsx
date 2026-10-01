@@ -3,7 +3,7 @@ import { ExternalLink, Pencil, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getArtwork } from "@/lib/inventory/db";
-import { artistHrefFor, artistSlugIndex } from "@/lib/inventory/public";
+import { adminArtistHrefFor, artistSlugIndex } from "@/lib/inventory/public";
 import {
   FIELDS,
   GROUP_LABELS,
@@ -14,6 +14,8 @@ import {
 } from "@/lib/inventory/fields";
 import { StatusPill } from "@/components/inventory/InventoryTable";
 import CertificatePanel from "@/components/inventory/CertificatePanel";
+import ValuationPanel from "@/components/inventory/ValuationPanel";
+import { valuationForRef } from "@/lib/inventory/market";
 import IssuedCertificates from "@/components/inventory/IssuedCertificates";
 import { mediumLine } from "@/lib/inventory/certificates";
 import { certificatesForArtwork } from "@/lib/inventory/certificate-log";
@@ -42,7 +44,9 @@ export default async function ArtworkPage({ params }: Props) {
   if (!artwork) notFound();
 
   const groups = Object.keys(GROUP_LABELS) as FieldGroup[];
-  const artistHref = artistHrefFor(artwork, artistSlugIndex());
+  const artistHref = adminArtistHrefFor(artwork, artistSlugIndex());
+
+  const pricing = valuationForRef(String(artwork.ref));
 
   const issued = certificatesForArtwork(String(artwork.ref), String(artwork.registro ?? ""));
 
@@ -129,6 +133,8 @@ export default async function ArtworkPage({ params }: Props) {
               <dd className="text-[var(--ink-2)]">{artwork.updated_at}</dd>
             </div>
           </dl>
+
+          {pricing && <ValuationPanel valuation={pricing.valuation} artist={pricing.artist} />}
         </div>
 
         <div>

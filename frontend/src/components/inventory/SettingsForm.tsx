@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
-import { Check, Copy, KeyRound, Network, Printer, Save, Share } from "lucide-react";
+import { Check, Copy, KeyRound, Network, Printer, Save, Share, TrendingUp } from "lucide-react";
 import { BTN, BTN_PRIMARY, BTN_SUBTLE, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
@@ -199,6 +199,37 @@ export default function SettingsForm({
               className={FIELD}
             />
           </label>
+        </div>
+      </section>
+
+      <section id="valoracion" className={`${CARD} scroll-mt-20 p-4`}>
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          <TrendingUp size={16} strokeWidth={1.75} aria-hidden />
+          {tr("Precios sugeridos")}
+        </h2>
+        <p className={`mt-1 text-sm ${MUTED}`}>
+          {tr("Reglas del precio sugerido de cada obra (Valoraciones). No cambian el «Valor actual» registrado.")}
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {[
+            { key: "valuation.annualRate", label: "Aumento anual (%)" },
+            { key: "valuation.deathMultiplier", label: "Multiplicador si el artista murió (×)" },
+            { key: "valuation.hotMultiplier", label: "Multiplicador si está en alza (×)" },
+            { key: "valuation.recentYears", label: "Ventas recientes: últimos N años" },
+            { key: "valuation.hotMinSales", label: "En alza: mínimo de ventas en 3 años" },
+            { key: "valuation.hotGrowth", label: "En alza: crecimiento anual mínimo (%)" },
+          ].map((field) => (
+            <label key={field.key}>
+              <span className={LABEL}>{tr(field.label)}</span>
+              <input
+                inputMode="decimal"
+                value={values[field.key] ?? ""}
+                onChange={(e) => set(field.key, e.target.value)}
+                disabled={!canEdit}
+                className={FIELD}
+              />
+            </label>
+          ))}
         </div>
       </section>
 

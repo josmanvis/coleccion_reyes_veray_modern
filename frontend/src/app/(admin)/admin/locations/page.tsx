@@ -24,6 +24,13 @@ export default async function LocationsPage() {
             {tr("Dónde se guarda físicamente cada obra. La columna «Localización» de la hoja de cálculo sigue mandando; aquí se lee en estructura — edificio, sala y unidad — para poder revisarla, unificar grafías y dar de alta unidades nuevas.")}
           </p>
         </div>
+        <div className="flex gap-2">
+        <Link
+          href="/admin/locations/map"
+          className="rounded border border-[var(--brand)] bg-[var(--brand)] px-3 py-2 text-sm font-medium text-[var(--on-brand)] transition hover:bg-[var(--brand-hover)]"
+        >
+          {tr("Ver en el plano")}
+        </Link>
         <Link
           href="/inventory"
           className="rounded border border-[var(--stroke)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
@@ -31,6 +38,7 @@ export default async function LocationsPage() {
           
           {tr("Ir al inventario")}
         </Link>
+        </div>
       </div>
 
       <LocationsManager

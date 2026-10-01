@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BookOpen, Check, ExternalLink, Images, Link2Off, RefreshCw, Save, Search, User } from "lucide-react";
+import { BookOpen, Check, CircleDollarSign, ExternalLink, Images, Link2Off, RefreshCw, Save, Search, User } from "lucide-react";
 import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { GENDERS, type ArtistProfile } from "@/lib/inventory/artist-fields";
 import { useToast } from "./ToastProvider";
 import { artworkCtx } from "./context-data";
 import { useDateLocale, useTr } from "@/components/I18nProvider";
+import ArtistMarketPanel, { type ArtistMarketData } from "./ArtistMarketPanel";
 
 type Work = {
   ref: string;
@@ -22,23 +23,27 @@ type Work = {
 
 type Candidate = { lang: "es" | "en"; title: string; description: string; snippet: string };
 
-type Tab = "obras" | "datos" | "wiki";
+type Tab = "obras" | "datos" | "wiki" | "mercado";
 
 export default function ArtistDetail({
   slug,
   name,
   works,
   profile: initial,
+  market,
+  initialTab,
 }: {
   slug: string;
   name: string;
   works: Work[];
   profile: ArtistProfile;
+  market: ArtistMarketData | null;
+  initialTab?: string;
 }) {
   const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
-  const [tab, setTab] = useState<Tab>("obras");
+  const [tab, setTab] = useState<Tab>(initialTab === "mercado" && market ? "mercado" : "obras");
   const [profile, setProfile] = useState(initial);
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
   const [pending, setPending] = useState(false);
@@ -70,6 +75,7 @@ export default function ArtistDetail({
     { id: "obras", label: "Obras", icon: Images, count: works.length },
     { id: "datos", label: "Datos", icon: User },
     { id: "wiki", label: "Wikipedia", icon: BookOpen },
+    ...(market ? [{ id: "mercado" as const, label: "Mercado", icon: CircleDollarSign, count: market.sales.length }] : []),
   ];
 
   return (
@@ -112,6 +118,8 @@ export default function ArtistDetail({
       </div>
 
       {tab === "obras" && <WorksGrid works={works} />}
+
+      {tab === "mercado" && market && <ArtistMarketPanel market={market} />}
 
       {tab === "datos" && (
         <ProfileForm

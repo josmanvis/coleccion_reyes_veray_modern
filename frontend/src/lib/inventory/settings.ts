@@ -38,6 +38,13 @@ export const SETTING_DEFAULTS = {
   "filemaker.database": "",
   "filemaker.odbcConnection": "",
   "filemaker.odbcTable": "",
+  /** Suggested-price rules; see lib/inventory/valuation-rules.ts. Percentages as written, e.g. "8". */
+  "valuation.annualRate": "8",
+  "valuation.deathMultiplier": "2",
+  "valuation.hotMultiplier": "1.5",
+  "valuation.recentYears": "5",
+  "valuation.hotMinSales": "3",
+  "valuation.hotGrowth": "15",
 } as const;
 
 export type SettingKey = keyof typeof SETTING_DEFAULTS;

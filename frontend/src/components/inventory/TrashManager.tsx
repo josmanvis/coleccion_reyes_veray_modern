@@ -8,6 +8,7 @@ import {
   Award,
   Box,
   Building2,
+  CircleDollarSign,
   Clock,
   Copy,
   FileText,
@@ -32,6 +33,7 @@ const ICONS: Record<TrashEntity, LucideIcon> = {
   edificio: Building2,
   unidad: Box,
   jornada: Clock,
+  venta: CircleDollarSign,
 };
 
 /** Stored UTC by SQLite, shown on the reader's clock. */

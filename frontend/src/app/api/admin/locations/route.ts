@@ -11,6 +11,8 @@ import {
   updateBuilding,
   updateUnit,
 } from "@/lib/inventory/locations";
+import { assignRoom } from "@/lib/inventory/location-map";
+import { roomById, roomName } from "@/lib/inventory/floorplan";
 
 import { record } from "@/lib/inventory/audit";
 import { currentActor } from "@/lib/inventory/actor";
@@ -77,6 +79,18 @@ export async function POST(request: Request) {
         const updated = normalizeSpellings(String(body.key));
         log(`Grafías unificadas en ${updated} obra(s) · ${body.key}`, String(body.key));
         return NextResponse.json({ updated });
+      }
+      case "assign_room": {
+        const roomId = body.roomId ? String(body.roomId) : null;
+        assignRoom(String(body.key), roomId);
+        const ref = roomId ? roomById(roomId) : null;
+        log(
+          ref
+            ? `${body.label ?? body.key} ubicado en ${ref.floor.building} · ${ref.room.number} ${roomName(ref.room)}`
+            : `${body.label ?? body.key} quitado del plano`,
+          String(body.key)
+        );
+        return NextResponse.json({ ok: true });
       }
       default:
         return NextResponse.json({ error: "Acción desconocida" }, { status: 400 });

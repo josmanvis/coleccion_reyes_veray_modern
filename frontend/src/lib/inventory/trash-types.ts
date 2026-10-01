@@ -3,7 +3,7 @@
  * can import them; trash.ts re-exports everything here.
  */
 
-export type TrashEntity = "obra" | "certificado" | "pagina" | "imagen" | "edificio" | "unidad" | "jornada";
+export type TrashEntity = "obra" | "certificado" | "pagina" | "imagen" | "edificio" | "unidad" | "jornada" | "venta";
 
 export const TRASH_ENTITY_LABELS: Record<TrashEntity, string> = {
   obra: "Obra",
@@ -13,6 +13,7 @@ export const TRASH_ENTITY_LABELS: Record<TrashEntity, string> = {
   edificio: "Edificio",
   unidad: "Unidad",
   jornada: "Jornada",
+  venta: "Venta de mercado",
 };
 
 export type TrashItem = {

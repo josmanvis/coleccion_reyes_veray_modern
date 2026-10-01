@@ -23,7 +23,7 @@ import type { TrashEntity, TrashItem } from "./trash-types";
 export * from "./trash-types";
 
 /** Tables a snapshot may write back to; anything else in the column is refused. */
-const TABLES = new Set(["artworks", "certificates", "pages", "media", "buildings", "storage_units", "time_entries"]);
+const TABLES = new Set(["artworks", "certificates", "pages", "media", "buildings", "storage_units", "time_entries", "market_sales"]);
 
 /** Where each kind of file normally lives. */
 const FILE_DIRS = { certificates: () => CERTIFICATE_DIR, uploads: () => UPLOAD_DIR } as const;
@@ -178,6 +178,8 @@ function hrefFor(entity: TrashEntity, snapshot: Snapshot): string | null {
       return "/admin/locations";
     case "jornada":
       return "/admin/hours";
+    case "venta":
+      return "/admin/valuations";
     default:
       return null;
   }

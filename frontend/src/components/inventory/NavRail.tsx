@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import {
   Award,
   Boxes,
+  CircleDollarSign,
   FileText,
   LayoutDashboard,
   MapPin,
@@ -57,6 +58,7 @@ const ITEMS = [
   { href: "/admin/portfolios", label: "Portafolios", icon: Layers },
   { href: "/admin/certificates", label: "Certificados", icon: Award },
   { href: "/admin/locations", label: "Ubicaciones", icon: MapPin },
+  { href: "/admin/valuations", label: "Valoraciones", icon: CircleDollarSign },
   { href: "/admin/content", label: "Contenido", icon: FileText },
   { href: "/admin/import", label: "Importar", icon: Upload },
   { href: "/admin/sync", label: "Sincronizar", icon: RefreshCw },

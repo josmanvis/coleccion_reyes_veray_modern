@@ -8,10 +8,12 @@ import { titleCase } from "@/lib/inventory/fields";
 import { MUTED } from "@/components/inventory/ui";
 import ArtistDetail from "@/components/inventory/ArtistDetail";
 import { getTr } from "@/lib/i18n-server";
+import { artistMarket } from "@/lib/inventory/market";
+import { artistKey } from "@/lib/inventory/public";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams?: Promise<{ tab?: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
@@ -20,13 +22,16 @@ export async function generateMetadata({ params }: Props) {
   return { title: artist ? `${artist.name} · ${tr("Artistas")}` : tr("Artista") };
 }
 
-export default async function AdminArtistPage({ params }: Props) {
+export default async function AdminArtistPage({ params, searchParams }: Props) {
   const tr = await getTr();
   const { slug } = await params;
   const artist = getArtistBySlug(decodeURIComponent(slug));
   if (!artist) notFound();
 
   const profile = getProfile(artist.slug);
+  const { tab } = (await searchParams) ?? {};
+  const key = artistKey(artist as unknown as Record<string, unknown>);
+  const { artist: market, rules } = artistMarket(key);
   const works = artistWorks(artist).map((row) => ({
     ref: String(row.ref),
     registro: String(row.registro ?? ""),
@@ -66,6 +71,21 @@ export default async function AdminArtistPage({ params }: Props) {
           name={artist.name}
           works={works}
           profile={profile}
+          initialTab={tab}
+          market={
+            market
+              ? {
+                  key,
+                  name: artist.name,
+                  hotSetting: market.hotSetting,
+                  hot: market.hot,
+                  deathYear: market.deathYear,
+                  sales: market.sales,
+                  rules,
+                  today: new Date().toISOString().slice(0, 10),
+                }
+              : null
+          }
         />
       </div>
     </>
