@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
+import { t, type Locale } from "@/lib/i18n";
 
 type Artwork = {
   title: string;
@@ -14,7 +15,7 @@ type Artwork = {
   ut_thumb?: string;
 };
 
-export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
+export default function GalleryGrid({ artworks, locale }: { artworks: Artwork[]; locale: Locale }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(30);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -57,7 +58,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           className="font-serif text-5xl md:text-7xl lg:text-8xl font-light tracking-tight"
         >
-          Inventory
+          {t(locale, "gallery.title")}
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0 }}
@@ -65,7 +66,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
           transition={{ duration: 1, delay: 0.2 }}
           className="font-display text-[10px] uppercase tracking-[0.2em] text-neutral-400 mt-8 mb-16 leading-loose max-w-md"
         >
-          Accessing secure viewing room. Complete collection provenance and high-resolution asset management. {filteredArtworks.length} indexed records synchronized via Axxes Club DAM.
+          {t(locale, "gallery.intro", { n: filteredArtworks.length })}
         </motion.p>
         
         <motion.div 
@@ -77,7 +78,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
           <Search className="absolute left-0 top-[10px] w-6 h-6 text-black/30" strokeWidth={1.5} />
           <input 
             type="text"
-            placeholder="Search by artist, title, or medium..."
+            placeholder={t(locale, "gallery.search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent pl-12 pb-4 font-serif text-2xl md:text-4xl outline-none placeholder:text-black/20 text-black"
@@ -87,7 +88,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
       
       {filteredArtworks.length === 0 ? (
         <div className="py-32 text-center">
-          <p className="font-serif text-2xl text-neutral-400">No records found matching "{searchQuery}"</p>
+          <p className="font-serif text-2xl text-neutral-400">{t(locale, "gallery.noMatch", { q: searchQuery })}</p>
         </div>
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24 md:gap-y-32">
@@ -116,7 +117,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
                     />
                   ) : (
                     <div className="absolute inset-0 bg-neutral-100 flex items-center justify-center">
-                       <span className="font-display text-[10px] text-neutral-400 uppercase tracking-widest">Asset Pending</span>
+                       <span className="font-display text-[10px] text-neutral-400 uppercase tracking-widest">{t(locale, "gallery.assetPending")}</span>
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-700 pointer-events-none"></div>
@@ -131,7 +132,7 @@ export default function GalleryGrid({ artworks }: { artworks: Artwork[] }) {
                   href={`/art${artwork.url.replace('/index.html', '')}`}
                   className="font-display text-[9px] uppercase tracking-[0.2em] font-bold hover:text-neutral-400 transition-colors mt-2"
                 >
-                  Examine
+                  {t(locale, "gallery.examine")}
                 </Link>
               </div>
             </motion.article>

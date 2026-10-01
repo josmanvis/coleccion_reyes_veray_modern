@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t, type Locale } from "@/lib/i18n";
 
 export type PrevNextLink = { href: string; label: string } | null;
 
@@ -10,12 +11,14 @@ export default function PrevNext({
   previous,
   next,
   caption,
+  locale,
   className = "",
 }: {
   previous: PrevNextLink;
   next: PrevNextLink;
   /** e.g. "3 de 64 · Portafolio Flora de Puerto Rico" */
   caption?: string;
+  locale: Locale;
   className?: string;
 }) {
   const side =
@@ -23,7 +26,7 @@ export default function PrevNext({
 
   return (
     <nav
-      aria-label="Paginación"
+      aria-label={t(locale, "nav.pagination")}
       className={`flex items-center justify-between gap-4 border-t border-black/10 pt-4 ${className}`}
     >
       <div className="min-w-0 flex-1">

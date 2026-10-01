@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function ExhibitionFallback() {
+export default function ExhibitionFallback({ locale }: { locale: Locale }) {
   return (
     <main className="min-h-screen pt-48 pb-32 px-6 md:px-12 lg:px-24">
       <header className="mb-32 max-w-3xl">
@@ -12,7 +13,7 @@ export default function ExhibitionFallback() {
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           className="font-serif text-4xl md:text-6xl lg:text-7xl font-light tracking-tight leading-tight"
         >
-          La Colección Reyes-Veray en el Museo de Arte Contemporáneo
+          {t(locale, "exhibition.title")}
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0 }}
@@ -20,7 +21,7 @@ export default function ExhibitionFallback() {
           transition={{ duration: 1, delay: 0.4 }}
           className="font-display text-[10px] uppercase tracking-[0.2em] text-neutral-400 mt-12 leading-loose max-w-md"
         >
-          Past Exhibitions &bull; San Juan, Puerto Rico
+          {t(locale, "exhibition.sub")}
         </motion.p>
       </header>
 
@@ -33,14 +34,14 @@ export default function ExhibitionFallback() {
           className="space-y-8 font-serif text-xl leading-relaxed text-neutral-600 max-w-2xl"
         >
           <p>
-            The Reyes-Veray Collection has been featured in major institutions, highlighting the depth of contemporary visual narratives in Puerto Rico. The exhibition at the Museo de Arte Contemporáneo de Puerto Rico (MAC) stands as a testament to the cultural importance of the archive.
+            {t(locale, "exhibition.p1")}
           </p>
           <p>
-            Curated meticulously to showcase the evolution of local and international contemporary art, the collection provides a critical lens into the intersection of identity, space, and modernism.
+            {t(locale, "exhibition.p2")}
           </p>
           <div className="pt-12">
              <a href="/gallery" className="font-display text-[10px] uppercase tracking-widest underline underline-offset-8 text-black hover:text-neutral-400 transition-colors">
-               Explore the Full Catalogue
+               {t(locale, "exhibition.explore")}
              </a>
           </div>
         </motion.div>
@@ -54,7 +55,7 @@ export default function ExhibitionFallback() {
         >
            <div className="w-full h-full border border-black/10 flex flex-col items-center justify-center text-center p-12">
               <span className="font-serif text-3xl italic text-neutral-300">MAC</span>
-              <span className="font-display text-[9px] uppercase tracking-widest text-neutral-400 mt-4">Museo de Arte Contemporáneo<br/>de Puerto Rico</span>
+              <span className="font-display text-[9px] uppercase tracking-widest text-neutral-400 mt-4">{t(locale, "exhibition.museum")}</span>
            </div>
         </motion.div>
       </section>

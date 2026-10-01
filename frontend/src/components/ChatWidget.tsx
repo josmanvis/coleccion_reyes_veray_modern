@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function ChatWidget() {
+export default function ChatWidget({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "agent"; text: string }[]>([]);
   const [input, setInput] = useState("");
@@ -26,7 +27,7 @@ export default function ChatWidget() {
       const data = await res.json();
       setMessages((m) => [...m, { role: "agent", text: data.reply || data.error }]);
     } catch (err) {
-      setMessages((m) => [...m, { role: "agent", text: "Error connecting to Ocho." }]);
+      setMessages((m) => [...m, { role: "agent", text: t(locale, "chat.error") }]);
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,7 @@ export default function ChatWidget() {
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-gray-50">
             {messages.length === 0 && (
               <div className="text-center text-sm text-gray-400 mt-10">
-                Pregunta lo que necesites a Ocho.
+                {t(locale, "chat.empty")}
               </div>
             )}
             {messages.map((m, i) => (
@@ -62,7 +63,7 @@ export default function ChatWidget() {
             ))}
             {loading && (
               <div className="self-start rounded-2xl bg-white border border-gray-200 px-4 py-2.5 text-sm text-gray-500 shadow-sm rounded-bl-sm">
-                Pensando...
+                {t(locale, "chat.thinking")}
               </div>
             )}
           </div>
@@ -71,7 +72,7 @@ export default function ChatWidget() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribe tu mensaje..."
+              placeholder={t(locale, "chat.placeholder")}
               className="flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-800 outline-none transition-colors focus:border-black focus:bg-white"
             />
             <button
@@ -87,7 +88,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen(!open)}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-xl transition-transform hover:scale-110"
-        aria-label="Abrir asistente"
+        aria-label={t(locale, "chat.open")}
       >
         {open ? <X size={24} /> : <MessageCircle size={24} />}
       </button>

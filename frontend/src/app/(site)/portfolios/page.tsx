@@ -53,7 +53,7 @@ export default async function PortfoliosIndex() {
                     />
                   ) : (
                     <span className="flex size-full items-center justify-center font-display text-[10px] uppercase tracking-widest opacity-20">
-                      Sin imagen
+                      {t(locale, "works.noImage")}
                     </span>
                   )}
                 </div>
@@ -61,7 +61,7 @@ export default async function PortfoliosIndex() {
                   {portfolio.title}
                 </p>
                 <p className="font-display text-[10px] uppercase tracking-widest opacity-30">
-                  {portfolio.members.length} sheets · #{portfolio.base}
+                  {t(locale, "works.sheets", { n: portfolio.members.length })} · #{portfolio.base}
                 </p>
               </Link>
             </li>

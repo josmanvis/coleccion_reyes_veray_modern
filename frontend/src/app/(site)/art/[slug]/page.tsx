@@ -188,6 +188,7 @@ export default async function ArtworkDetail({ params }: Props) {
             <div className="mt-8 flex flex-wrap gap-3">
               {forSale ? (
                 <AcquireButton
+                  locale={locale}
                   className="flex-1"
                   artworkTitle={title}
                   artworkImage={image || ""}
@@ -201,7 +202,7 @@ export default async function ArtworkDetail({ params }: Props) {
                   {t(locale, "art.enquire")}
                 </Link>
               )}
-              <ShareButton title={title} text={`${title} — ${artist}`} />
+              <ShareButton locale={locale} title={title} text={`${title} — ${artist}`} />
             </div>
 
             {(artistHref || around.portfolio) && (
@@ -228,6 +229,7 @@ export default async function ArtworkDetail({ params }: Props) {
             {sequence && (sequence.previous || sequence.next) && (
               <div className="mt-8 border-t border-black/10 pt-6">
                 <PrevNext
+          locale={locale}
                   previous={pageLink(sequence.previous)}
                   next={pageLink(sequence.next)}
                   caption={

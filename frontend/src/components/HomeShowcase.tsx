@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import type { Artwork } from "@/lib/mac";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function HomeShowcase({ featured }: { featured: Artwork[] }) {
+export default function HomeShowcase({ featured, locale }: { featured: Artwork[]; locale: Locale }) {
   const pieces = featured.slice(0, 2);
 
   return (
@@ -20,7 +21,7 @@ export default function HomeShowcase({ featured }: { featured: Artwork[] }) {
             transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <h2 className="font-serif text-5xl md:text-7xl lg:text-8xl font-light leading-tight tracking-tight">
-              An exploration of<br/>contemporary visual narratives.
+              {t(locale, "home.headline")}
             </h2>
           </motion.div>
           <motion.div
@@ -29,7 +30,7 @@ export default function HomeShowcase({ featured }: { featured: Artwork[] }) {
             transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
           >
             <p className="font-display text-[9px] uppercase tracking-[0.3em] text-neutral-400 mt-12 font-bold">
-              Est. 2005 &mdash; San Juan, Puerto Rico
+              {t(locale, "home.est")}
             </p>
           </motion.div>
         </div>
@@ -75,7 +76,7 @@ export default function HomeShowcase({ featured }: { featured: Artwork[] }) {
                     href={`/art/${artwork.slug}`}
                     className={`inline-block text-left font-display text-[10px] uppercase tracking-widest underline underline-offset-8 text-neutral-400 hover:text-black transition-colors pt-4 ${even ? "" : "@4xl:ml-auto"}`}
                   >
-                    View Details
+                    {t(locale, "home.viewDetails")}
                   </Link>
                 </div>
               </motion.article>

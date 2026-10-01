@@ -66,7 +66,7 @@ export default function Header({ locale }: { locale: Locale }) {
           className="md:hidden pointer-events-auto font-display text-[10px] uppercase tracking-widest font-bold z-50 mix-blend-difference"
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          {menuOpen ? "Close" : "Menu"}
+          {menuOpen ? t(locale, "nav.close") : t(locale, "nav.menu")}
         </button>
       </motion.header>
 

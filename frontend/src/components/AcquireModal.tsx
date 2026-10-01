@@ -2,19 +2,22 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { t, type Locale } from "@/lib/i18n";
 
 export default function AcquireModal({
   artworkTitle,
   artworkImage,
   artworkSlug,
   isOpen,
-  onClose
+  onClose,
+  locale,
 }: {
   artworkTitle: string;
   artworkImage: string;
   artworkSlug?: string;
   isOpen: boolean;
   onClose: () => void;
+  locale: Locale;
 }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -44,8 +47,8 @@ export default function AcquireModal({
     } catch {
       // Fallback: draft the inquiry via the visitor's email client
       setStatus("idle");
-      const subject = encodeURIComponent(`Acquisition Inquiry: ${artworkTitle}`);
-      const body = encodeURIComponent(`Dear Curator,\n\nI am interested in acquiring the following piece:\n\n${artworkTitle}\n\nPlease provide information regarding pricing, availability, and shipping logistics.\n\nBest regards,\n${name}\n${email}`);
+      const subject = encodeURIComponent(t(locale, "acquire.mailSubject", { title: artworkTitle }));
+      const body = encodeURIComponent(t(locale, "acquire.mailBody", { title: artworkTitle, name, email }));
       window.location.href = `mailto:ottoreyes88@gmail.com?subject=${subject}&body=${body}`;
       onClose();
     }
@@ -70,9 +73,9 @@ export default function AcquireModal({
             className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[101] shadow-2xl flex flex-col text-black"
           >
             <div className="p-8 flex justify-between items-center border-b border-black/10">
-              <h2 className="font-display text-[10px] uppercase tracking-widest font-bold">Acquisition Request</h2>
+              <h2 className="font-display text-[10px] uppercase tracking-widest font-bold">{t(locale, "acquire.title")}</h2>
               <button onClick={onClose} className="font-display text-[10px] uppercase tracking-widest hover:opacity-50 transition-opacity">
-                Close
+                {t(locale, "nav.close")}
               </button>
             </div>
             
@@ -83,24 +86,24 @@ export default function AcquireModal({
                   <img src={artworkImage} alt={artworkTitle} className="w-full h-full object-contain p-4 mix-blend-multiply" />
                 </div>
                 <h3 className="font-serif text-2xl font-light leading-tight">{artworkTitle}</h3>
-                <p className="font-serif text-neutral-500 mt-2">Private Collection</p>
+                <p className="font-serif text-neutral-500 mt-2">{t(locale, "acquire.private")}</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="space-y-2">
-                  <label className="font-display text-[9px] uppercase tracking-widest font-bold text-neutral-400">Full Name</label>
+                  <label className="font-display text-[9px] uppercase tracking-widest font-bold text-neutral-400">{t(locale, "form.name")}</label>
                   <input 
                     type="text" 
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full border-b border-black/20 pb-2 bg-transparent font-serif text-lg focus:outline-none focus:border-black transition-colors rounded-none"
-                    placeholder="Jane Doe"
+                    placeholder={t(locale, "form.namePlaceholder")}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="font-display text-[9px] uppercase tracking-widest font-bold text-neutral-400">Email Address</label>
+                  <label className="font-display text-[9px] uppercase tracking-widest font-bold text-neutral-400">{t(locale, "form.email")}</label>
                   <input 
                     type="email" 
                     required
@@ -112,19 +115,19 @@ export default function AcquireModal({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="font-display text-[9px] uppercase tracking-widest font-bold text-neutral-400">Message (Optional)</label>
+                  <label className="font-display text-[9px] uppercase tracking-widest font-bold text-neutral-400">{t(locale, "form.messageOptional")}</label>
                   <textarea 
                     rows={3}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="w-full border-b border-black/20 pb-2 bg-transparent font-serif text-lg focus:outline-none focus:border-black transition-colors rounded-none resize-none"
-                    placeholder="I would like to know more about this piece..."
+                    placeholder={t(locale, "acquire.messagePlaceholder")}
                   />
                 </div>
 
                 <div className="pt-8">
                   <p className="font-serif text-sm text-neutral-500 mb-8 leading-relaxed">
-                    By submitting this request, a formal inquiry will be drafted to the gallery director regarding the acquisition of this piece. You will be contacted shortly with pricing and private viewing options.
+                    {t(locale, "acquire.notice")}
                   </p>
                   
                   <button 
@@ -133,11 +136,11 @@ export default function AcquireModal({
                     className="w-full group relative flex items-center justify-center py-5 border border-black bg-black text-white hover:bg-neutral-800 transition-colors duration-500 overflow-hidden disabled:opacity-70"
                   >
                     <span className="font-display text-[10px] uppercase tracking-[0.2em] font-bold z-10">
-                      {status === "sending" ? "Sending…" : status === "sent" ? "Inquiry Received ✓" : "Request Dossier & Pricing"}
+                      {status === "sending" ? t(locale, "form.sending") : status === "sent" ? t(locale, "acquire.received") : t(locale, "acquire.submit")}
                     </span>
                   </button>
                   {status === "error" && (
-                    <p className="font-serif text-sm text-red-600 mt-4">Something went wrong — please try again or email us directly.</p>
+                    <p className="font-serif text-sm text-red-600 mt-4">{t(locale, "acquire.error")}</p>
                   )}
                 </div>
               </form>

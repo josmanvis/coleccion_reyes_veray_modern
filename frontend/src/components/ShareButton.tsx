@@ -1,8 +1,9 @@
 "use client";
 
 import { Share2 } from "lucide-react";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function ShareButton({ title, text }: { title: string, text: string }) {
+export default function ShareButton({ title, text, locale }: { title: string; text: string; locale: Locale }) {
   const handleShare = async () => {
     if (typeof window !== "undefined" && navigator.share) {
       try {
@@ -17,7 +18,7 @@ export default function ShareButton({ title, text }: { title: string, text: stri
     } else {
       // Fallback for desktop/unsupported browsers: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      alert(t(locale, "share.copied"));
     }
   };
 
@@ -25,7 +26,7 @@ export default function ShareButton({ title, text }: { title: string, text: stri
     <button 
       onClick={handleShare}
       className="group relative flex items-center justify-center p-5 border border-black hover:bg-neutral-100 transition-colors duration-500 overflow-hidden shrink-0"
-      aria-label="Share"
+      aria-label={t(locale, "share.label")}
     >
       <Share2 className="w-5 h-5 text-black group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
     </button>

@@ -134,6 +134,7 @@ function ArtistView({ artist, locale }: { artist: PublicArtist; locale: Locale }
         </div>
 
         <PrevNext
+          locale={locale}
           previous={
             around.previous
               ? { href: `/${around.previous.slug}`, label: around.previous.name }
@@ -183,6 +184,7 @@ function PortfolioView({ portfolio, locale }: { portfolio: Portfolio; locale: Lo
         </div>
 
         <PrevNext
+          locale={locale}
           previous={
             around.previous
               ? { href: `/${around.previous.slug}`, label: around.previous.title }

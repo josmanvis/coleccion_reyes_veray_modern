@@ -39,7 +39,7 @@ export default async function RootLayout({
     <html lang={locale} className={`${serif.variable} ${display.variable} ${ui.variable}`}>
       <body className="antialiased min-h-screen selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         {children}
-        <ChatWidget />
+        <ChatWidget locale={locale} />
       </body>
     </html>
   );

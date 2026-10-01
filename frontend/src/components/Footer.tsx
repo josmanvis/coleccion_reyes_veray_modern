@@ -1,5 +1,6 @@
 import { getSiteSettings } from "@/lib/mac";
 import { getLocale } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 import LanguageSwitcher from "./site/LanguageSwitcher";
 
 /**
@@ -32,7 +33,7 @@ export default async function Footer() {
             className="opacity-25 hover:opacity-100 transition-opacity duration-500"
             aria-label="Powered by Axxes Club"
           >
-            Powered by <span className="font-bold text-black/70">Axxes</span>.club
+            {t(locale, "footer.poweredBy")} <span className="font-bold text-black/70">Axxes</span>.club
           </a>
         )}
       </div>
