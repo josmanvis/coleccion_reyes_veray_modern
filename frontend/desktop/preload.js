@@ -17,4 +17,9 @@ contextBridge.exposeInMainWorld("crvmgmt", {
   chooseFile: (filters) => ipcRenderer.invoke("crvmgmt:choose-file", { filters }),
   chooseFolder: () => ipcRenderer.invoke("crvmgmt:choose-folder"),
   reveal: (target) => ipcRenderer.invoke("crvmgmt:reveal", target),
+  showContextMenu: (items) => ipcRenderer.invoke("crvmgmt:context-menu", items),
+  // Only macOS has a share menu; elsewhere the page falls back to Web Share.
+  ...(process.platform === "darwin"
+    ? { shareUrl: (payload) => ipcRenderer.invoke("crvmgmt:share-url", payload) }
+    : {}),
 });

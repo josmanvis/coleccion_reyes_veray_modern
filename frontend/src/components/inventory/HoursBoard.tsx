@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Pencil, Trash2 } from "lucide-react";
+import { Clock, ListFilter, Pencil, Trash2 } from "lucide-react";
 import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import { useDateLocale, useTr } from "@/components/I18nProvider";
+import { useContextMenu } from "./ContextMenu";
 
 type Shift = {
   id: number;
@@ -93,6 +94,7 @@ export default function HoursBoard({
   const { notify } = useToast();
   const [editing, setEditing] = useState<Shift | null>(null);
   const [pending, setPending] = useState(false);
+  const menu = useContextMenu();
 
   function filter(form: FormData) {
     const query = new URLSearchParams();
@@ -234,7 +236,26 @@ export default function HoursBoard({
             </thead>
             <tbody>
               {shifts.map((shift) => (
-                <tr key={shift.id} className="hover:bg-[var(--hover)]">
+                <tr
+                  key={shift.id}
+                  className="hover:bg-[var(--hover)]"
+                  onContextMenu={menu(() => [
+                    canAdjust && { label: tr("Ajustar jornada…"), icon: Pencil, run: () => setEditing(shift) },
+                    canAdjust && { label: tr("Eliminar jornada…"), icon: Trash2, danger: true, run: () => remove(shift) },
+                    "separator",
+                    isAdmin &&
+                      selectedUser !== shift.userId && {
+                        label: tr("Ver solo las horas de {userName}", { userName: shift.userName }),
+                        icon: ListFilter,
+                        run: () => {
+                          const query = new URLSearchParams({ user: String(shift.userId) });
+                          if (from) query.set("from", from);
+                          if (to) query.set("to", to);
+                          router.push(`/admin/hours?${query}`);
+                        },
+                      },
+                  ])}
+                >
                   <td className="border-b border-[var(--stroke-soft)] px-4 py-2 text-[var(--ink-1)]">
                     {day(shift.startedAt, loc)}
                   </td>

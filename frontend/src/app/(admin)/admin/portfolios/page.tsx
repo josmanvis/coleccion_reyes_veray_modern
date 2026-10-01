@@ -45,6 +45,10 @@ export default async function AdminPortfolios() {
               <Link
                 key={portfolio.base}
                 href={`/admin/portfolios/${encodeURIComponent(portfolio.base)}`}
+                data-ctx="portfolio"
+                data-base={portfolio.base}
+                data-title={portfolio.title}
+                {...(portfolio.parent ? { "data-parent-ref": String(portfolio.parent.ref) } : {})}
                 className="flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-[var(--hover)]"
               >
                 <span className="relative size-10 shrink-0 overflow-hidden rounded-sm bg-[var(--surface-alt)] ring-1 ring-[var(--stroke-soft)]">

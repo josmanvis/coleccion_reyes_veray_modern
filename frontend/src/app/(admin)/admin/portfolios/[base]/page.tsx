@@ -9,6 +9,7 @@ import { QUICK_EDIT_KEYS } from "@/lib/inventory/fields";
 import { ArrowLeft, Pencil } from "lucide-react";
 import type { ArtworkRow } from "@/lib/inventory/db";
 import { getTr } from "@/lib/i18n-server";
+import { artworkCtx } from "@/components/inventory/context-data";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export default async function AdminPortfolio({ params }: Props) {
       <div className="px-6 py-4">
         <div className={`${CARD} divide-y divide-[var(--stroke-soft)]`}>
           {portfolio.members.map((member) => (
-            <div key={String(member.ref)} className="flex items-center gap-4 px-4 py-2.5">
+            <div key={String(member.ref)} className="flex items-center gap-4 px-4 py-2.5" {...artworkCtx(member)}>
               <Link
                 href={`/inventory/${member.ref}`}
                 className="relative size-10 shrink-0 overflow-hidden rounded-sm bg-[var(--surface-alt)] ring-1 ring-[var(--stroke-soft)]"

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ChevronDown, ChevronRight, Download, Pencil, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, ChevronDown, ChevronRight, Copy, Download, Eye, Hash, Pencil, Trash2, Upload } from "lucide-react";
 import type { CertificateRecord } from "@/lib/inventory/certificate-log";
 import {
   CERTIFICATE_COPY,
@@ -16,6 +16,8 @@ import { BADGE, BTN, BTN_PRIMARY, BTN_SUBTLE, CARD, FIELD, LABEL, MUTED } from "
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
 import { useTr } from "@/components/I18nProvider";
+import { copyText, download, useContextMenu } from "./ContextMenu";
+import CertificateViewer from "./CertificateViewer";
 
 export type CertificateRow = CertificateRecord & {
   /** The linked ficha, for the "Obra" column. */
@@ -51,6 +53,8 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
   const [removing, setRemoving] = useState<CertificateRow | null>(null);
   const [busy, setBusy] = useState(false);
   const upload = useRef<HTMLInputElement>(null);
+  const menu = useContextMenu();
+  const [viewing, setViewing] = useState<number | null>(null);
 
   const needsReview = (row: CertificateRow) => Boolean(row.notes) || !row.ref;
 
@@ -108,6 +112,10 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
     if (order === "crv") list.sort((a, b) => sortKey(a.registro).localeCompare(sortKey(b.registro)));
     return list;
   }, [rows, query, filter, order]);
+
+  // The viewer steps through the list as filtered, so ← → follow what is on screen.
+  const viewIndex = viewing === null ? -1 : visible.findIndex((row) => row.id === viewing);
+  const viewed = viewIndex >= 0 ? visible[viewIndex] : null;
 
   async function onUpload(files: FileList | null) {
     if (!files?.length) return;
@@ -229,9 +237,44 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
           {visible.map((row) => {
             const open = expanded === row.id;
             const name = certificateDisplayName(row.type, row.registro);
+            const artwork = row.artwork;
             return (
               <li key={row.id}>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2.5 text-sm">
+                <div
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2.5 text-sm"
+                  onDoubleClick={(event) => {
+                    if ((event.target as Element).closest("a, button:not([aria-expanded])")) return;
+                    setViewing(row.id);
+                  }}
+                  onContextMenu={menu(() => [
+                    { label: tr("Ver certificado"), icon: Eye, run: () => setViewing(row.id) },
+                    {
+                      label: open ? tr("Ocultar detalles") : tr("Mostrar detalles"),
+                      icon: open ? ChevronDown : ChevronRight,
+                      run: () => setExpanded(open ? null : row.id),
+                    },
+                    row.file_name && {
+                      label: tr("Descargar"),
+                      icon: Download,
+                      run: () => download(`/api/admin/certificates/${row.id}/file`),
+                    },
+                    artwork && {
+                      label: tr("Abrir ficha"),
+                      icon: ArrowUpRight,
+                      run: () => router.push(`/inventory/${encodeURIComponent(artwork.ref)}`),
+                    },
+                    "separator",
+                    { label: tr("Editar…"), icon: Pencil, run: () => setEditing(row) },
+                    { label: tr("Copiar nombre"), icon: Copy, run: () => copyText(name) },
+                    row.registro && {
+                      label: tr("Copiar número CRV"),
+                      icon: Hash,
+                      run: () => copyText(row.registro ?? ""),
+                    },
+                    "separator",
+                    { label: tr("Eliminar…"), icon: Trash2, danger: true, run: () => setRemoving(row) },
+                  ])}
+                >
                   <button
                     type="button"
                     onClick={() => setExpanded(open ? null : row.id)}
@@ -271,6 +314,10 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
                   </span>
 
                   <span className="ml-auto flex items-center gap-1">
+                    <button type="button" className={BTN_SUBTLE} onClick={() => setViewing(row.id)} title={tr("Ver certificado")}>
+                      <Eye size={15} strokeWidth={1.75} aria-hidden />
+                      <span className="sr-only">{tr("Ver certificado")}</span>
+                    </button>
                     {row.file_name ? (
                       <a
                         href={`/api/admin/certificates/${row.id}/file`}
@@ -397,6 +444,22 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
           </form>
         </div>
       )}
+
+      <CertificateViewer
+        certificate={
+          viewed && {
+            id: viewed.id,
+            name: certificateDisplayName(viewed.type, viewed.registro),
+            ext: viewed.file_ext,
+            hasFile: Boolean(viewed.file_name),
+            bodyText: viewed.body_text,
+          }
+        }
+        position={viewed ? tr("{n} de {total}", { n: viewIndex + 1, total: visible.length }) : undefined}
+        onClose={() => setViewing(null)}
+        onPrevious={viewIndex > 0 ? () => setViewing(visible[viewIndex - 1].id) : undefined}
+        onNext={viewIndex >= 0 && viewIndex < visible.length - 1 ? () => setViewing(visible[viewIndex + 1].id) : undefined}
+      />
 
       <ConfirmDialog
         open={removing !== null}

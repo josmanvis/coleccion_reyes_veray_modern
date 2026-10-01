@@ -14,6 +14,9 @@ import {
 import ConfirmDialog from "./ConfirmDialog";
 import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
+import { Copy, Merge, Search, Trash2 } from "lucide-react";
+import { copyText, useContextMenu, type MenuEntry } from "./ContextMenu";
+import { newWindowItem } from "./context-menus";
 
 const FIELD =
   "rounded border border-[var(--stroke)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
@@ -48,6 +51,7 @@ export default function LocationsManager({
   const router = useRouter();
   const { notify } = useToast();
   const [pending, setPending] = useState(false);
+  const menu = useContextMenu();
   const [confirm, setConfirm] = useState<null | { title: string; body: string; run: () => Promise<void> }>(
     null
   );
@@ -76,6 +80,34 @@ export default function LocationsManager({
     const key = place.building ?? "—";
     if (!byBuilding.has(key)) byBuilding.set(key, []);
     byBuilding.get(key)!.push(place);
+  }
+
+  /** What every place row offers: its works, and its name. */
+  function placeMenu(place: UnitUsage): MenuEntry[] {
+    const label = place.canonical || place.spellings[0]?.raw || "";
+    const href = `/inventory?location=${encodeURIComponent(place.spellings[0]?.raw ?? "")}`;
+    return [
+      { label: tr("Ver obras aquí"), icon: Search, run: () => router.push(href) },
+      newWindowItem(href, tr),
+      "separator",
+      { label: tr("Copiar nombre"), icon: Copy, run: () => copyText(label) },
+    ];
+  }
+
+  function askNormalize(place: UnitUsage) {
+    setConfirm({
+      title: tr("¿Unificar a «{canonical}»?", { canonical: place.canonical }),
+      body: tr("{length} grafías distintas pasarán a escribirse igual en {count} obras.", { length: place.spellings.length, count: place.count }),
+      run: () => run(() => post({ action: "normalize", key: place.key }), tr("Grafías unificadas")),
+    });
+  }
+
+  function askDeleteBuilding(building: Building) {
+    setConfirm({
+      title: tr("¿Eliminar el edificio {code}?", { code: building.code }),
+      body: tr("Se borran también sus unidades registradas. No cambia la columna «Localización» de ninguna obra."),
+      run: () => run(() => post({ action: "delete_building", id: building.id }), tr("Edificio eliminado")),
+    });
   }
 
   const totalPlaced = usage.reduce((sum, u) => sum + u.count, 0);
@@ -111,6 +143,11 @@ export default function LocationsManager({
               <li
                 key={place.key}
                 className="flex flex-wrap items-center gap-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-2.5"
+                onContextMenu={menu(() => [
+                  { label: tr("Unificar…"), icon: Merge, disabled: pending, run: () => askNormalize(place) },
+                  "separator",
+                  ...placeMenu(place),
+                ])}
               >
                 <span className="font-medium text-[var(--ink-1)]">{place.canonical}</span>
                 <span className="text-xs text-[var(--ink-3)]">{tr("{n} obras", { n: place.count })}</span>
@@ -120,14 +157,7 @@ export default function LocationsManager({
                 <button
                   type="button"
                   disabled={pending}
-                  onClick={() =>
-                    setConfirm({
-                      title: tr("¿Unificar a «{canonical}»?", { canonical: place.canonical }),
-                      body: tr("{length} grafías distintas pasarán a escribirse igual en {count} obras.", { length: place.spellings.length, count: place.count }),
-                      run: () =>
-                        run(() => post({ action: "normalize", key: place.key }), tr("Grafías unificadas")),
-                    })
-                  }
+                  onClick={() => askNormalize(place)}
                   className={`${BTN} shrink-0 border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
                 >
                   
@@ -157,7 +187,11 @@ export default function LocationsManager({
               </header>
               <ul className="divide-y divide-[var(--stroke-soft)]">
                 {places.map((place) => (
-                  <li key={place.key} className="flex flex-wrap items-center gap-3 px-4 py-2">
+                  <li
+                    key={place.key}
+                    className="flex flex-wrap items-center gap-3 px-4 py-2"
+                    onContextMenu={menu(() => placeMenu(place))}
+                  >
                     <span className="min-w-0 flex-1 truncate text-sm text-[var(--ink-1)]">
                       {place.kind ? (
                         <span className="mr-2 rounded bg-[var(--hover)] px-1.5 py-0.5 text-xs font-medium text-[var(--ink-2)]">
@@ -225,6 +259,17 @@ export default function LocationsManager({
                 <li
                   key={building.id}
                   className="flex items-center gap-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-3 py-2 text-sm"
+                  onContextMenu={menu(() => [
+                    { label: tr("Copiar código"), icon: Copy, run: () => copyText(building.code) },
+                    "separator",
+                    {
+                      label: tr("Eliminar edificio…"),
+                      icon: Trash2,
+                      danger: true,
+                      disabled: pending,
+                      run: () => askDeleteBuilding(building),
+                    },
+                  ])}
                 >
                   <span className="font-medium text-[var(--ink-1)]">{building.code}</span>
                   <span className="min-w-0 flex-1 truncate text-[var(--ink-3)]">
@@ -233,17 +278,7 @@ export default function LocationsManager({
                   <button
                     type="button"
                     disabled={pending}
-                    onClick={() =>
-                      setConfirm({
-                        title: tr("¿Eliminar el edificio {code}?", { code: building.code }),
-                        body: tr("Se borran también sus unidades registradas. No cambia la columna «Localización» de ninguna obra."),
-                        run: () =>
-                          run(
-                            () => post({ action: "delete_building", id: building.id }),
-                            tr("Edificio eliminado")
-                          ),
-                      })
-                    }
+                    onClick={() => askDeleteBuilding(building)}
                     className="shrink-0 text-xs text-red-700 hover:underline"
                   >
                     
@@ -297,6 +332,15 @@ export default function LocationsManager({
                 <li
                   key={unit.id}
                   className="flex items-center gap-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-3 py-2 text-sm"
+                  onContextMenu={menu(() => [
+                    {
+                      label: tr("Quitar unidad"),
+                      icon: Trash2,
+                      danger: true,
+                      disabled: pending,
+                      run: () => run(() => post({ action: "delete_unit", id: unit.id }), tr("Unidad eliminada")),
+                    },
+                  ])}
                 >
                   <span className="text-[var(--ink-1)]">
                     {unit.building} · {tr(UNIT_LABELS[unit.kind])} {unit.label}

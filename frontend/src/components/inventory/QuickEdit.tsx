@@ -42,6 +42,19 @@ export default function QuickEdit({
     setOpen(true);
   }
 
+  // The row's context menu asks for this panel by ref.
+  const openRef = useRef(openPanel);
+  useEffect(() => {
+    openRef.current = openPanel;
+  });
+  useEffect(() => {
+    const onAsk = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === refId) openRef.current();
+    };
+    window.addEventListener("crv:quick-edit", onAsk);
+    return () => window.removeEventListener("crv:quick-edit", onAsk);
+  }, [refId]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -81,6 +94,7 @@ export default function QuickEdit({
       <button
         type="button"
         onClick={openPanel}
+        data-quick-edit={refId}
         className="rounded border border-[var(--stroke)] px-2 py-1 text-xs text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
       >
         

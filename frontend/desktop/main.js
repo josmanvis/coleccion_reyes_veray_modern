@@ -1,6 +1,6 @@
 "use strict";
 
-const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, Menu, ShareMenu, dialog, ipcMain, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { spawn } = require("node:child_process");
@@ -33,8 +33,9 @@ function dataDirectory() {
   return dir;
 }
 
-function createWindow() {
-  mainWindow = new BrowserWindow({
+/** Shared by the main window and any "open in a new window" from the app. */
+function windowOptions() {
+  return {
     width: 1440,
     height: 900,
     minWidth: 1024,
@@ -50,18 +51,82 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: false,
     },
-  });
+  };
+}
 
-  mainWindow.loadURL(START_URL);
-
-  // External links open in the real browser, never inside the app shell.
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+/**
+ * Every window gets the same treatment: app links open as another CRVMGMT
+ * window (with the bridge, so it keeps its menus and printing), external
+ * links go to the real browser, and right-clicks the page leaves alone get
+ * the native edit menu.
+ */
+function prepare(win) {
+  win.webContents.setWindowOpenHandler(({ url }) => {
     if (!url.startsWith(BASE_URL)) {
       shell.openExternal(url);
       return { action: "deny" };
     }
-    return { action: "allow" };
+    return { action: "allow", overrideBrowserWindowOptions: windowOptions() };
   });
+  win.webContents.on("did-create-window", prepare);
+  win.webContents.on("context-menu", (_event, params) => showEditMenu(win, params));
+}
+
+/**
+ * The page draws its own menus for records and lists; what reaches here is a
+ * text field, selected text, or Shift + right-click. Electron shows nothing by
+ * default, so build what a Mac app would.
+ */
+function showEditMenu(win, params) {
+  const { editFlags, isEditable, selectionText, dictionarySuggestions, misspelledWord } = params;
+  const template = [];
+
+  if (isEditable && misspelledWord) {
+    for (const suggestion of dictionarySuggestions.slice(0, 5)) {
+      template.push({ label: suggestion, click: () => win.webContents.replaceMisspelling(suggestion) });
+    }
+    if (dictionarySuggestions.length === 0) template.push({ label: "Sin sugerencias", enabled: false });
+    template.push({
+      label: "Añadir al diccionario",
+      click: () => win.webContents.session.addWordToSpellCheckerDictionary(misspelledWord),
+    });
+    template.push({ type: "separator" });
+  }
+
+  if (isEditable) {
+    template.push(
+      { role: "undo", label: "Deshacer", enabled: editFlags.canUndo },
+      { role: "redo", label: "Rehacer", enabled: editFlags.canRedo },
+      { type: "separator" },
+      { role: "cut", label: "Cortar", enabled: editFlags.canCut },
+      { role: "copy", label: "Copiar", enabled: editFlags.canCopy },
+      { role: "paste", label: "Pegar", enabled: editFlags.canPaste },
+      { role: "selectAll", label: "Seleccionar todo", enabled: editFlags.canSelectAll }
+    );
+  } else if (selectionText.trim()) {
+    template.push({ role: "copy", label: "Copiar" });
+  } else {
+    template.push(
+      { label: "Atrás", enabled: win.webContents.navigationHistory.canGoBack(), click: () => win.webContents.navigationHistory.goBack() },
+      { label: "Adelante", enabled: win.webContents.navigationHistory.canGoForward(), click: () => win.webContents.navigationHistory.goForward() },
+      { label: "Recargar", click: () => win.webContents.reload() }
+    );
+  }
+
+  if (isDev) {
+    template.push(
+      { type: "separator" },
+      { label: "Inspeccionar elemento", click: () => win.webContents.inspectElement(params.x, params.y) }
+    );
+  }
+
+  Menu.buildFromTemplate(template).popup({ window: win });
+}
+
+function createWindow() {
+  mainWindow = new BrowserWindow(windowOptions());
+  prepare(mainWindow);
+  mainWindow.loadURL(START_URL);
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -159,6 +224,45 @@ ipcMain.handle("crvmgmt:choose-file", async (_event, { filters } = {}) => {
 ipcMain.handle("crvmgmt:choose-folder", async () => {
   const result = await dialog.showOpenDialog(mainWindow, { properties: ["openDirectory"] });
   return result.canceled ? null : result.filePaths[0];
+});
+
+/**
+ * Shows the page's own context menu natively. The page sends plain items
+ * (label, enabled, checked, separators) and gets back the id of the one
+ * chosen, or null when the menu closes without a choice; the action itself
+ * stays in the page.
+ */
+ipcMain.handle("crvmgmt:context-menu", (event, items) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  return new Promise((resolve) => {
+    let chosen = null;
+    const template = (Array.isArray(items) ? items : []).map((item) =>
+      item.type === "separator"
+        ? { type: "separator" }
+        : {
+            label: String(item.label ?? ""),
+            enabled: item.enabled !== false,
+            type: typeof item.checked === "boolean" ? "checkbox" : "normal",
+            checked: Boolean(item.checked),
+            click: () => {
+              chosen = item.id;
+            },
+          }
+    );
+    // The click handler runs before the close callback, so `chosen` is set by then.
+    Menu.buildFromTemplate(template).popup({ window: win ?? undefined, callback: () => resolve(chosen) });
+  });
+});
+
+/**
+ * The macOS share menu — AirDrop, Messages, Mail, Notes — for one link.
+ * Resolves false where there is no such menu (Windows, Linux).
+ */
+ipcMain.handle("crvmgmt:share-url", (event, { url } = {}) => {
+  if (process.platform !== "darwin" || typeof url !== "string" || !/^https?:\/\//.test(url)) return false;
+  const win = BrowserWindow.fromWebContents(event.sender);
+  new ShareMenu({ urls: [url] }).popup({ window: win ?? undefined });
+  return true;
 });
 
 ipcMain.handle("crvmgmt:reveal", (_event, target) => {

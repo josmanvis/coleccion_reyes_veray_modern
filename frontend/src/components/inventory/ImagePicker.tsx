@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MediaRow } from "@/lib/inventory/blocks";
 import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
+import { Check, Copy, ExternalLink } from "lucide-react";
+import { copyText, useContextMenu } from "./ContextMenu";
 
 /**
  * Upload-and-choose dialog shared by every block that takes an image. Uploads
@@ -31,6 +33,7 @@ export default function ImagePicker({
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const menu = useContextMenu();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -178,7 +181,23 @@ export default function ImagePicker({
               {media.map((item) => {
                 const isOn = selected.includes(item.url);
                 return (
-                  <li key={item.id}>
+                  <li
+                    key={item.id}
+                    onContextMenu={menu(() => [
+                      { label: tr("Seleccionar"), icon: Check, checked: isOn, run: () => toggle(item.url) },
+                      "separator",
+                      {
+                        label: tr("Abrir imagen"),
+                        icon: ExternalLink,
+                        run: () => window.open(item.url, "_blank", "noopener"),
+                      },
+                      {
+                        label: tr("Copiar dirección de la imagen"),
+                        icon: Copy,
+                        run: () => copyText(new URL(item.url, window.location.origin).href),
+                      },
+                    ])}
+                  >
                     <button
                       type="button"
                       onClick={() => toggle(item.url)}

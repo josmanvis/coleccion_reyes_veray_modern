@@ -4,6 +4,7 @@ import { artistName, formatMoney, titleCase } from "@/lib/inventory/fields";
 import type { ArtworkRow } from "@/lib/inventory/db";
 import { StatusPill } from "./InventoryTable";
 import { getTr } from "@/lib/i18n-server";
+import { artworkCtx } from "./context-data";
 
 export default async function InventoryGrid({ rows }: { rows: ArtworkRow[] }) {
   const tr = await getTr();
@@ -19,7 +20,7 @@ export default async function InventoryGrid({ rows }: { rows: ArtworkRow[] }) {
   return (
     <div className="mx-auto grid max-w-[1600px] grid-cols-2 gap-5 px-5 py-6 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
       {rows.map((row) => (
-        <Link key={row.ref} href={`/inventory/${row.ref}`} className="group block">
+        <Link key={row.ref} href={`/inventory/${row.ref}`} className="group block" {...artworkCtx(row)}>
           <div className="relative aspect-square overflow-hidden rounded-sm bg-[var(--hover)]">
             {row.image_thumb ? (
               <Image

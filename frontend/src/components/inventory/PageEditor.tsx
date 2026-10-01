@@ -16,6 +16,8 @@ import ConfirmDialog from "./ConfirmDialog";
 import ImagePicker from "./ImagePicker";
 import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
+import { ArrowDown, ArrowUp, CopyPlus, Trash2 } from "lucide-react";
+import { useContextMenu } from "./ContextMenu";
 
 const FIELD =
   "w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
@@ -229,6 +231,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
   const [picker, setPicker] = useState<{ index: number; multiple: boolean } | null>(null);
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(page);
+  const menu = useContextMenu();
 
   function setField<K extends keyof PageRow>(key: K, value: PageRow[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -393,7 +396,36 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
       <ol className="space-y-4">
         {draft.blocks.map((block, index) => (
-          <li key={index} className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)]">
+          <li
+            key={index}
+            className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)]"
+            onContextMenu={menu(() => [
+              { label: tr("Subir bloque"), icon: ArrowUp, disabled: index === 0, run: () => moveBlock(index, -1) },
+              {
+                label: tr("Bajar bloque"),
+                icon: ArrowDown,
+                disabled: index === draft.blocks.length - 1,
+                run: () => moveBlock(index, 1),
+              },
+              {
+                label: tr("Duplicar bloque"),
+                icon: CopyPlus,
+                run: () =>
+                  setBlocks([
+                    ...draft.blocks.slice(0, index + 1),
+                    structuredClone(block),
+                    ...draft.blocks.slice(index + 1),
+                  ]),
+              },
+              "separator",
+              {
+                label: tr("Quitar bloque"),
+                icon: Trash2,
+                danger: true,
+                run: () => setBlocks(draft.blocks.filter((_, i) => i !== index)),
+              },
+            ])}
+          >
             <header className="flex items-center gap-2 border-b border-[var(--stroke-soft)] px-4 py-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
                 {tr(BLOCK_LABELS[block.type] ?? block.type)}

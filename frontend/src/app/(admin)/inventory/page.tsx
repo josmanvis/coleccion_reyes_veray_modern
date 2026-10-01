@@ -117,7 +117,13 @@ export default async function InventoryPage({
           inside it instead of pushing the page sideways, and the sticky header
           has a scrolling ancestor to stick to. */}
       <div className="min-h-0 flex-1 px-6 pt-4">
-        <div className={`${CARD} h-full overflow-auto`}>
+        <div
+          className={`${CARD} h-full overflow-auto`}
+          data-ctx="inventory"
+          data-view={view}
+          data-filtered={activeCount > 0 ? "1" : "0"}
+          data-export-href={`/api/admin/export?format=csv&${exportSearch.toString()}`}
+        >
           {view === "grid" ? (
             <div className="p-4">
               <InventoryGrid rows={rows} />

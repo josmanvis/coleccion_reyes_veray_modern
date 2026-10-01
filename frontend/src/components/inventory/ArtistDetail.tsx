@@ -8,6 +8,7 @@ import { BookOpen, Check, ExternalLink, Images, Link2Off, RefreshCw, Save, Searc
 import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { GENDERS, type ArtistProfile } from "@/lib/inventory/artist-fields";
 import { useToast } from "./ToastProvider";
+import { artworkCtx } from "./context-data";
 import { useDateLocale, useTr } from "@/components/I18nProvider";
 
 type Work = {
@@ -159,6 +160,7 @@ function WorksGrid({ works }: { works: Work[] }) {
         <li key={work.ref}>
           <Link
             href={`/inventory/${work.ref}`}
+            {...artworkCtx({ ref: work.ref, registro: work.registro, title: work.title, image_thumb: work.thumb })}
             className={`${CARD} block overflow-hidden transition hover:shadow-[var(--shadow-8)]`}
           >
             <div className="grid aspect-square place-items-center bg-[var(--surface-alt)]">

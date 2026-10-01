@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useSyncExternalStore } from "react";
 import {
   Award,
@@ -21,6 +21,8 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { useTr } from "@/components/I18nProvider";
+import { useContextMenu } from "./ContextMenu";
+import { newWindowItem } from "./context-menus";
 
 const STORAGE_KEY = "crv_rail_collapsed";
 const RAIL_EVENT = "crv:rail";
@@ -72,7 +74,9 @@ function isActive(pathname: string, href: string): boolean {
 export default function NavRail() {
   const tr = useTr();
   const pathname = usePathname() ?? "";
+  const router = useRouter();
   const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+  const menu = useContextMenu();
 
   const toggle = useCallback(() => {
     try {
@@ -86,13 +90,29 @@ export default function NavRail() {
   return (
     <nav
       aria-label={tr("Secciones")}
+      onContextMenu={(event) => {
+        const href = (event.target as Element).closest("a")?.getAttribute("href");
+        menu(() => [
+          href && { label: tr("Abrir"), run: () => router.push(href) },
+          href && newWindowItem(href, tr),
+          "separator",
+          {
+            label: collapsed ? tr("Expandir menú") : tr("Contraer menú"),
+            icon: collapsed ? PanelLeftOpen : PanelLeftClose,
+            run: toggle,
+          },
+        ])(event);
+      }}
       data-collapsed={collapsed}
       // Inline width: a layout-critical dimension should not depend on an
       // arbitrary Tailwind utility being generated.
       style={{ width: collapsed ? "48px" : "var(--admin-rail-w)", minWidth: 0 }}
-      className="hidden shrink-0 overflow-hidden border-r border-[var(--stroke-soft)] bg-[var(--surface)] transition-[width] duration-150 md:block"
+      // Pinned under the header at full window height, so it never scrolls
+      // away with the page; a very short window scrolls the rail on its own.
+      // (The nav itself is sticky: an overflow on it would trap a sticky child.)
+      className="sticky top-[var(--admin-header-h)] hidden h-[calc(100vh-var(--admin-header-h))] shrink-0 self-start overflow-y-auto overflow-x-hidden border-r border-[var(--stroke-soft)] bg-[var(--surface)] transition-[width] duration-150 md:block"
     >
-      <div className="sticky top-[var(--admin-header-h)]">
+      <div>
         <div className={`flex p-2 pb-0 ${collapsed ? "justify-center" : "justify-end"}`}>
           <button
             type="button"

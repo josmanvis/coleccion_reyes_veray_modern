@@ -35,6 +35,15 @@ export default function SaleToggle({
   const [asking, setAsking] = useState(false);
   const [pending, setPending] = useState(false);
 
+  // Re-sync when the server sends a new value — the row's context menu can
+  // change it without going through this button.
+  const [seen, setSeen] = useState({ initial, sales });
+  if (seen.initial !== initial || seen.sales !== sales) {
+    setSeen({ initial, sales });
+    setForSale(initial);
+    setCurrent(sales);
+  }
+
   const next = !forSale;
   const preview = withForSale(current, next);
 

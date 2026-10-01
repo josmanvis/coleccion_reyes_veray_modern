@@ -16,6 +16,7 @@ import { artistHrefFor, artistSlugIndex } from "@/lib/inventory/public";
 import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
 import { hrefWith, type SearchParams } from "./query";
 import { BADGE, type Tone } from "./ui";
+import { artworkCtx } from "./context-data";
 import { getTr } from "@/lib/i18n-server";
 
 const STATUS_TONES: Record<StatusGroup, Tone> = {
@@ -102,6 +103,7 @@ export default async function InventoryTable({
             {COLUMNS.map((column) => (
               <th
                 key={column.key}
+                {...(column.sort ? { "data-ctx": "sort", "data-sort": column.sort } : {})}
                 className={`sticky top-0 z-20 border-b border-[var(--stroke)] bg-[var(--surface-alt)] px-3 py-2 text-xs font-semibold text-[var(--ink-2)] ${
                   column.align ?? ""
                 }`}
@@ -113,7 +115,7 @@ export default async function InventoryTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.ref} className="group">
+            <tr key={row.ref} className="group" {...artworkCtx(row)}>
               <td className={CELL}>
                 <Link href={`/inventory/${row.ref}`} className="block">
                   <ThumbPreview

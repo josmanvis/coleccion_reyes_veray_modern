@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { KeyRound, ShieldCheck, UserPlus } from "lucide-react";
+import { Copy, KeyRound, ShieldCheck, UserCheck, UserPlus, UserX } from "lucide-react";
 import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { ROLE_LABELS, ROLES, type Role } from "@/lib/inventory/session";
 import { useToast } from "./ToastProvider";
 import ConfirmDialog from "./ConfirmDialog";
 import { useTr } from "@/components/I18nProvider";
+import { copyText, useContextMenu } from "./ContextMenu";
 
 type User = {
   id: number;
@@ -43,6 +44,7 @@ export default function UsersManager({
   const [resetting, setResetting] = useState<User | null>(null);
   const [resetPassword, setResetPassword] = useState("");
   const [issued, setIssued] = useState<{ username: string; password: string } | null>(null);
+  const menu = useContextMenu();
 
   async function post(payload: Record<string, unknown>, done: string) {
     setPending(true);
@@ -162,7 +164,33 @@ export default function UsersManager({
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} className={`border-b border-[var(--stroke-soft)] ${user.active ? "" : "opacity-55"}`}>
+              <tr
+                key={user.id}
+                className={`border-b border-[var(--stroke-soft)] ${user.active ? "" : "opacity-55"}`}
+                onContextMenu={menu(() => [
+                  {
+                    label: tr("Restablecer contraseña…"),
+                    icon: KeyRound,
+                    run: () => {
+                      setResetting(user);
+                      setResetPassword(suggestPassword());
+                    },
+                  },
+                  user.role !== "superadmin" &&
+                    user.id !== actorId && {
+                      label: user.active ? tr("Desactivar") : tr("Activar"),
+                      icon: user.active ? UserX : UserCheck,
+                      disabled: pending,
+                      run: () =>
+                        void post(
+                          { action: "active", id: user.id, active: !user.active },
+                          user.active ? tr("Usuario desactivado") : tr("Usuario activado")
+                        ),
+                    },
+                  "separator",
+                  { label: tr("Copiar usuario"), icon: Copy, run: () => copyText(user.username) },
+                ])}
+              >
                 <td className="px-4 py-2 font-mono text-xs">{user.username}</td>
                 <td className="px-4 py-2">
                   {user.name}

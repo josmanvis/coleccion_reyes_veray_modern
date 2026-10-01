@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, Monitor, Wifi } from "lucide-react";
+import { ArrowUpRight, ChevronDown, ChevronRight, Copy, Fingerprint, ListFilter, Monitor, Wifi } from "lucide-react";
 import { BADGE, BTN, CARD, MUTED } from "./ui";
 import { initialsOf, bubbleColor } from "@/lib/inventory/theme";
 import { useDateLocale, useTr } from "@/components/I18nProvider";
+import { copyText, useContextMenu } from "./ContextMenu";
 
 type Change = { field: string; label?: string; before: string; after: string };
 
@@ -62,6 +63,14 @@ export default function HistoryList({
   const router = useRouter();
   const params = useSearchParams();
   const [expanded, setExpanded] = useState<number | null>(null);
+  const menu = useContextMenu();
+
+  function filterBy(key: string, value: string) {
+    const query = new URLSearchParams(params?.toString() ?? "");
+    query.set(key, value);
+    query.delete("page");
+    router.push(`/admin/history?${query}`);
+  }
 
   function goToPage(next: number) {
     const query = new URLSearchParams(params?.toString() ?? "");
@@ -88,7 +97,31 @@ export default function HistoryList({
           const href = linkFor(entry);
           return (
             <li key={entry.id}>
-              <div className="flex items-start gap-3 px-4 py-2.5">
+              <div
+                className="flex items-start gap-3 px-4 py-2.5"
+                onContextMenu={menu(() => [
+                  href && { label: tr("Abrir"), icon: ArrowUpRight, run: () => router.push(href) },
+                  entry.changes.length > 0 && {
+                    label: open ? tr("Ocultar cambios") : tr("Mostrar cambios"),
+                    icon: open ? ChevronDown : ChevronRight,
+                    run: () => setExpanded(open ? null : entry.id),
+                  },
+                  "separator",
+                  entry.user_id !== null && {
+                    label: tr("Ver solo de {name}", { name: tr(entry.user_name) }),
+                    icon: ListFilter,
+                    run: () => filterBy("user", String(entry.user_id)),
+                  },
+                  {
+                    label: tr("Ver solo «{entity}»", { entity: entry.entity }),
+                    icon: ListFilter,
+                    run: () => filterBy("entity", entry.entity),
+                  },
+                  "separator",
+                  { label: tr("Copiar resumen"), icon: Copy, run: () => copyText(entry.summary) },
+                  { label: tr("Copiar firma"), icon: Fingerprint, run: () => copyText(entry.hash) },
+                ])}
+              >
                 <span
                   className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white"
                   style={{ background: bubbleColor(entry.user_name) }}

@@ -8,6 +8,7 @@ import CertificatePanel from "@/components/inventory/CertificatePanel";
 import { artistName } from "@/lib/inventory/fields";
 import { mediumLine } from "@/lib/inventory/certificates";
 import { getTr } from "@/lib/i18n-server";
+import { artworkCtx } from "@/components/inventory/context-data";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function EditArtworkPage({ params }: Props) {
   );
 
   return (
-    <main className="mx-auto max-w-[1100px] px-5 py-6">
+    <main className="mx-auto max-w-[1100px] px-5 py-6" {...artworkCtx(artwork)}>
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
         <div>
           <p className="font-mono text-xs text-[var(--ink-3)]">{tr("CRV #{n}", { n: artwork.registro })}</p>

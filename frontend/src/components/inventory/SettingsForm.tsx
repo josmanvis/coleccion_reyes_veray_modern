@@ -1,11 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Check, Copy, KeyRound, Network, Printer, Save } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { Check, Copy, KeyRound, Network, Printer, Save, Share } from "lucide-react";
 import { BTN, BTN_PRIMARY, BTN_SUBTLE, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
+import { canShare, shareLabel, shareLink } from "./share";
+
+const noSubscribe = () => () => {};
 
 type Settings = Record<string, string>;
 
@@ -34,6 +37,16 @@ export default function SettingsForm({
 
   const dirty = Object.keys(initial).some((key) => values[key] !== initial[key]);
   const [copied, setCopied] = useState<string | null>(null);
+  // Known only in the browser; the server render leaves the button out.
+  const sharable = useSyncExternalStore(noSubscribe, canShare, () => false);
+
+  async function share(address: string) {
+    try {
+      if (!(await shareLink(address, "CRVMGMT"))) notify(tr("Este navegador no puede compartir"), "error");
+    } catch {
+      notify(tr("No se pudo compartir"), "error");
+    }
+  }
 
   async function copy(text: string) {
     try {
@@ -222,6 +235,17 @@ export default function SettingsForm({
                     )}
                     {copied === address ? tr("Copiada") : tr("Copiar")}
                   </button>
+                  {sharable && (
+                    <button
+                      type="button"
+                      onClick={() => share(address)}
+                      className={BTN_SUBTLE}
+                      title={tr("Enviar a un iPhone, iPad u otra Mac por AirDrop, Mensajes o Correo")}
+                    >
+                      <Share size={14} strokeWidth={1.75} aria-hidden />
+                      {shareLabel(tr)}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

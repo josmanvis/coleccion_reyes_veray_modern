@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listPages } from "@/lib/inventory/pages";
 import NewPageButton from "@/components/inventory/NewPageButton";
 import { getTr } from "@/lib/i18n-server";
+import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,9 @@ export default async function PagesIndex() {
             <li key={page.slug}>
               <Link
                 href={`/admin/content/${page.slug}`}
+                data-ctx="page"
+                data-slug={page.slug}
+                {...(PUBLIC_SITE_ENABLED && page.status === "published" ? { "data-public-href": `/${page.slug}` } : {})}
                 className="flex flex-wrap items-center gap-3 px-4 py-3 transition hover:bg-[var(--surface-alt)]"
               >
                 <span className="min-w-0 flex-1">

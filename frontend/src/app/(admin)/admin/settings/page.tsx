@@ -1,4 +1,3 @@
-import os from "node:os";
 import { cookies, headers } from "next/headers";
 import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
 import { readSettings } from "@/lib/inventory/settings";
@@ -10,6 +9,7 @@ import AppearanceCard from "@/components/inventory/AppearanceCard";
 import LanguageCard from "@/components/inventory/LanguageCard";
 import { getLocale } from "@/lib/i18n-server";
 import { getTr } from "@/lib/i18n-server";
+import { networkAddresses, portOf } from "@/lib/inventory/lan";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata() {
@@ -17,23 +17,11 @@ export async function generateMetadata() {
   return { title: tr("Ajustes · CRVMGMT") };
 }
 
-/**
- * The addresses another machine would type. Only IPv4 and only real interfaces:
- * loopback is what this machine already uses, and an IPv6 link-local address is
- * not something anyone is going to key into a browser.
- */
-function networkAddresses(port: string): string[] {
-  return Object.values(os.networkInterfaces())
-    .flat()
-    .filter((entry) => entry && entry.family === "IPv4" && !entry.internal)
-    .map((entry) => `http://${entry!.address}:${port}`);
-}
-
 export default async function SettingsPage() {
   const tr = await getTr();
   const store = await cookies();
   const host = (await headers()).get("host") ?? "";
-  const port = host.includes(":") ? host.slice(host.lastIndexOf(":") + 1) : "9182";
+  const port = portOf(host);
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   const user = session ? getUser(session.userId) : null;
   const locale = await getLocale();

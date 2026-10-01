@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
@@ -6,6 +6,7 @@ import LogoutButton from "@/components/inventory/LogoutButton";
 import OmniSearch from "@/components/inventory/OmniSearch";
 import NavRail from "@/components/inventory/NavRail";
 import ToastProvider from "@/components/inventory/ToastProvider";
+import ContextMenuProvider from "@/components/inventory/ContextMenu";
 import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
 import DesktopChrome from "@/components/inventory/DesktopChrome";
 import PresenceBar from "@/components/inventory/PresenceBar";
@@ -14,6 +15,8 @@ import { SESSION_COOKIE, readSession } from "@/lib/inventory/session";
 import { getUser } from "@/lib/inventory/users";
 import { accentStyle } from "@/lib/inventory/theme";
 import { getTr } from "@/lib/i18n-server";
+import { networkAddresses, portOf } from "@/lib/inventory/lan";
+import { isLocalRequest } from "@/lib/inventory/network";
 
 export async function generateMetadata() {
   const tr = await getTr();
@@ -36,53 +39,59 @@ export default async function AdminLayout({
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   const user = session ? getUser(session.userId) : null;
+  // Links shared to another device must not say localhost. From the network
+  // the page's own origin already works, so only this machine needs a swap.
+  const host = (await headers()).get("host");
+  const shareOrigin = isLocalRequest(host) ? (networkAddresses(portOf(host ?? ""))[0] ?? null) : null;
 
   return (
     <div className="admin-shell min-h-screen" style={accentStyle(user?.accent)}>
       <ToastProvider>
-        <DesktopChrome />
-        <header className="app-drag app-bar-inset sticky top-0 z-40 flex h-[var(--admin-header-h)] items-center gap-3 bg-[var(--brand)] px-4 text-[var(--on-brand)]">
-          <Link
-            href="/inventory"
-            className="app-no-drag flex items-center gap-2 text-sm font-semibold tracking-tight hover:underline"
-          >
-            {/* Monochrome mark, forced white so it reads on the brand bar. */}
-            <Image
-              src="/crv-mark.png"
-              alt=""
-              width={22}
-              height={20}
-              className="shrink-0 brightness-0 invert"
-              priority
-            />
+        <ContextMenuProvider shareOrigin={shareOrigin}>
+          <DesktopChrome />
+          <header className="app-drag app-bar-inset sticky top-0 z-40 flex h-[var(--admin-header-h)] items-center gap-3 bg-[var(--brand)] px-4 text-[var(--on-brand)]">
+            <Link
+              href="/inventory"
+              className="app-no-drag flex items-center gap-2 text-sm font-semibold tracking-tight hover:underline"
+            >
+              {/* Monochrome mark, forced white so it reads on the brand bar. */}
+              <Image
+                src="/crv-mark.png"
+                alt=""
+                width={22}
+                height={20}
+                className="shrink-0 brightness-0 invert"
+                priority
+              />
             
-            {tr("OORC")}
-          </Link>
-          <div className="app-no-drag mx-auto hidden w-full max-w-[520px] md:block">
-            <OmniSearch />
-          </div>
+              {tr("OORC")}
+            </Link>
+            <div className="app-no-drag mx-auto hidden w-full max-w-[520px] md:block">
+              <OmniSearch />
+            </div>
 
-          <div className="app-no-drag ml-auto flex items-center gap-2">
-            <PresenceBar />
-            <ClockButton />
-            {PUBLIC_SITE_ENABLED && (
-              <Link
-                href="/"
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius)] px-3 py-1.5 text-sm text-white/90 transition-colors hover:bg-white/15 hover:text-white"
-              >
-                <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
+            <div className="app-no-drag ml-auto flex items-center gap-2">
+              <PresenceBar />
+              <ClockButton />
+              {PUBLIC_SITE_ENABLED && (
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-1.5 rounded-[var(--radius)] px-3 py-1.5 text-sm text-white/90 transition-colors hover:bg-white/15 hover:text-white"
+                >
+                  <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
                 
-                {tr("Ver sitio")}
-              </Link>
-            )}
-            <LogoutButton />
-          </div>
-        </header>
+                  {tr("Ver sitio")}
+                </Link>
+              )}
+              <LogoutButton />
+            </div>
+          </header>
 
-        <div className="flex min-h-[calc(100vh-var(--admin-header-h))]">
-          <NavRail />
-          <main className="min-w-0 flex-1">{children}</main>
-        </div>
+          <div className="flex min-h-[calc(100vh-var(--admin-header-h))]">
+            <NavRail />
+            <main className="min-w-0 flex-1">{children}</main>
+          </div>
+        </ContextMenuProvider>
       </ToastProvider>
     </div>
   );

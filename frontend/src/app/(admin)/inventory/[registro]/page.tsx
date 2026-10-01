@@ -14,12 +14,14 @@ import {
 } from "@/lib/inventory/fields";
 import { StatusPill } from "@/components/inventory/InventoryTable";
 import CertificatePanel from "@/components/inventory/CertificatePanel";
-import { certificateDisplayName, mediumLine, spanishDate } from "@/lib/inventory/certificates";
+import IssuedCertificates from "@/components/inventory/IssuedCertificates";
+import { mediumLine } from "@/lib/inventory/certificates";
 import { certificatesForArtwork } from "@/lib/inventory/certificate-log";
 import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
-import { CARD, MUTED } from "@/components/inventory/ui";
-import { Award, Download } from "lucide-react";
+import { MUTED } from "@/components/inventory/ui";
+import { Award } from "lucide-react";
 import { getTr } from "@/lib/i18n-server";
+import { artworkCtx, fieldCtx } from "@/components/inventory/context-data";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +61,7 @@ export default async function ArtworkPage({ params }: Props) {
   };
 
   return (
-    <main className="mx-auto max-w-[1400px] px-5 py-6">
+    <main className="mx-auto max-w-[1400px] px-5 py-6" {...artworkCtx(artwork)}>
       <div className="flex flex-wrap items-center justify-between gap-3 pb-6">
         <Link href="/inventory" className="inline-flex items-center gap-1.5 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]">
           <ArrowLeft size={15} strokeWidth={1.75} aria-hidden />
@@ -165,7 +167,11 @@ export default async function ArtworkPage({ params }: Props) {
                       const value = artwork[field.key];
                       const isLong = field.type === "longtext";
                       return (
-                        <div key={field.key} className={isLong ? "sm:col-span-2" : ""}>
+                        <div
+                          key={field.key}
+                          className={isLong ? "sm:col-span-2" : ""}
+                          {...fieldCtx(tr(field.label), value)}
+                        >
                           <dt className="text-xs text-[var(--ink-3)]">{tr(field.label)}</dt>
                           <dd
                             className={`mt-0.5 text-sm ${
@@ -196,30 +202,7 @@ export default async function ArtworkPage({ params }: Props) {
               {tr("Ver todos")}
             </Link>
           </h2>
-          <div className={`${CARD} mt-3 divide-y divide-[var(--stroke-soft)]`}>
-            {issued.map((certificate) => (
-              <div key={certificate.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
-                <span className="font-semibold">
-                  {certificateDisplayName(certificate.type, certificate.registro)}
-                </span>
-                {certificate.party && <span className={MUTED}>{certificate.party}</span>}
-                <span className={`ml-auto text-xs ${MUTED}`}>
-                  {certificate.issued_on
-                    ? spanishDate(certificate.issued_on)
-                    : certificate.created_at.slice(0, 10)}
-                </span>
-                {certificate.file_name && (
-                  <a
-                    href={`/api/admin/certificates/${certificate.id}/file`}
-                    className="inline-flex items-center gap-1 text-xs text-[var(--brand)] hover:underline"
-                  >
-                    <Download size={14} strokeWidth={1.75} aria-hidden />
-                    {certificate.file_ext?.toUpperCase()}
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
+          <IssuedCertificates certificates={issued} />
         </section>
       )}
 
