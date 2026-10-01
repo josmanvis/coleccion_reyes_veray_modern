@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Save, Undo2 } from "lucide-react";
 import { FIELDS, READONLY_KEYS } from "@/lib/inventory/fields";
 import ArtworkFieldGrid, { type Values } from "./ArtworkFieldGrid";
 import ConfirmDialog from "./ConfirmDialog";
@@ -64,8 +65,8 @@ export default function EditForm({
 
   return (
     <form onSubmit={requestSave}>
-      <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-neutral-200 bg-[#fdfcfc]/95 px-5 py-3 backdrop-blur">
-        <span className="text-sm text-neutral-600">
+      <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-[var(--stroke-soft)] bg-[var(--surface)] px-5 py-3 backdrop-blur">
+        <span className="text-sm text-[var(--ink-3)]">
           {changed.length === 0
             ? "Sin cambios"
             : `${changed.length} campo${changed.length === 1 ? "" : "s"} modificado${
@@ -82,15 +83,17 @@ export default function EditForm({
               setSaved(false);
             }}
             disabled={changed.length === 0 || pending}
-            className="rounded border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 transition hover:border-neutral-600 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-[var(--radius)] border border-[var(--stroke)] px-3 py-1.5 text-sm font-semibold text-[var(--ink-2)] transition hover:bg-[var(--hover)] disabled:opacity-40"
           >
+            <Undo2 size={15} strokeWidth={1.75} aria-hidden />
             Descartar
           </button>
           <button
             type="submit"
             disabled={changed.length === 0 || pending}
-            className="rounded bg-black px-4 py-1.5 text-sm text-white transition hover:bg-neutral-700 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-[var(--brand)] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
           >
+            <Save size={15} strokeWidth={1.75} aria-hidden />
             {pending ? "Guardando…" : "Guardar cambios"}
           </button>
         </div>

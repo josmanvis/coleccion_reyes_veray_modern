@@ -38,7 +38,7 @@ export default function ThumbPreview({
 
   if (!src) {
     return (
-      <span className="block size-10 rounded-sm border border-dashed border-neutral-300" />
+      <span className="block size-10 rounded-sm border border-dashed border-[var(--stroke)]" />
     );
   }
 
@@ -56,7 +56,7 @@ export default function ThumbPreview({
         alt={alt}
         width={40}
         height={40}
-        className="size-10 rounded-sm object-cover ring-1 ring-neutral-200"
+        className="size-10 rounded-sm object-cover ring-1 ring-[var(--stroke-soft)]"
         unoptimized
       />
 
@@ -64,16 +64,16 @@ export default function ThumbPreview({
         <span
           role="tooltip"
           style={{ top: box.top, left: box.left, width: SIZE }}
-          className="pointer-events-none fixed z-50 block rounded-lg border border-neutral-300 bg-white p-2 shadow-2xl"
+          className="pointer-events-none fixed z-50 block rounded-lg border border-[var(--stroke)] bg-[var(--surface)] p-2 shadow-2xl"
         >
           <span
-            className="relative block w-full overflow-hidden rounded bg-neutral-100"
+            className="relative block w-full overflow-hidden rounded bg-[var(--hover)]"
             style={{ height: SIZE - 16 }}
           >
             <Image src={src} alt="" fill sizes="340px" className="object-contain" unoptimized />
           </span>
           {caption && (
-            <span className="mt-1.5 block truncate px-1 text-xs text-neutral-600">{caption}</span>
+            <span className="mt-1.5 block truncate px-1 text-xs text-[var(--ink-3)]">{caption}</span>
           )}
         </span>
       )}

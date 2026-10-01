@@ -1,66 +1,84 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
+import Image from "next/image";
+import { ExternalLink } from "lucide-react";
 import LogoutButton from "@/components/inventory/LogoutButton";
+import OmniSearch from "@/components/inventory/OmniSearch";
+import NavRail from "@/components/inventory/NavRail";
 import ToastProvider from "@/components/inventory/ToastProvider";
+import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
+import DesktopChrome from "@/components/inventory/DesktopChrome";
+import PresenceBar from "@/components/inventory/PresenceBar";
+import ClockButton from "@/components/inventory/ClockButton";
+import { SESSION_COOKIE, readSession } from "@/lib/inventory/session";
+import { getUser } from "@/lib/inventory/users";
+import { accentStyle } from "@/lib/inventory/theme";
 
 export const metadata = {
   title: "Inventario · Colección Reyes-Veray",
 };
 
-export default function AdminLayout({
+/**
+ * Microsoft 365 shell: a slim brand bar across the top, a navigation rail down
+ * the left, and the working surface on a light canvas. Each page supplies its
+ * own command bar beneath the header.
+ */
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The accent is resolved on the server and written onto the shell, so the
+  // interface never flashes the default blue before the preference loads.
+  const store = await cookies();
+  const session = await readSession(store.get(SESSION_COOKIE)?.value);
+  const user = session ? getUser(session.userId) : null;
+
   return (
-    <ToastProvider>
-      <div className="admin-shell min-h-screen bg-[#fdfcfc] text-[#111]">
-      <header className="sticky top-0 z-40 h-[var(--admin-header-h)] border-b border-neutral-200 bg-[#fdfcfc]/95 backdrop-blur">
-        <div className="mx-auto flex h-full max-w-[1600px] items-center gap-6 px-5">
-          <Link href="/inventory" className="font-serif text-lg leading-none tracking-tight">
-            Colección Reyes-Veray
+    <div className="admin-shell min-h-screen" style={accentStyle(user?.accent)}>
+      <ToastProvider>
+        <DesktopChrome />
+        <header className="app-drag app-bar-inset sticky top-0 z-40 flex h-[var(--admin-header-h)] items-center gap-3 bg-[var(--brand)] px-4 text-[var(--on-brand)]">
+          <Link
+            href="/inventory"
+            className="app-no-drag flex items-center gap-2 text-sm font-semibold tracking-tight hover:underline"
+          >
+            {/* Monochrome mark, forced white so it reads on the brand bar. */}
+            <Image
+              src="/crv-mark.png"
+              alt=""
+              width={22}
+              height={20}
+              className="shrink-0 brightness-0 invert"
+              priority
+            />
+            OORC
           </Link>
-          <nav className="flex items-center gap-1 text-sm">
-            <Link
-              href="/inventory"
-              className="rounded px-3 py-1.5 text-neutral-800 transition hover:bg-neutral-100 hover:text-black"
-            >
-              Inventario
-            </Link>
-            <Link
-              href="/admin"
-              className="rounded px-3 py-1.5 text-neutral-800 transition hover:bg-neutral-100 hover:text-black"
-            >
-              Administración
-            </Link>
-            <Link
-              href="/admin/locations"
-              className="rounded px-3 py-1.5 text-neutral-700 transition hover:bg-neutral-100 hover:text-black"
-            >
-              Ubicaciones
-            </Link>
-            <Link
-              href="/admin/content"
-              className="rounded px-3 py-1.5 text-neutral-700 transition hover:bg-neutral-100 hover:text-black"
-            >
-              Contenido
-            </Link>
-            <Link
-              href="/admin/artists"
-              className="rounded px-3 py-1.5 text-neutral-800 transition hover:bg-neutral-100 hover:text-black"
-            >
-              Artistas
-            </Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-3 text-sm">
-            <Link href="/" className="text-neutral-600 transition hover:text-black">
-              Ver sitio
-            </Link>
+          <div className="app-no-drag mx-auto hidden w-full max-w-[520px] md:block">
+            <OmniSearch />
+          </div>
+
+          <div className="app-no-drag ml-auto flex items-center gap-2">
+            <PresenceBar />
+            <ClockButton />
+            {PUBLIC_SITE_ENABLED && (
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 rounded-[var(--radius)] px-3 py-1.5 text-sm text-white/90 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
+                Ver sitio
+              </Link>
+            )}
             <LogoutButton />
           </div>
+        </header>
+
+        <div className="flex min-h-[calc(100vh-var(--admin-header-h))]">
+          <NavRail />
+          <main className="min-w-0 flex-1">{children}</main>
         </div>
-      </header>
-        {children}
-      </div>
-    </ToastProvider>
+      </ToastProvider>
+    </div>
   );
 }

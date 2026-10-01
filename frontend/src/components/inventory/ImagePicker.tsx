@@ -101,18 +101,18 @@ export default function ImagePicker({
         type="button"
         aria-label="Cerrar"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-neutral-950/40 backdrop-blur-[2px]"
+        className="absolute inset-0 cursor-default bg-[#242424]/40 backdrop-blur-[2px]"
       />
 
-      <div className="relative flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-neutral-300 bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-neutral-200 px-5 py-3">
-          <h2 className="font-serif text-lg text-neutral-900">
+      <div className="relative flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-[var(--stroke)] bg-[var(--surface)] shadow-2xl">
+        <header className="flex items-center justify-between border-b border-[var(--stroke-soft)] px-5 py-3">
+          <h2 className="text-lg text-[var(--ink-1)]">
             {multiple ? "Elegir imágenes" : "Elegir imagen"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded px-2 py-1 text-sm text-neutral-600 transition hover:text-neutral-900"
+            className="rounded px-2 py-1 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]"
           >
             Cerrar
           </button>
@@ -131,21 +131,21 @@ export default function ImagePicker({
               upload(e.dataTransfer.files);
             }}
             className={`rounded-lg border-2 border-dashed px-4 py-6 text-center transition ${
-              dragging ? "border-neutral-900 bg-neutral-50" : "border-neutral-300"
+              dragging ? "border-[var(--brand)] bg-[var(--surface-alt)]" : "border-[var(--stroke)]"
             }`}
           >
-            <p className="text-sm text-neutral-700">
+            <p className="text-sm text-[var(--ink-2)]">
               Arrastra imágenes aquí o{" "}
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="font-medium text-neutral-900 underline underline-offset-2"
+                className="font-medium text-[var(--ink-1)] underline underline-offset-2"
               >
                 búscalas en tu computadora
               </button>
             </p>
-            <p className="mt-1 text-xs text-neutral-500">JPG, PNG, WebP, AVIF, GIF o SVG · máx. 12 MB</p>
-            {uploading && <p className="mt-2 text-sm text-neutral-900">Subiendo…</p>}
+            <p className="mt-1 text-xs text-[var(--ink-3)]">JPG, PNG, WebP, AVIF, GIF o SVG · máx. 12 MB</p>
+            {uploading && <p className="mt-2 text-sm text-[var(--ink-1)]">Subiendo…</p>}
             <input
               ref={inputRef}
               type="file"
@@ -162,9 +162,9 @@ export default function ImagePicker({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {loading ? (
-            <p className="py-10 text-center text-sm text-neutral-500">Cargando…</p>
+            <p className="py-10 text-center text-sm text-[var(--ink-3)]">Cargando…</p>
           ) : media.length === 0 ? (
-            <p className="py-10 text-center text-sm text-neutral-500">
+            <p className="py-10 text-center text-sm text-[var(--ink-3)]">
               Todavía no has subido ninguna imagen.
             </p>
           ) : (
@@ -178,10 +178,10 @@ export default function ImagePicker({
                       onClick={() => toggle(item.url)}
                       aria-pressed={isOn}
                       className={`block w-full overflow-hidden rounded border-2 transition ${
-                        isOn ? "border-neutral-900" : "border-transparent hover:border-neutral-400"
+                        isOn ? "border-[var(--brand)]" : "border-transparent hover:border-[var(--stroke)]"
                       }`}
                     >
-                      <span className="relative block aspect-square bg-neutral-100">
+                      <span className="relative block aspect-square bg-[var(--hover)]">
                         <Image
                           src={item.url}
                           alt={item.alt ?? ""}
@@ -191,7 +191,7 @@ export default function ImagePicker({
                           unoptimized
                         />
                       </span>
-                      <span className="block truncate px-1 py-1 text-left text-[11px] text-neutral-600">
+                      <span className="block truncate px-1 py-1 text-left text-[11px] text-[var(--ink-3)]">
                         {item.filename}
                       </span>
                     </button>
@@ -202,8 +202,8 @@ export default function ImagePicker({
           )}
         </div>
 
-        <footer className="flex items-center justify-between gap-3 border-t border-neutral-200 px-5 py-3">
-          <p className="text-xs text-neutral-500">
+        <footer className="flex items-center justify-between gap-3 border-t border-[var(--stroke-soft)] px-5 py-3">
+          <p className="text-xs text-[var(--ink-3)]">
             {selected.length > 0
               ? `${selected.length} seleccionada${selected.length === 1 ? "" : "s"}`
               : "Ninguna seleccionada"}
@@ -212,7 +212,7 @@ export default function ImagePicker({
             <button
               type="button"
               onClick={onClose}
-              className="rounded border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-500"
+              className="rounded border border-[var(--stroke)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
             >
               Cancelar
             </button>
@@ -223,7 +223,7 @@ export default function ImagePicker({
                 onPick(selected);
                 onClose();
               }}
-              className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-40"
+              className="rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
             >
               Usar
             </button>

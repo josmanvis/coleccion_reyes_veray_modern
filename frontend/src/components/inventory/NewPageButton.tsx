@@ -38,7 +38,7 @@ export default function NewPageButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700"
+        className="rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--brand-hover)]"
       >
         + Nueva página
       </button>
@@ -53,19 +53,19 @@ export default function NewPageButton() {
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Título de la página"
         autoFocus
-        className="w-56 rounded border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-neutral-900"
+        className="w-56 rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm outline-none transition focus:border-[var(--brand)]"
       />
       <button
         type="submit"
         disabled={!title.trim() || pending}
-        className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-40"
+        className="rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
       >
         {pending ? "Creando…" : "Crear"}
       </button>
       <button
         type="button"
         onClick={() => setOpen(false)}
-        className="rounded px-2 py-2 text-sm text-neutral-600 transition hover:text-neutral-900"
+        className="rounded px-2 py-2 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]"
       >
         Cancelar
       </button>

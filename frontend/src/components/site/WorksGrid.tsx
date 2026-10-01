@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ArtworkRow } from "@/lib/inventory/db";
 import { sentenceCase } from "@/lib/inventory/fields";
+import { t, type Locale } from "@/lib/i18n";
 
 /**
  * A work only has a public page if it carries the slug the original site
@@ -11,9 +12,9 @@ export function artworkHref(row: ArtworkRow): string | null {
   return row.website_slug ? `/art/${row.website_slug}` : null;
 }
 
-function Tile({ row }: { row: ArtworkRow }) {
+function Tile({ row, locale }: { row: ArtworkRow; locale: Locale }) {
   const image = row.image_thumb || row.image_full;
-  const title = row.title ? sentenceCase(String(row.title)) : "Untitled";
+  const title = row.title ? sentenceCase(String(row.title)) : t(locale, "works.untitled");
 
   return (
     <figure className="group">
@@ -29,7 +30,7 @@ function Tile({ row }: { row: ArtworkRow }) {
           />
         ) : (
           <span className="flex size-full items-center justify-center font-display text-[10px] uppercase tracking-widest opacity-20">
-            Sin imagen
+            {t(locale, "works.noImage")}
           </span>
         )}
       </div>
@@ -43,11 +44,11 @@ function Tile({ row }: { row: ArtworkRow }) {
   );
 }
 
-export default function WorksGrid({ rows }: { rows: ArtworkRow[] }) {
+export default function WorksGrid({ rows, locale }: { rows: ArtworkRow[]; locale: Locale }) {
   if (rows.length === 0) {
     return (
       <p className="py-16 text-center font-display text-[10px] uppercase tracking-widest opacity-30">
-        No works on file
+        {t(locale, "works.none")}
       </p>
     );
   }
@@ -60,10 +61,10 @@ export default function WorksGrid({ rows }: { rows: ArtworkRow[] }) {
           <li key={String(row.ref)}>
             {href ? (
               <Link href={href}>
-                <Tile row={row} />
+                <Tile row={row} locale={locale} />
               </Link>
             ) : (
-              <Tile row={row} />
+              <Tile row={row} locale={locale} />
             )}
           </li>
         );

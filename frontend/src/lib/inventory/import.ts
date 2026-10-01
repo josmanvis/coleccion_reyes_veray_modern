@@ -236,3 +236,94 @@ export async function linkWebsiteImages(): Promise<{ linked: number; unmatched: 
 
   return { linked, unmatched: rows.length - linked };
 }
+
+// --- Parsing without writing -------------------------------------------------
+
+export type ParsedRow = {
+  /** Same ref allocation the importer uses, so a diff lines up with the record. */
+  ref: string;
+  registro: string;
+  values: Record<string, string | number | null>;
+  raw: Record<string, string | null>;
+};
+
+export type ParsedWorkbook = {
+  rows: ParsedRow[];
+  unknownColumns: string[];
+  missingColumns: string[];
+  skipped: number;
+  errors: string[];
+};
+
+/**
+ * Reads the spreadsheet into memory without touching the database, so an
+ * import can be reviewed record by record before anything is written.
+ */
+export async function parseWorkbook(buffer: ArrayBuffer | Buffer): Promise<ParsedWorkbook> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer as ArrayBuffer);
+
+  const out: ParsedWorkbook = {
+    rows: [],
+    unknownColumns: [],
+    missingColumns: [],
+    skipped: 0,
+    errors: [],
+  };
+
+  const sheet = workbook.worksheets[0];
+  if (!sheet) {
+    out.errors.push("El archivo no contiene ninguna hoja de cálculo.");
+    return out;
+  }
+
+  const columnToKey = new Map<number, string>();
+  const seen = new Set<string>();
+  const byColumn = new Map(FIELDS.map((f) => [f.column.trim().toLowerCase(), f.key]));
+
+  sheet.getRow(1).eachCell((cell, colNumber) => {
+    const header = cellText(cell.value);
+    if (!header) return;
+    const key = byColumn.get(header.trim().toLowerCase());
+    if (key) {
+      columnToKey.set(colNumber, key);
+      seen.add(key);
+    } else if (!/^Field \d+$/i.test(header)) {
+      out.unknownColumns.push(header);
+    }
+  });
+
+  if (!seen.has("registro")) {
+    out.errors.push('No se encontró la columna "# Registro"; no se puede comparar.');
+    return out;
+  }
+  out.missingColumns = FIELDS.filter((f) => !seen.has(f.key)).map((f) => f.label);
+
+  const refsUsed = new Set<string>();
+  sheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+
+    const raw: Record<string, string | null> = {};
+    for (const [colNumber, key] of columnToKey) {
+      raw[key] = cellText(row.getCell(colNumber).value);
+    }
+    const values: Record<string, string | number | null> = {};
+    for (const field of FIELDS) {
+      values[field.key] = coerce(field, raw[field.key] ?? null);
+    }
+
+    const registro = raw.registro?.trim() ?? "";
+    const hasContent = Object.entries(raw).some(
+      ([key, value]) => key !== "registro" && value !== null && value !== ""
+    );
+    if (!registro && !hasContent) {
+      out.skipped += 1;
+      return;
+    }
+    values.registro = registro || null;
+
+    out.rows.push({ ref: allocateRef(registro, refsUsed), registro, values, raw });
+  });
+
+  return out;
+}

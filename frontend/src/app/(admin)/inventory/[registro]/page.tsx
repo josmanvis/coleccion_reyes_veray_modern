@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLink, Pencil, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getArtwork } from "@/lib/inventory/db";
@@ -12,6 +13,12 @@ import {
   type FieldGroup,
 } from "@/lib/inventory/fields";
 import { StatusPill } from "@/components/inventory/InventoryTable";
+import CertificatePanel from "@/components/inventory/CertificatePanel";
+import { certificateDisplayName, mediumLine, spanishDate } from "@/lib/inventory/certificates";
+import { certificatesForArtwork } from "@/lib/inventory/certificate-log";
+import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
+import { CARD, MUTED } from "@/components/inventory/ui";
+import { Award, Download } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -32,25 +39,49 @@ export default async function ArtworkPage({ params }: Props) {
   const groups = Object.keys(GROUP_LABELS) as FieldGroup[];
   const artistHref = artistHrefFor(artwork, artistSlugIndex());
 
+  const issued = certificatesForArtwork(String(artwork.ref), String(artwork.registro ?? ""));
+
+  const certificateDefaults = {
+    artist: artistName(artwork),
+    title: artwork.title ? titleCase(String(artwork.title)) : "",
+    medium: mediumLine(
+      artwork.technique === null ? null : String(artwork.technique),
+      artwork.support === null ? null : String(artwork.support)
+    ),
+    dimensions: artwork.dimensions === null ? "" : String(artwork.dimensions),
+    year: artwork.year === null ? "" : String(artwork.year),
+    edition: artwork.edition === null ? "" : String(artwork.edition),
+    exhibitions: artwork.exhibition_history === null ? "" : String(artwork.exhibition_history),
+    publications: artwork.publication_history === null ? "" : String(artwork.publication_history),
+  };
+
   return (
     <main className="mx-auto max-w-[1400px] px-5 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-6">
-        <Link href="/inventory" className="text-sm text-neutral-600 transition hover:text-black">
-          ← Volver al inventario
+        <Link href="/inventory" className="inline-flex items-center gap-1.5 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]">
+          <ArrowLeft size={15} strokeWidth={1.75} aria-hidden />
+          Volver al inventario
         </Link>
         <div className="flex items-center gap-2 text-sm">
-          {artwork.website_slug && (
+          {PUBLIC_SITE_ENABLED && artwork.website_slug && (
             <Link
               href={`/art/${artwork.website_slug}`}
-              className="rounded border border-neutral-300 px-3 py-1.5 text-neutral-700 transition hover:border-neutral-600 hover:text-black"
+              className="rounded border border-[var(--stroke)] px-3 py-1.5 text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
             >
+              <ExternalLink size={15} strokeWidth={1.75} aria-hidden />
               Ver en el sitio
             </Link>
           )}
+          <CertificatePanel
+            variant="drawer"
+            refId={String(artwork.ref)}
+            defaults={certificateDefaults}
+          />
           <Link
             href={`/admin/artwork/${artwork.ref}`}
-            className="rounded bg-black px-3 py-1.5 text-white transition hover:bg-neutral-700"
+            className="rounded bg-[var(--brand)] px-3 py-1.5 text-white transition hover:bg-[var(--brand-hover)]"
           >
+            <Pencil size={15} strokeWidth={1.75} aria-hidden />
             Editar
           </Link>
         </div>
@@ -58,7 +89,7 @@ export default async function ArtworkPage({ params }: Props) {
 
       <div className="grid gap-10 lg:grid-cols-[420px_1fr]">
         <div>
-          <div className="relative aspect-square overflow-hidden rounded-sm bg-neutral-100">
+          <div className="relative aspect-square overflow-hidden rounded-sm bg-[var(--hover)]">
             {artwork.image_full || artwork.image_thumb ? (
               <Image
                 src={String(artwork.image_full || artwork.image_thumb)}
@@ -69,36 +100,36 @@ export default async function ArtworkPage({ params }: Props) {
                 unoptimized
               />
             ) : (
-              <span className="flex size-full items-center justify-center text-sm text-neutral-500">
+              <span className="flex size-full items-center justify-center text-sm text-[var(--ink-3)]">
                 Sin imagen enlazada
               </span>
             )}
           </div>
 
           <dl className="mt-5 space-y-2 text-sm">
-            <div className="flex justify-between gap-4 border-b border-neutral-200 pb-2">
-              <dt className="text-neutral-500">Valor actual</dt>
+            <div className="flex justify-between gap-4 border-b border-[var(--stroke-soft)] pb-2">
+              <dt className="text-[var(--ink-3)]">Valor actual</dt>
               <dd className="tabular-nums">{formatMoney(artwork.current_value)}</dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-neutral-200 pb-2">
-              <dt className="text-neutral-500">Precio de compra</dt>
+            <div className="flex justify-between gap-4 border-b border-[var(--stroke-soft)] pb-2">
+              <dt className="text-[var(--ink-3)]">Precio de compra</dt>
               <dd className="tabular-nums">{formatMoney(artwork.purchase_price)}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-neutral-500">Última actualización</dt>
-              <dd className="text-neutral-700">{artwork.updated_at}</dd>
+              <dt className="text-[var(--ink-3)]">Última actualización</dt>
+              <dd className="text-[var(--ink-2)]">{artwork.updated_at}</dd>
             </div>
           </dl>
         </div>
 
         <div>
-          <p className="font-mono text-xs text-neutral-500">CRV #{artwork.registro}</p>
-          <h1 className="mt-1 font-serif text-4xl leading-tight">
+          <p className="font-mono text-xs text-[var(--ink-3)]">CRV #{artwork.registro}</p>
+          <h1 className="mt-1 text-4xl leading-tight">
             {artwork.title ? titleCase(String(artwork.title)) : "Sin título"}
           </h1>
-          <p className="mt-1 text-lg text-neutral-700">
+          <p className="mt-1 text-lg text-[var(--ink-2)]">
             {artistHref ? (
-              <Link href={artistHref} className="transition hover:text-black hover:underline">
+              <Link href={artistHref} className="transition hover:text-[var(--ink-1)] hover:underline">
                 {artistName(artwork)}
               </Link>
             ) : (
@@ -107,7 +138,7 @@ export default async function ArtworkPage({ params }: Props) {
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <StatusPill group={artwork.status_group} />
-            {artwork.status && <span className="text-sm text-neutral-600">{String(artwork.status)}</span>}
+            {artwork.status && <span className="text-sm text-[var(--ink-3)]">{String(artwork.status)}</span>}
           </div>
 
           <div className="mt-8 space-y-8">
@@ -119,7 +150,7 @@ export default async function ArtworkPage({ params }: Props) {
 
               return (
                 <section key={group}>
-                  <h2 className="border-b border-neutral-200 pb-1.5 text-xs uppercase tracking-wide text-neutral-500">
+                  <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
                     {GROUP_LABELS[group]}
                   </h2>
                   <dl className="mt-3 grid gap-x-8 gap-y-3 sm:grid-cols-2">
@@ -128,10 +159,10 @@ export default async function ArtworkPage({ params }: Props) {
                       const isLong = field.type === "longtext";
                       return (
                         <div key={field.key} className={isLong ? "sm:col-span-2" : ""}>
-                          <dt className="text-xs text-neutral-500">{field.label}</dt>
+                          <dt className="text-xs text-[var(--ink-3)]">{field.label}</dt>
                           <dd
                             className={`mt-0.5 text-sm ${
-                              isLong ? "whitespace-pre-line leading-relaxed text-neutral-800" : ""
+                              isLong ? "whitespace-pre-line leading-relaxed text-[var(--ink-1)]" : ""
                             }`}
                           >
                             {field.type === "money" ? formatMoney(value) : String(value)}
@@ -146,6 +177,44 @@ export default async function ArtworkPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+
+      {issued.length > 0 && (
+        <section className="mt-10">
+          <h2 className={`flex items-center gap-2 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide ${MUTED}`}>
+            <Award size={14} strokeWidth={1.75} aria-hidden />
+            Certificados ({issued.length})
+            <Link href="/admin/certificates" className="ml-auto normal-case tracking-normal hover:text-[var(--ink-1)]">
+              Ver todos
+            </Link>
+          </h2>
+          <div className={`${CARD} mt-3 divide-y divide-[var(--stroke-soft)]`}>
+            {issued.map((certificate) => (
+              <div key={certificate.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
+                <span className="font-semibold">
+                  {certificateDisplayName(certificate.type, certificate.registro)}
+                </span>
+                {certificate.party && <span className={MUTED}>{certificate.party}</span>}
+                <span className={`ml-auto text-xs ${MUTED}`}>
+                  {certificate.issued_on
+                    ? spanishDate(certificate.issued_on)
+                    : certificate.created_at.slice(0, 10)}
+                </span>
+                {certificate.file_name && (
+                  <a
+                    href={`/api/admin/certificates/${certificate.id}/file`}
+                    className="inline-flex items-center gap-1 text-xs text-[var(--brand)] hover:underline"
+                  >
+                    <Download size={14} strokeWidth={1.75} aria-hidden />
+                    {certificate.file_ext?.toUpperCase()}
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
     </main>
   );
 }

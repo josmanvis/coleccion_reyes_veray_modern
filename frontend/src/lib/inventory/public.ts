@@ -9,7 +9,7 @@
  */
 
 import { getDb, type ArtworkRow } from "./db";
-import { artistName, normalizeText, titleCase } from "./fields";
+import { artistName, isForSale, normalizeText, titleCase } from "./fields";
 
 export type PublicArtist = {
   slug: string;
@@ -177,8 +177,20 @@ export function listArtists(): PublicArtist[] {
   );
 }
 
+/** "ruiz-del-porto-francisco" and "francisco-ruiz-del-porto" -> same key. */
+function slugTokens(slug: string): string {
+  return slug.split("-").filter(Boolean).sort().join("-");
+}
+
 export function getArtistBySlug(slug: string): PublicArtist | null {
-  return listArtists().find((artist) => artist.slug === slug) ?? null;
+  const artists = listArtists();
+  const exact = artists.find((artist) => artist.slug === slug);
+  if (exact) return exact;
+
+  // The original site published some artists given-name-first. Those links are
+  // still in the wild, so match on the same words in any order.
+  const wanted = slugTokens(slug);
+  return artists.find((artist) => slugTokens(artist.slug) === wanted) ?? null;
 }
 
 /** The artist's works, newest registro last, so the grid reads like the original. */
@@ -372,4 +384,62 @@ export function artistHrefFor(
 ): string | null {
   const slug = index.get(artistKey(row));
   return slug ? `/${slug}` : null;
+}
+
+// --- Works offered for sale --------------------------------------------------
+
+/**
+ * What a public sale listing is allowed to contain.
+ *
+ * Deliberately a projection rather than an `ArtworkRow`: the row carries what
+ * the collection paid, where the piece is stored and how it was acquired, and
+ * none of that may reach a public page. Fields are added here on purpose only.
+ */
+export type SaleListing = {
+  ref: string;
+  registro: string;
+  title: string;
+  artist: string;
+  artistSlug: string | null;
+  year: number | null;
+  medium: string | null;
+  technique: string | null;
+  dimensions: string | null;
+  image: string | null;
+  /** The artwork's own page, when the original site published one. */
+  href: string | null;
+  /** "Valor actual" — the asking price. Never the purchase price. */
+  askingPrice: number | null;
+};
+
+/** Every work flagged for sale, in registro order. */
+export function listForSale(): SaleListing[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT ref, registro, title, artist_first, artist_last, year, medium, technique,
+              dimensions, image_full, image_thumb, website_slug, current_value, sales
+         FROM artworks
+        WHERE sales IS NOT NULL AND TRIM(sales) != ''
+        ORDER BY registro ASC`
+    )
+    .all() as Array<Record<string, unknown>>;
+
+  const slugs = artistSlugIndex();
+
+  return rows
+    .filter((row) => isForSale(row.sales))
+    .map((row) => ({
+      ref: String(row.ref),
+      registro: String(row.registro ?? ""),
+      title: row.title ? smartTitle(String(row.title)) : "Sin título",
+      artist: artistName(row),
+      artistSlug: slugs.get(artistKey(row)) ?? null,
+      year: typeof row.year === "number" ? row.year : null,
+      medium: row.medium ? String(row.medium) : null,
+      technique: row.technique ? String(row.technique) : null,
+      dimensions: row.dimensions ? String(row.dimensions) : null,
+      image: row.image_full ? String(row.image_full) : row.image_thumb ? String(row.image_thumb) : null,
+      href: row.website_slug ? `/art/${row.website_slug}` : null,
+      askingPrice: typeof row.current_value === "number" ? row.current_value : null,
+    }));
 }

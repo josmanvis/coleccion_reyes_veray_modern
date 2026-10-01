@@ -16,6 +16,8 @@ import PageBlocks from "@/components/PageBlocks";
 import { getPublishedPage } from "@/lib/inventory/pages";
 import { getSitePage } from "@/lib/site-content";
 import WorksGrid from "@/components/site/WorksGrid";
+import { t, type Locale } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const revalidate = 3600;
 
@@ -99,7 +101,7 @@ function Biography({ text }: { text: string }) {
   );
 }
 
-function ArtistView({ artist }: { artist: PublicArtist }) {
+function ArtistView({ artist, locale }: { artist: PublicArtist; locale: Locale }) {
   const works = artistWorks(artist);
   const around = artistNeighbours(artist.slug);
 
@@ -110,13 +112,15 @@ function ArtistView({ artist }: { artist: PublicArtist }) {
           href="/artists"
           className="font-display text-[10px] uppercase tracking-widest opacity-50 transition-opacity hover:opacity-100"
         >
-          ← All artists
+          {t(locale, "artists.back")}
         </Link>
 
         <header className="mt-6 border-b border-black/10 pb-8">
           <h1 className="font-serif text-4xl leading-tight md:text-6xl">{artist.name}</h1>
           <p className="mt-3 font-display text-[10px] uppercase tracking-widest opacity-40">
-            {artist.workCount} {artist.workCount === 1 ? "work" : "works"} in the collection
+            {t(locale, artist.workCount === 1 ? "artist.work" : "artist.works", {
+              n: artist.workCount,
+            })}
           </p>
           {artist.bio && (
             <div className="mt-8">
@@ -126,7 +130,7 @@ function ArtistView({ artist }: { artist: PublicArtist }) {
         </header>
 
         <div className="py-10">
-          <WorksGrid rows={works} />
+          <WorksGrid rows={works} locale={locale} />
         </div>
 
         <PrevNext
@@ -143,7 +147,7 @@ function ArtistView({ artist }: { artist: PublicArtist }) {
   );
 }
 
-function PortfolioView({ portfolio }: { portfolio: Portfolio }) {
+function PortfolioView({ portfolio, locale }: { portfolio: Portfolio; locale: Locale }) {
   const all = listPortfolios();
   const around = neighbours(all, (p) => p.base === portfolio.base);
   const blurb = portfolio.parent?.notes ?? portfolio.parent?.exhibition_history ?? null;
@@ -155,14 +159,17 @@ function PortfolioView({ portfolio }: { portfolio: Portfolio }) {
           href="/portfolios"
           className="font-display text-[10px] uppercase tracking-widest opacity-50 transition-opacity hover:opacity-100"
         >
-          ← All portfolios
+          {t(locale, "portfolios.back")}
         </Link>
 
         <header className="mt-6 border-b border-black/10 pb-8">
-          <p className="font-display text-[10px] uppercase tracking-widest opacity-40">Portfolio</p>
+          <p className="font-display text-[10px] uppercase tracking-widest opacity-40">{t(locale, "portfolio.label")}</p>
           <h1 className="mt-2 font-serif text-4xl leading-tight md:text-6xl">{portfolio.title}</h1>
           <p className="mt-3 font-display text-[10px] uppercase tracking-widest opacity-40">
-            {portfolio.members.length} sheets · CRV #{portfolio.base}
+            {t(locale, "portfolio.sheets", {
+              n: portfolio.members.length,
+              base: portfolio.base,
+            })}
           </p>
           {blurb && (
             <p className="mt-6 max-w-[70ch] whitespace-pre-line text-sm leading-relaxed opacity-70">
@@ -172,7 +179,7 @@ function PortfolioView({ portfolio }: { portfolio: Portfolio }) {
         </header>
 
         <div className="py-10">
-          <WorksGrid rows={portfolio.members} />
+          <WorksGrid rows={portfolio.members} locale={locale} />
         </div>
 
         <PrevNext
@@ -191,6 +198,7 @@ function PortfolioView({ portfolio }: { portfolio: Portfolio }) {
 
 export default async function FlatPage({ params }: Props) {
   const { slug } = await params;
+  const locale = await getLocale();
   const resolved = resolve(slug);
 
   if (!resolved) notFound();
@@ -200,7 +208,8 @@ export default async function FlatPage({ params }: Props) {
     return <PageBlocks page={page} />;
   }
   if (resolved.kind === "artwork") redirect(resolved.href);
-  if (resolved.kind === "portfolio") return <PortfolioView portfolio={resolved.portfolio} />;
-  return <ArtistView artist={resolved.artist} />;
+  if (resolved.kind === "portfolio")
+    return <PortfolioView portfolio={resolved.portfolio} locale={locale} />;
+  return <ArtistView artist={resolved.artist} locale={locale} />;
 }
 

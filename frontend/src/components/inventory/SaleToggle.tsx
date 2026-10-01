@@ -93,10 +93,10 @@ export default function SaleToggle({
           disabled={pending}
           title={forSale ? "En venta — clic para quitar" : "Marcar en venta"}
           aria-pressed={forSale}
-          className={`inline-block whitespace-nowrap rounded border px-2 py-0.5 text-xs font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-neutral-900 disabled:opacity-40 ${
+          className={`inline-block whitespace-nowrap rounded border px-2 py-0.5 text-xs font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand)] disabled:opacity-40 ${
             forSale
               ? "border-sky-400 bg-sky-100 text-sky-900 hover:border-sky-600"
-              : "border-neutral-300 bg-white text-neutral-500 hover:border-neutral-500 hover:text-neutral-800"
+              : "border-[var(--stroke)] bg-[var(--surface)] text-[var(--ink-3)] hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
           }`}
         >
           {pending ? "…" : forSale ? "En venta" : "—"}
@@ -113,19 +113,19 @@ export default function SaleToggle({
         onClick={() => setAsking(true)}
         disabled={pending}
         aria-pressed={forSale}
-        className={`rounded px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:opacity-40 ${
+        className={`rounded px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:opacity-40 ${
           forSale
             ? "border border-sky-400 bg-sky-100 text-sky-900 hover:border-sky-600"
-            : "border border-neutral-300 text-neutral-700 hover:border-neutral-500 hover:bg-neutral-50"
+            : "border border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)]"
         }`}
       >
         {forSale ? "En venta · quitar" : "Marcar en venta"}
       </button>
-      <span className="text-xs text-neutral-500">
+      <span className="text-xs text-[var(--ink-3)]">
         {forSale
           ? "Aparece como disponible en el sitio público."
           : "No se ofrece en el sitio público."}
-        <span className="ml-1 font-mono text-neutral-600">
+        <span className="ml-1 font-mono text-[var(--ink-3)]">
           Ventas: {current === null ? "(vacío)" : current}
         </span>
       </span>

@@ -28,7 +28,7 @@ export default function ArtworkFieldGrid({
     <div className="space-y-8">
       {groups.map((group) => (
         <section key={group}>
-          <h2 className="border-b border-neutral-200 pb-1.5 text-xs uppercase tracking-wide text-neutral-500">
+          <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
             {GROUP_LABELS[group]}
           </h2>
           <div className="mt-3 grid gap-x-6 gap-y-4 sm:grid-cols-2">
@@ -42,7 +42,7 @@ export default function ArtworkFieldGrid({
                   key={field.key}
                   className={`flex flex-col gap-1 ${isLong ? "sm:col-span-2" : ""}`}
                 >
-                  <span className="flex items-center gap-1.5 text-xs text-neutral-500">
+                  <span className="flex items-center gap-1.5 text-xs text-[var(--ink-3)]">
                     {field.label}
                     {isDirty && <span className="size-1.5 rounded-full bg-amber-500" />}
                   </span>
@@ -51,7 +51,7 @@ export default function ArtworkFieldGrid({
                       value={values[field.key] ?? ""}
                       onChange={(e) => onChange(field.key, e.target.value)}
                       rows={4}
-                      className="w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm leading-relaxed outline-none transition focus:border-black"
+                      className="w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm leading-relaxed outline-none transition focus:border-[var(--brand)]"
                     />
                   ) : (
                     <input
@@ -59,10 +59,10 @@ export default function ArtworkFieldGrid({
                       value={values[field.key] ?? ""}
                       onChange={(e) => onChange(field.key, e.target.value)}
                       readOnly={readOnly}
-                      className={`w-full rounded border px-3 py-1.5 text-sm outline-none transition focus:border-black ${
+                      className={`w-full rounded border px-3 py-1.5 text-sm outline-none transition focus:border-[var(--brand)] ${
                         readOnly
-                          ? "border-neutral-200 bg-neutral-100 text-neutral-600"
-                          : "border-neutral-300 bg-white"
+                          ? "border-[var(--stroke-soft)] bg-[var(--hover)] text-[var(--ink-3)]"
+                          : "border-[var(--stroke)] bg-[var(--surface)]"
                       }`}
                     />
                   )}

@@ -24,21 +24,110 @@ body {
   color: #fdfcfc;
 }
 
-/* The gallery display face is too wide for dense data; the admin area opts out. */
+/*
+ * Admin design tokens — a Fluent/Microsoft 365 palette.
+ *
+ * The gallery's display face is too wide for dense data, and its low-contrast
+ * greys fail against a working tool, so the admin opts out of both and uses a
+ * neutral ramp with body text at #242424 on white.
+ */
 .admin-shell {
-  /* Height of the sticky admin bar; sticky table headers offset by this. */
-  --admin-header-h: 60px;
-  font-family: var(--font-ui), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    sans-serif;
-  /* Lining tabular numerals so registro numbers and money columns line up. */
-  font-feature-settings: "tnum" 1, "cv05" 1;
-  color: #171717; /* neutral-900: 15:1 on the warm white background */
-  -webkit-font-smoothing: antialiased;
+  --admin-header-h: 48px;
+  --admin-rail-w: 240px;
+
+  --ink-1: #242424;
+  --ink-2: #424242;
+  --ink-3: #616161;
+  --ink-4: #707070;
+
+  --surface: #ffffff;
+  --surface-alt: #fafafa;
+  --canvas: #f5f5f5;
+  --hover: #f0f0f0;
+  --selected: #ebebeb;
+
+  --stroke: #d1d1d1;
+  --stroke-soft: #e5e5e5;
+
+  --brand: #0f6cbd;
+  --brand-hover: #115ea3;
+  --brand-pressed: #0c3b5e;
+  --brand-soft: #eff6fc;
+  --brand-soft-hover: #e1effa;
+  /* Text drawn on top of the accent. Recomputed per person in the layout, so
+     a pale accent does not leave white-on-white in the app bar. */
+  --on-brand: #ffffff;
+
+  --danger: #b10e1c;
+  --danger-soft: #fdf3f4;
+  --success: #0e700e;
+  --success-soft: #f1faf1;
+  --warning: #9a5b00;
+  --warning-soft: #fff9f0;
+
+  --radius: 4px;
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+  --shadow-8: 0 3.2px 7.2px rgba(0, 0, 0, 0.13), 0 0.6px 1.8px rgba(0, 0, 0, 0.11);
+  --shadow-16: 0 6.4px 14.4px rgba(0, 0, 0, 0.13), 0 1.2px 3.6px rgba(0, 0, 0, 0.11);
+
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  font-feature-settings: "tnum" 1;
+  color: var(--ink-1);
+  background: var(--canvas);
 }
 
-/* Every interactive element in the admin gets a visible keyboard ring. */
-.admin-shell :is(a, button, input, select, textarea):focus-visible {
-  outline: 2px solid #171717;
-  outline-offset: 2px;
+/*
+ * Safari keeps the native control unless appearance is reset, so the admin's
+ * selects and number inputs draw their own chevron and drop the spinners.
+ */
+.admin-shell select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23616161' stroke-width='1.5' d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 26px;
+}
+
+.admin-shell input[type="number"] {
+  -webkit-appearance: textfield;
+  appearance: textfield;
+}
+
+.admin-shell input[type="number"]::-webkit-outer-spin-button,
+.admin-shell input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.admin-shell input[type="search"]::-webkit-search-decoration,
+.admin-shell input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+/*
+ * Window dragging for CRVMGMT. With the native title bar hidden, the page has
+ * to nominate the area that moves the window; anything interactive inside it
+ * must opt back out or it stops responding to clicks.
+ * In a browser these properties are simply ignored.
+ */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* macOS draws its traffic lights over the top-left, so the title moves right. */
+html[data-desktop="true"] .app-bar-inset {
+  padding-left: 82px;
+}
+
+/* Fluent keeps focus visible and high-contrast rather than removing outlines. */
+.admin-shell :focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
   border-radius: 2px;
 }
+

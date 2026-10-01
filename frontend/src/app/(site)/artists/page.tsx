@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { listArtists } from "@/lib/inventory/public";
 import { normalizeText } from "@/lib/inventory/fields";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const revalidate = 3600;
 
@@ -16,6 +18,7 @@ function initialOf(surname: string): string {
 }
 
 export default async function ArtistsIndex() {
+  const locale = await getLocale();
   const artists = listArtists();
 
   const groups = new Map<string, typeof artists>();
@@ -29,9 +32,12 @@ export default async function ArtistsIndex() {
   return (
     <main className="min-h-screen bg-neutral-100 px-6 pb-24 pt-32 md:px-12">
       <header className="mx-auto max-w-[1200px] border-b border-black/10 pb-8">
-        <h1 className="font-serif text-4xl leading-none md:text-6xl">Artists</h1>
+        <h1 className="font-serif text-4xl leading-none md:text-6xl">{t(locale, "artists.title")}</h1>
         <p className="mt-3 font-display text-[10px] uppercase tracking-widest opacity-40">
-          {artists.length} artists · {artists.reduce((sum, a) => sum + a.workCount, 0)} works
+          {t(locale, "artists.count", {
+            n: artists.length,
+            m: artists.reduce((sum, a) => sum + a.workCount, 0),
+          })}
         </p>
 
         <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1">

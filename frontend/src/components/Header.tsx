@@ -4,8 +4,9 @@ import Link from "next/link";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function Header() {
+export default function Header({ locale }: { locale: Locale }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 50], [1, 0.8]);
@@ -19,12 +20,13 @@ export default function Header() {
   }, [pathname]);
 
   const navLinks = [
-    { name: "Inventory", href: "/gallery" },
-    { name: "Artists", href: "/artists" },
-    { name: "Portfolios", href: "/portfolios" },
-    { name: "Exhibition", href: "/exhibition" },
-    { name: "Collector", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: t(locale, "nav.inventory"), href: "/gallery" },
+    { name: t(locale, "nav.artists"), href: "/artists" },
+    { name: t(locale, "nav.portfolios"), href: "/portfolios" },
+    { name: t(locale, "nav.forSale"), href: "/ventas" },
+    { name: t(locale, "nav.exhibition"), href: "/exhibition" },
+    { name: t(locale, "nav.collector"), href: "/about" },
+    { name: t(locale, "nav.contact"), href: "/contact" },
   ];
 
   return (

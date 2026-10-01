@@ -1,0 +1,145 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useCallback, useSyncExternalStore } from "react";
+import {
+  Award,
+  Boxes,
+  FileText,
+  LayoutDashboard,
+  MapPin,
+  Layers,
+  Palette,
+  RefreshCw,
+  Upload,
+  Settings,
+  Users,
+  History,
+  Clock,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
+
+const STORAGE_KEY = "crv_rail_collapsed";
+const RAIL_EVENT = "crv:rail";
+
+/**
+ * The collapsed flag lives in localStorage, which is an external store — read
+ * through useSyncExternalStore rather than an effect, so React stays in step
+ * with it and the server render has a defined value.
+ */
+function subscribe(onChange: () => void) {
+  window.addEventListener(RAIL_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(RAIL_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function readCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+const ITEMS = [
+  { href: "/inventory", label: "Inventario", icon: Boxes },
+  { href: "/admin", label: "Panel", icon: LayoutDashboard },
+  { href: "/admin/artists", label: "Artistas", icon: Palette },
+  { href: "/admin/portfolios", label: "Portafolios", icon: Layers },
+  { href: "/admin/certificates", label: "Certificados", icon: Award },
+  { href: "/admin/locations", label: "Ubicaciones", icon: MapPin },
+  { href: "/admin/content", label: "Contenido", icon: FileText },
+  { href: "/admin/import", label: "Importar", icon: Upload },
+  { href: "/admin/sync", label: "Sincronizar", icon: RefreshCw },
+  { href: "/admin/hours", label: "Horas", icon: Clock },
+  { href: "/admin/history", label: "Historial", icon: History },
+  { href: "/admin/users", label: "Usuarios", icon: Users },
+  { href: "/admin/settings", label: "Ajustes", icon: Settings },
+];
+
+/** Marks /inventory active on /inventory/1071, without matching /admin on /admin/artists. */
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/admin") return pathname === "/admin" || pathname.startsWith("/admin/artwork");
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export default function NavRail() {
+  const pathname = usePathname() ?? "";
+  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+
+  const toggle = useCallback(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, readCollapsed() ? "0" : "1");
+    } catch {
+      /* private window or blocked storage: the rail just will not persist */
+    }
+    window.dispatchEvent(new Event(RAIL_EVENT));
+  }, []);
+
+  return (
+    <nav
+      aria-label="Secciones"
+      data-collapsed={collapsed}
+      // Inline width: a layout-critical dimension should not depend on an
+      // arbitrary Tailwind utility being generated.
+      style={{ width: collapsed ? "48px" : "var(--admin-rail-w)", minWidth: 0 }}
+      className="hidden shrink-0 overflow-hidden border-r border-[var(--stroke-soft)] bg-[var(--surface)] transition-[width] duration-150 md:block"
+    >
+      <div className="sticky top-[var(--admin-header-h)]">
+        <div className={`flex p-2 pb-0 ${collapsed ? "justify-center" : "justify-end"}`}>
+          <button
+            type="button"
+            onClick={toggle}
+            aria-expanded={!collapsed}
+            title={collapsed ? "Expandir menú" : "Contraer menú"}
+            className="rounded-[var(--radius)] p-1.5 text-[var(--ink-2)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={18} strokeWidth={1.75} aria-hidden />
+            ) : (
+              <PanelLeftClose size={18} strokeWidth={1.75} aria-hidden />
+            )}
+            <span className="sr-only">{collapsed ? "Expandir menú" : "Contraer menú"}</span>
+          </button>
+        </div>
+        <ul className="space-y-0.5 p-2">
+        {ITEMS.map((item) => {
+          const active = isActive(pathname, item.href);
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                title={collapsed ? item.label : undefined}
+                className={`relative flex items-center gap-3 rounded-[var(--radius)] py-2 text-sm transition-colors ${
+                  collapsed ? "justify-center px-2" : "px-3"
+                } ${
+                  active
+                    ? "bg-[var(--selected)] font-semibold text-[var(--ink-1)]"
+                    : "text-[var(--ink-2)] hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
+                }`}
+              >
+                {/* Fluent marks the selected item with a brand bar, not just a fill. */}
+                <span
+                  aria-hidden
+                  className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full ${
+                    active ? "bg-[var(--brand)]" : "bg-transparent"
+                  }`}
+                />
+                <Icon size={18} strokeWidth={1.75} aria-hidden className="shrink-0" />
+                {collapsed ? <span className="sr-only">{item.label}</span> : item.label}
+              </Link>
+            </li>
+          );
+        })}
+        </ul>
+      </div>
+    </nav>
+  );
+}

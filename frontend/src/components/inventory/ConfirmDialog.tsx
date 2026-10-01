@@ -59,18 +59,18 @@ export default function ConfirmDialog({
         type="button"
         aria-label={cancelLabel}
         onClick={onCancel}
-        className="absolute inset-0 cursor-default bg-neutral-950/40 backdrop-blur-[2px]"
+        className="absolute inset-0 cursor-default bg-[#242424]/40 backdrop-blur-[2px]"
       />
 
-      <div className="relative w-full max-w-md rounded-lg border border-neutral-300 bg-white p-5 shadow-2xl">
-        <h2 id="confirm-title" className="font-serif text-xl leading-tight text-neutral-900">
+      <div className="relative w-full max-w-md rounded-lg border border-[var(--stroke)] bg-[var(--surface)] p-5 shadow-2xl">
+        <h2 id="confirm-title" className="text-xl leading-tight text-[var(--ink-1)]">
           {title}
         </h2>
 
-        {body && <div className="mt-2 text-sm leading-relaxed text-neutral-600">{body}</div>}
+        {body && <div className="mt-2 text-sm leading-relaxed text-[var(--ink-3)]">{body}</div>}
 
         {detail && (
-          <div className="mt-3 rounded border border-neutral-200 bg-neutral-50 px-3 py-2 font-mono text-xs text-neutral-700">
+          <div className="mt-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface-alt)] px-3 py-2 font-mono text-xs text-[var(--ink-2)]">
             {detail}
           </div>
         )}
@@ -80,7 +80,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={pending}
-            className="rounded border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-500 hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:opacity-40"
+            className="rounded border border-[var(--stroke)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition hover:bg-[var(--hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:opacity-40"
           >
             {cancelLabel}
           </button>
@@ -92,7 +92,7 @@ export default function ConfirmDialog({
             className={`rounded px-4 py-2 text-sm font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-40 ${
               tone === "danger"
                 ? "bg-red-700 hover:bg-red-800 focus-visible:outline-red-700"
-                : "bg-neutral-900 hover:bg-neutral-700 focus-visible:outline-neutral-900"
+                : "bg-[var(--brand)] hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]"
             }`}
           >
             {pending ? "Guardando…" : confirmLabel}

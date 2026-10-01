@@ -11,12 +11,12 @@ export default async function NewArtworkPage() {
     <main className="mx-auto max-w-[1100px] px-5 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
         <div>
-          <p className="font-mono text-xs text-neutral-500">Nueva ficha</p>
-          <h1 className="font-serif text-2xl leading-tight">Añadir obra</h1>
+          <p className="font-mono text-xs text-[var(--ink-3)]">Nueva ficha</p>
+          <h1 className="text-2xl leading-tight">Añadir obra</h1>
         </div>
         <Link
           href="/inventory"
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 transition hover:border-neutral-600 hover:text-black"
+          className="rounded border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
         >
           Volver al inventario
         </Link>

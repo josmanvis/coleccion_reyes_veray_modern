@@ -1,188 +1,244 @@
-import { notFound } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
-import { getImageUrl } from "@/lib/getImageUrl";
-import { getArtwork } from "@/lib/mac";
+import { notFound, redirect } from "next/navigation";
 import ShareButton from "@/components/ShareButton";
 import AcquireButton from "@/components/AcquireButton";
-import Link from "next/link";
-import InteractiveCanvas from "./InteractiveCanvas";
 import PrevNext from "@/components/PrevNext";
+import ViewingRoom from "./ViewingRoom";
 import {
-  artistSlugIndex,
   artistHrefFor,
+  artistSlugIndex,
   artworkNeighbours,
+  getArtistBySlug,
   getArtworkBySlug,
 } from "@/lib/inventory/public";
-import { sentenceCase } from "@/lib/inventory/fields";
+import { artistName, isForSale, sentenceCase } from "@/lib/inventory/fields";
+import { t, type Locale } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
+import type { ArtworkRow } from "@/lib/inventory/db";
 
 export const revalidate = 3600;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const artwork = await getArtwork(resolvedParams.slug);
+type Props = { params: Promise<{ slug: string }> };
 
-  if (!artwork) return {};
+/**
+ * Everything shown here comes from the inventory record: registro, title,
+ * artist, year, medium, technique and dimensions. The scraped page description
+ * is deliberately unused — it is one unparsed blob whose first line is a file
+ * name, which is what used to be printed as the headline.
+ *
+ * Nothing about price, storage or acquisition is read, let alone rendered.
+ */
+function details(row: ArtworkRow, locale: Locale) {
+  return [
+    { label: t(locale, "art.year"), value: row.year },
+    { label: t(locale, "art.medium"), value: row.medium ? sentenceCase(String(row.medium)) : null },
+    {
+      label: t(locale, "art.technique"),
+      value: row.technique ? sentenceCase(String(row.technique)) : null,
+    },
+    { label: t(locale, "art.dimensions"), value: row.dimensions },
+    { label: t(locale, "art.registro"), value: row.registro ? `CRV #${row.registro}` : null },
+  ].filter((entry) => entry.value !== null && entry.value !== undefined && entry.value !== "");
+}
 
-  const imageUrl = artwork.images[0] ? getImageUrl(artwork.images[0]) : artwork.ut_high || "";
-  const title = `${artwork.title} | Colección Reyes-Veray`;
-  const description = artwork.description?.slice(0, 160) || "Explore the Colección Reyes-Veray contemporary archive.";
+function titleOf(row: ArtworkRow, locale: Locale): string {
+  return row.title ? sentenceCase(String(row.title)) : t(locale, "works.untitled");
+}
+
+function imageOf(row: ArtworkRow): string | null {
+  return row.image_full ? String(row.image_full) : row.image_thumb ? String(row.image_thumb) : null;
+}
+
+export async function generateMetadata({ params }: Props) {
+  const { slug } = await params;
+  const row = getArtworkBySlug(slug);
+  if (!row) return {};
+
+  const locale = await getLocale();
+  const title = titleOf(row, locale);
+  const artist = artistName(row);
+  const description = [artist, row.technique, row.dimensions, row.year]
+    .filter(Boolean)
+    .join(" · ");
+  const image = imageOf(row);
 
   return {
-    title,
+    title: `${title} — ${artist} | Colección Reyes-Veray`,
     description,
     openGraph: {
-      title,
+      title: `${title} — ${artist}`,
       description,
-      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: artwork.title }] : [],
+      images: image ? [{ url: image, alt: title }] : [],
       siteName: "Colección Reyes-Veray",
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: `${title} — ${artist}`,
       description,
-      images: imageUrl ? [imageUrl] : [],
+      images: image ? [image] : [],
     },
   };
 }
 
-export default async function ArtworkDetail({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const artwork = await getArtwork(resolvedParams.slug);
-
-  if (!artwork) {
+export default async function ArtworkDetail({ params }: Props) {
+  const { slug } = await params;
+  const row = getArtworkBySlug(slug);
+  // Some /art/ URLs are an artist's page, not a work — the old template showed
+  // a biography under "Acquire artwork". Send those to the artist instead.
+  if (!row) {
+    if (getArtistBySlug(slug)) redirect(`/${slug}`);
     notFound();
   }
 
-  const highResUrl = artwork.images[0] ? getImageUrl(artwork.images[0]) : artwork.ut_high || null;
-  const slug = artwork.slug || resolvedParams.slug;
+  const locale = await getLocale();
+  const title = titleOf(row, locale);
+  const artist = artistName(row);
+  const image = imageOf(row);
+  const forSale = isForSale(row.sales);
 
-  // The inventory database knows what sits either side of this work. A piece in
-  // a portfolio pages through its own sheets; everything else through the
-  // artist's output.
-  const record = getArtworkBySlug(slug);
-  const around = record ? artworkNeighbours(record) : null;
-  const sequence = around?.withinPortfolio ?? around?.withinArtist ?? null;
-  const artistHref = record ? artistHrefFor(record, artistSlugIndex()) : null;
-  const pageLink = (row: { website_slug?: unknown; title?: unknown } | null) =>
-    row?.website_slug
+  const around = artworkNeighbours(row);
+  const sequence = around.withinPortfolio ?? around.withinArtist;
+  const artistHref = artistHrefFor(row, artistSlugIndex());
+  const pageLink = (sibling: ArtworkRow | null) =>
+    sibling?.website_slug
       ? {
-          href: `/art/${row.website_slug}`,
-          label: row.title ? sentenceCase(String(row.title)) : "Untitled",
+          href: `/art/${sibling.website_slug}`,
+          label: titleOf(sibling, locale),
         }
       : null;
 
   return (
-    <main className="min-h-screen bg-neutral-100 flex flex-col relative overflow-hidden">
-      {/* Background Interactive Zoom Canvas */}
-      <div className="absolute inset-0 z-0 overflow-hidden cursor-move">
-        {highResUrl && <InteractiveCanvas src={highResUrl} alt={artwork.title} />}
-      </div>
+    <main className="min-h-screen bg-neutral-100 px-6 pb-32 pt-28 md:px-12">
+      <div className="mx-auto max-w-[1500px]">
+        <Link
+          href="/gallery"
+          className="font-display text-[10px] uppercase tracking-widest opacity-50 transition-opacity hover:opacity-100"
+        >
+          {t(locale, "art.back")}
+        </Link>
 
-      {/* Floating UI over the canvas */}
-      <div className="relative z-10 p-6 md:p-12 min-h-screen flex flex-col justify-end md:justify-between pointer-events-none">
-
-        <div className="hidden md:flex justify-between items-start pointer-events-auto mt-24">
-           <Link href="/gallery" className="font-display text-[10px] uppercase tracking-widest bg-white/50 backdrop-blur-md px-4 py-2 hover:bg-white transition-colors border border-black/10 rounded-full">
-             ← Return to Gallery
-           </Link>
-           <div className="font-display text-[10px] uppercase tracking-widest bg-white/50 backdrop-blur-md px-4 py-2 border border-black/10 rounded-full">
-             Interactive Viewing Room
-           </div>
-        </div>
-
-        {/* Desktop Bottom Details Panel (Mobile padding adjusted for fixed bottom bar) */}
-        <div className="bg-white/80 backdrop-blur-2xl border border-white/20 p-8 md:p-12 max-w-2xl pointer-events-auto shadow-2xl mb-32 md:mb-0">
-          <header className="mb-8 md:mb-12">
-            <h1 className="font-serif text-3xl md:text-5xl font-light leading-tight">{artwork.title}</h1>
-            {artwork.tags && artwork.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {artwork.tags.map((tag) => (
-                  <span key={tag} className="font-display text-[9px] uppercase tracking-widest text-neutral-500 border border-black/10 rounded-full px-3 py-1">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+        <div className="mt-8 grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16">
+          {/* The work, uncropped and unobstructed. */}
+          <figure className="flex flex-col gap-3">
+            <div className="relative flex min-h-[50vh] items-center justify-center bg-white p-6 md:min-h-[70vh] md:p-12">
+              {image ? (
+                <Image
+                  src={image}
+                  alt={title}
+                  fill
+                  priority
+                  quality={100}
+                  sizes="(max-width: 1024px) 100vw, 70vw"
+                  className="object-contain p-6 md:p-12"
+                  unoptimized
+                />
+              ) : (
+                <span className="font-display text-[10px] uppercase tracking-widest opacity-25">
+                  {t(locale, "works.noImage")}
+                </span>
+              )}
+            </div>
+            {image && (
+              <figcaption className="flex items-center justify-between gap-4">
+                <ViewingRoom
+                  src={image}
+                  alt={title}
+                  openLabel={t(locale, "art.viewingRoom")}
+                  hint={t(locale, "art.zoomHint")}
+                  closeLabel={t(locale, "art.close")}
+                />
+                <a
+                  href={image}
+                  download
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-display text-[10px] uppercase tracking-widest opacity-30 transition-opacity hover:opacity-70"
+                >
+                  {t(locale, "art.download")} ↓
+                </a>
+              </figcaption>
             )}
-          </header>
+          </figure>
 
-          <div className="space-y-8 border-t border-black/10 pt-8 mb-4 md:mb-12">
-            <div>
-              <h3 className="font-display text-[9px] uppercase tracking-[0.3em] font-bold text-neutral-400 mb-4">Provenance & Details</h3>
-              <div className="font-serif text-lg leading-relaxed whitespace-pre-wrap text-neutral-700">
-                {artwork.description || "Historical data pending transcription."}
-              </div>
-            </div>
-          </div>
-
-          {sequence && (sequence.previous || sequence.next) && (
-            <div className="mb-8">
-              <PrevNext
-                previous={pageLink(sequence.previous)}
-                next={pageLink(sequence.next)}
-                caption={
-                  around?.withinPortfolio && around.portfolio
-                    ? `${sequence.index + 1} / ${sequence.total} · ${around.portfolio.title}`
-                    : `${sequence.index + 1} / ${sequence.total}`
-                }
-              />
-            </div>
-          )}
-
-          {(artistHref || around?.portfolio) && (
-            <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2">
-              {artistHref && (
-                <Link
-                  href={artistHref}
-                  className="font-display text-[10px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-black"
-                >
-                  All works by this artist →
-                </Link>
-              )}
-              {around?.portfolio && (
-                <Link
-                  href={`/${around.portfolio.slug}`}
-                  className="font-display text-[10px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-black"
-                >
-                  Portfolio: {around.portfolio.title} →
-                </Link>
-              )}
-            </div>
-          )}
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex flex-row gap-4">
-            <AcquireButton
-              className="flex-1"
-              artworkTitle={artwork.title}
-              artworkImage={highResUrl || ""}
-              artworkSlug={slug}
-            />
-            <ShareButton title={artwork.title} text={`View ${artwork.title} from Colección Reyes-Veray`} />
-            {highResUrl && (
-              <a
-                href={highResUrl}
-                download
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 group relative flex items-center justify-center py-5 px-4 border border-black hover:bg-neutral-100 transition-colors duration-500 overflow-hidden text-black"
+          <aside className="self-start lg:sticky lg:top-28">
+            <h1 className="font-serif text-3xl leading-tight md:text-4xl">{title}</h1>
+            {artistHref ? (
+              <Link
+                href={artistHref}
+                className="mt-2 inline-block font-serif text-xl opacity-60 transition-opacity hover:opacity-100"
               >
-                <span className="font-display text-[10px] uppercase tracking-[0.2em] font-bold z-10 text-center text-balance">Download Hi-Res Archive</span>
-              </a>
+                {artist}
+              </Link>
+            ) : (
+              <p className="mt-2 font-serif text-xl opacity-60">{artist}</p>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Mobile Fixed Action Bar (Thumb Zone UX) */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-white via-white/90 to-transparent z-50 pointer-events-none pb-8">
-        <div className="flex flex-row gap-3 pointer-events-auto shadow-2xl">
-          <AcquireButton
-            className="flex-[2]"
-            artworkTitle={artwork.title}
-            artworkImage={highResUrl || ""}
-            artworkSlug={slug}
-          />
-          <ShareButton title={artwork.title} text={`View ${artwork.title} from Colección Reyes-Veray`} />
+            <dl className="mt-8 border-t border-black/10 pt-6">
+              {details(row, locale).map((entry) => (
+                <div key={entry.label} className="flex justify-between gap-6 border-b border-black/5 py-2.5">
+                  <dt className="font-display text-[10px] uppercase tracking-widest opacity-40">
+                    {entry.label}
+                  </dt>
+                  <dd className="text-right font-serif text-base">{String(entry.value)}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              {forSale ? (
+                <AcquireButton
+                  className="flex-1"
+                  artworkTitle={title}
+                  artworkImage={image || ""}
+                  artworkSlug={slug}
+                />
+              ) : (
+                <Link
+                  href="/contact"
+                  className="flex-1 border border-black px-4 py-4 text-center font-display text-[10px] uppercase tracking-[0.2em] transition-colors hover:bg-white"
+                >
+                  {t(locale, "art.enquire")}
+                </Link>
+              )}
+              <ShareButton title={title} text={`${title} — ${artist}`} />
+            </div>
+
+            {(artistHref || around.portfolio) && (
+              <div className="mt-8 flex flex-col gap-2 border-t border-black/10 pt-6">
+                {artistHref && (
+                  <Link
+                    href={artistHref}
+                    className="font-display text-[10px] uppercase tracking-widest opacity-50 transition-opacity hover:opacity-100"
+                  >
+                    {t(locale, "art.allByArtist")}
+                  </Link>
+                )}
+                {around.portfolio && (
+                  <Link
+                    href={`/${around.portfolio.slug}`}
+                    className="font-display text-[10px] uppercase tracking-widest opacity-50 transition-opacity hover:opacity-100"
+                  >
+                    {t(locale, "portfolio.label")}: {around.portfolio.title} →
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {sequence && (sequence.previous || sequence.next) && (
+              <div className="mt-8 border-t border-black/10 pt-6">
+                <PrevNext
+                  previous={pageLink(sequence.previous)}
+                  next={pageLink(sequence.next)}
+                  caption={
+                    around.withinPortfolio && around.portfolio
+                      ? `${sequence.index + 1} / ${sequence.total} · ${around.portfolio.title}`
+                      : `${sequence.index + 1} / ${sequence.total}`
+                  }
+                />
+              </div>
+            )}
+          </aside>
         </div>
       </div>
     </main>

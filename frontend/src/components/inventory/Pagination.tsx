@@ -19,11 +19,11 @@ export default function Pagination({
   const numbers = [];
   for (let n = windowStart; n <= windowEnd; n++) numbers.push(n);
 
-  const linkClass = "rounded border border-neutral-300 px-3 py-1.5 transition hover:border-neutral-600";
+  const linkClass = "rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]";
 
   return (
     <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-5 py-6 text-sm">
-      <p className="text-neutral-600">
+      <p className="text-[var(--ink-3)]">
         Página {page} de {pages}
       </p>
       <div className="flex items-center gap-1.5">
@@ -38,8 +38,8 @@ export default function Pagination({
             href={hrefWith("/inventory", params, { page: n === 1 ? undefined : n })}
             className={
               n === page
-                ? "rounded bg-black px-3 py-1.5 text-white"
-                : `${linkClass} text-neutral-700`
+                ? "rounded bg-[var(--brand)] px-3 py-1.5 text-white"
+                : `${linkClass} text-[var(--ink-2)]`
             }
           >
             {n}

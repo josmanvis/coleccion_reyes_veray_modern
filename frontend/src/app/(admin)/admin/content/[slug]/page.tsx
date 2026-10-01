@@ -22,12 +22,12 @@ export default async function EditPage({ params }: Props) {
     <main className="mx-auto max-w-[1100px] px-5 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
         <div>
-          <p className="font-mono text-xs text-neutral-500">/{page.slug}</p>
-          <h1 className="font-serif text-2xl leading-tight">{page.title}</h1>
+          <p className="font-mono text-xs text-[var(--ink-3)]">/{page.slug}</p>
+          <h1 className="text-2xl leading-tight">{page.title}</h1>
         </div>
         <Link
           href="/admin/content"
-          className="rounded border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-500"
+          className="rounded border border-[var(--stroke)] px-3 py-2 text-sm font-medium text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
         >
           Todas las páginas
         </Link>

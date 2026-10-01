@@ -1,4 +1,6 @@
 import { getSiteSettings } from "@/lib/mac";
+import { getLocale } from "@/lib/i18n-server";
+import LanguageSwitcher from "./site/LanguageSwitcher";
 
 /**
  * Minimal site footer. "Powered by Axxes" branding is always rendered but
@@ -7,6 +9,7 @@ import { getSiteSettings } from "@/lib/mac";
  */
 export default async function Footer() {
   const settings = await getSiteSettings();
+  const locale = await getLocale();
   const showPowered = settings?.settings?.showPoweredBy !== "false";
   const footerStyle = settings?.settings?.footerStyle || "minimal";
   // "minimal" or "none" → keep it tiny. Anything else → add footerText.
@@ -14,12 +17,11 @@ export default async function Footer() {
     ? settings.settings.footerText
     : null;
 
-  if (!showPowered && !extra) return null;
-
   return (
     <footer className="font-display fixed bottom-0 left-0 w-full px-6 md:px-12 py-6 text-[9px] uppercase tracking-[0.3em] text-neutral-300 hover:text-neutral-800 transition-colors duration-500 pointer-events-none z-40">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher locale={locale} />
           {extra && <span className="opacity-40">{extra}</span>}
         </div>
         {showPowered && (

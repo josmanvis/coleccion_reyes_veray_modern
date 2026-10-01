@@ -59,8 +59,8 @@ export default function NewArtworkForm({ suggestedRegistro }: { suggestedRegistr
 
   return (
     <form onSubmit={requestCreate}>
-      <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-neutral-200 bg-[#fdfcfc]/95 px-5 py-3 backdrop-blur">
-        <span className="text-sm text-neutral-600">
+      <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-[var(--stroke-soft)] bg-[var(--surface)] px-5 py-3 backdrop-blur">
+        <span className="text-sm text-[var(--ink-3)]">
           {filled} campo{filled === 1 ? "" : "s"} con contenido
         </span>
         {error && <span className="text-sm text-red-600">{error}</span>}
@@ -68,21 +68,21 @@ export default function NewArtworkForm({ suggestedRegistro }: { suggestedRegistr
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 transition hover:border-neutral-600"
+            className="rounded border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)]"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={!canSave}
-            className="rounded bg-black px-4 py-1.5 text-sm text-white transition hover:bg-neutral-700 disabled:opacity-40"
+            className="rounded bg-[var(--brand)] px-4 py-1.5 text-sm text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
           >
             {pending ? "Creando…" : "Crear obra"}
           </button>
         </div>
       </div>
 
-      <p className="mb-6 rounded border border-neutral-200 bg-white px-4 py-3 text-xs text-neutral-600">
+      <p className="mb-6 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--ink-3)]">
         Solo el <span className="font-mono">#&nbsp;Registro</span> es obligatorio; el resto se puede
         completar después. Si el número ya existe, la obra se añade igual y recibe su propia
         referencia interna — así se registran los portafolios que comparten número.

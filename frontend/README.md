@@ -18,7 +18,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Inventory
+## Inventory (OORC)
+
+OORC (Otto Octavio Reyes Casanova) is the name of this application.
 
 A local SQLite database (`data/inventory.db`, gitignored) holds the collection
 records. It is the working copy of the collection spreadsheet, and the source

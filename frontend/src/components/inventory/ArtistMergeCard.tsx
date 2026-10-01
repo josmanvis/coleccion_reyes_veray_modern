@@ -109,17 +109,17 @@ export default function ArtistMergeCard({
 
   return (
     <article
-      className={`rounded border bg-white px-4 py-3 ${
-        tone === "suggestion" ? "border-dashed border-neutral-400" : "border-neutral-200"
+      className={`rounded border bg-[var(--surface)] px-4 py-3 ${
+        tone === "suggestion" ? "border-dashed border-[var(--stroke)]" : "border-[var(--stroke-soft)]"
       }`}
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 className="font-serif text-lg leading-tight">{title}</h3>
-        <p className="shrink-0 text-xs text-neutral-500">
+        <h3 className="text-lg leading-tight">{title}</h3>
+        <p className="shrink-0 text-xs text-[var(--ink-3)]">
           {variants.length} grafías · {total} obra{total === 1 ? "" : "s"}
         </p>
       </header>
-      {hint && <p className="mt-0.5 text-xs text-neutral-600">{hint}</p>}
+      {hint && <p className="mt-0.5 text-xs text-[var(--ink-3)]">{hint}</p>}
 
       <ul className="mt-3 space-y-1.5">
         {variants.map((variant, index) => {
@@ -137,25 +137,25 @@ export default function ArtistMergeCard({
                 }}
                 aria-pressed={isChosen}
                 className={`flex w-full items-center gap-3 rounded border px-3 py-2 text-left text-sm transition ${
-                  isChosen ? "border-black bg-neutral-100" : "border-neutral-200 hover:border-neutral-600"
+                  isChosen ? "border-black bg-[var(--hover)]" : "border-[var(--stroke-soft)] hover:bg-[var(--hover)]"
                 }`}
               >
                 <span
                   aria-hidden
                   className={`size-3.5 shrink-0 rounded-full border ${
-                    isChosen ? "border-[5px] border-black" : "border-neutral-400"
+                    isChosen ? "border-[5px] border-black" : "border-[var(--stroke)]"
                   }`}
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{label(variant, scope)}</span>
                   {variant.detail && (
-                    <span className="mt-0.5 block truncate text-xs text-neutral-500">
+                    <span className="mt-0.5 block truncate text-xs text-[var(--ink-3)]">
                       {visible(variant.detail)}
                     </span>
                   )}
                 </span>
                 {index === 0 && (
-                  <span className="shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-neutral-600">
+                  <span className="shrink-0 rounded bg-[var(--hover)] px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-[var(--ink-3)]">
                     más usada
                   </span>
                 )}
@@ -164,7 +164,7 @@ export default function ArtistMergeCard({
                     {warning}
                   </span>
                 )}
-                <span className="w-10 shrink-0 text-right tabular-nums text-neutral-600">
+                <span className="w-10 shrink-0 text-right tabular-nums text-[var(--ink-3)]">
                   {variant.count}
                 </span>
               </button>
@@ -178,7 +178,7 @@ export default function ArtistMergeCard({
           type="button"
           onClick={apply}
           disabled={!selected || pending || affected === 0}
-          className="rounded bg-black px-3 py-1.5 text-sm text-white transition hover:bg-neutral-700 disabled:opacity-40"
+          className="rounded bg-[var(--brand)] px-3 py-1.5 text-sm text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
         >
           {pending
             ? "Unificando…"

@@ -6,6 +6,8 @@ import {
   isForSale,
   withForSale,
 } from "@/lib/inventory/fields";
+import { diffRows, record } from "@/lib/inventory/audit";
+import { currentActor } from "@/lib/inventory/actor";
 
 export const dynamic = "force-dynamic";
 
@@ -33,18 +35,22 @@ export async function POST(request: Request, { params }: Context) {
     if (!current) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
     let patch: Record<string, unknown>;
+    let summary: string;
     switch (body.action) {
       case "for_sale": {
         // Explicit value, so two rapid clicks cannot race into the wrong state.
         const next = typeof body.value === "boolean" ? body.value : !isForSale(current.sales);
         patch = { sales: withForSale(current.sales, next) };
+        summary = `${current.registro} · ${next ? "puesta en venta" : "retirada de la venta"}`;
         break;
       }
       case "deaccession":
         patch = { status: deaccessionStatus(body.note) };
+        summary = `${current.registro} · desacceso${body.note?.trim() ? ` (${body.note.trim()})` : ""}`;
         break;
       case "reinstate":
         patch = { status: IN_INVENTORY_STATUS };
+        summary = `${current.registro} · reingreso al inventario`;
         break;
       default:
         return NextResponse.json({ error: "Acción desconocida" }, { status: 400 });
@@ -52,6 +58,15 @@ export async function POST(request: Request, { params }: Context) {
 
     const updated = updateArtwork(ref, patch);
     if (!updated) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+
+    record({
+      actor: await currentActor(),
+      action: body.action,
+      entity: "obra",
+      entityId: ref,
+      summary,
+      changes: diffRows(current, updated),
+    });
 
     return NextResponse.json({
       ...updated,

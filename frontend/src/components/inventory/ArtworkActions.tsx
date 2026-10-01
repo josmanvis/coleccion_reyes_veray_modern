@@ -9,7 +9,7 @@ import { useToast } from "./ToastProvider";
 
 function Heading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="border-b border-neutral-300 pb-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+    <h2 className="border-b border-[var(--stroke)] pb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
       {children}
     </h2>
   );
@@ -102,11 +102,11 @@ export default function ArtworkActions({
 
       <section>
         <Heading>Estatus</Heading>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-[var(--ink-3)]">
           {deaccessed
             ? "Esta obra está fuera del inventario."
             : "Al de-accessar, la obra sale del inventario activo y de la galería pública."}
-          {status && <span className="ml-1 text-neutral-800">Actual: {status}</span>}
+          {status && <span className="ml-1 text-[var(--ink-1)]">Actual: {status}</span>}
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -115,7 +115,7 @@ export default function ArtworkActions({
               type="button"
               onClick={() => setAsking("reinstate")}
               disabled={pending}
-              className={`${buttonBase} border-neutral-300 text-neutral-800 hover:border-neutral-500 hover:bg-neutral-50 focus-visible:outline-neutral-900`}
+              className={`${buttonBase} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
               Devolver a inventario
             </button>
@@ -127,13 +127,13 @@ export default function ArtworkActions({
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Motivo o destino (opcional)"
                 autoFocus
-                className="w-64 rounded border border-neutral-400 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-neutral-900"
+                className="w-64 rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]"
               />
               <button
                 type="button"
                 onClick={() => setAsking("deaccession")}
                 disabled={pending}
-                className={`${buttonBase} border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-700 focus-visible:outline-neutral-900`}
+                className={`${buttonBase} border-[var(--brand)] bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]`}
               >
                 De-accessar
               </button>
@@ -143,7 +143,7 @@ export default function ArtworkActions({
                   setShowNote(false);
                   setNote("");
                 }}
-                className="rounded px-2 py-2 text-sm text-neutral-600 transition hover:text-neutral-900"
+                className="rounded px-2 py-2 text-sm text-[var(--ink-3)] transition hover:text-[var(--ink-1)]"
               >
                 Cancelar
               </button>
@@ -152,7 +152,7 @@ export default function ArtworkActions({
             <button
               type="button"
               onClick={() => setShowNote(true)}
-              className={`${buttonBase} border-neutral-300 text-neutral-800 hover:border-neutral-500 hover:bg-neutral-50 focus-visible:outline-neutral-900`}
+              className={`${buttonBase} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
               De-accessar
             </button>
@@ -162,7 +162,7 @@ export default function ArtworkActions({
 
       <section>
         <Heading>Eliminar</Heading>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-[var(--ink-3)]">
           Borra la ficha de la base de datos. No se puede deshacer — para retirar una obra de la
           colección conservando su historial, usa de-accession.
         </p>

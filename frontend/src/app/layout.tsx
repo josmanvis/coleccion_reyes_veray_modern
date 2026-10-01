@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, Syncopate } from "next/font/google";
 import "./globals.css";
+import { getLocale } from "@/lib/i18n-server";
 
 const serif = Cormorant_Garamond({
   variable: "--font-serif",
@@ -25,15 +26,20 @@ export const metadata: Metadata = {
   description: "Private Collection Archives & Viewing Rooms.",
 };
 
-export default function RootLayout({
+import ChatWidget from "@/components/ChatWidget";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
-    <html lang="en" className={`${serif.variable} ${display.variable} ${ui.variable}`}>
+    <html lang={locale} className={`${serif.variable} ${display.variable} ${ui.variable}`}>
       <body className="antialiased min-h-screen selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         {children}
+        <ChatWidget />
       </body>
     </html>
   );

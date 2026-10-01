@@ -5,6 +5,7 @@ import { useState } from "react";
 
 export default function LoginForm({ next }: { next: string }) {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -17,7 +18,7 @@ export default function LoginForm({ next }: { next: string }) {
     const response = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     });
 
     if (response.ok) {
@@ -34,17 +35,26 @@ export default function LoginForm({ next }: { next: string }) {
   return (
     <form onSubmit={submit} className="mt-8 space-y-3">
       <input
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Usuario"
+        autoFocus
+        autoComplete="username"
+        className="w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--brand)]"
+      />
+      <input
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Contraseña"
-        autoFocus
-        className="w-full rounded border border-neutral-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-black"
+        autoComplete="current-password"
+        className="w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--brand)]"
       />
       <button
         type="submit"
-        disabled={pending || !password}
-        className="w-full rounded bg-black px-3 py-2.5 text-sm text-white transition hover:bg-neutral-700 disabled:opacity-40"
+        disabled={pending || !password || !username}
+        className="w-full rounded bg-[var(--brand)] px-3 py-2.5 text-sm text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
       >
         {pending ? "Verificando…" : "Entrar"}
       </button>

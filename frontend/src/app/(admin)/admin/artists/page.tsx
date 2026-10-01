@@ -22,13 +22,13 @@ function Section({
 }) {
   return (
     <section className="mt-10 first:mt-0">
-      <h2 className="flex items-baseline justify-between gap-3 border-b border-neutral-200 pb-1.5 text-xs uppercase tracking-wide text-neutral-500">
+      <h2 className="flex items-baseline justify-between gap-3 border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
         <span>{title}</span>
         <span className="tabular-nums">{formatNumber(count)}</span>
       </h2>
-      <p className="mt-2 max-w-[70ch] text-xs text-neutral-600">{intro}</p>
+      <p className="mt-2 max-w-[70ch] text-xs text-[var(--ink-3)]">{intro}</p>
       {count === 0 ? (
-        <p className="mt-3 rounded border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600">
+        <p className="mt-3 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--ink-3)]">
           {empty}
         </p>
       ) : (
@@ -46,8 +46,8 @@ export default async function ArtistsPage() {
     <main className="mx-auto max-w-[1400px] px-5 py-6">
       <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
         <div>
-          <h1 className="font-serif text-3xl leading-none">Nombres de artistas</h1>
-          <p className="mt-1.5 max-w-[70ch] text-sm text-neutral-600">
+          <h1 className="text-3xl leading-none">Nombres de artistas</h1>
+          <p className="mt-1.5 max-w-[70ch] text-sm text-[var(--ink-3)]">
             La hoja de cálculo acumula grafías distintas del mismo nombre, así que un artista se
             cuenta varias veces y el filtro del inventario se parte. Nada se unifica solo: elige tú
             la grafía correcta en cada caso.
@@ -55,29 +55,29 @@ export default async function ArtistsPage() {
         </div>
         <Link
           href="/admin"
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 transition hover:border-neutral-600 hover:text-black"
+          className="rounded border border-[var(--stroke)] px-3 py-1.5 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)] hover:text-[var(--ink-1)]"
         >
           Volver a administración
         </Link>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded border border-neutral-200 bg-white px-4 py-3">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">Grafías registradas</p>
-          <p className="mt-1 font-serif text-2xl leading-none">{formatNumber(rawPairs)}</p>
-          <p className="mt-1 text-xs text-neutral-500">Combinaciones de apellido y nombre</p>
+        <div className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-[var(--ink-3)]">Grafías registradas</p>
+          <p className="mt-1 text-lg font-semibold leading-none">{formatNumber(rawPairs)}</p>
+          <p className="mt-1 text-xs text-[var(--ink-3)]">Combinaciones de apellido y nombre</p>
         </div>
-        <div className="rounded border border-neutral-200 bg-white px-4 py-3">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">Artistas reales</p>
-          <p className="mt-1 font-serif text-2xl leading-none">{formatNumber(distinctKeys)}</p>
-          <p className="mt-1 text-xs text-neutral-500">
+        <div className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-[var(--ink-3)]">Artistas reales</p>
+          <p className="mt-1 text-lg font-semibold leading-none">{formatNumber(distinctKeys)}</p>
+          <p className="mt-1 text-xs text-[var(--ink-3)]">
             Sin contar acentos ni mayúsculas · {formatNumber(rawPairs - distinctKeys)} de más
           </p>
         </div>
-        <div className="rounded border border-neutral-200 bg-white px-4 py-3">
-          <p className="text-xs uppercase tracking-wide text-neutral-500">Por revisar</p>
-          <p className="mt-1 font-serif text-2xl leading-none">{formatNumber(pendingGroups)}</p>
-          <p className="mt-1 text-xs text-neutral-500">
+        <div className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)] px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-[var(--ink-3)]">Por revisar</p>
+          <p className="mt-1 text-lg font-semibold leading-none">{formatNumber(pendingGroups)}</p>
+          <p className="mt-1 text-xs text-[var(--ink-3)]">
             {formatNumber(suggestions.length)} sugerencia
             {suggestions.length === 1 ? "" : "s"} adicional
             {suggestions.length === 1 ? "" : "es"}

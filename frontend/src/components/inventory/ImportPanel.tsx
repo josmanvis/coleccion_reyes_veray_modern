@@ -44,7 +44,7 @@ export default function ImportPanel() {
 
   return (
     <>
-      <h2 className="border-b border-neutral-200 pb-1.5 text-xs uppercase tracking-wide text-neutral-500">
+      <h2 className="border-b border-[var(--stroke-soft)] pb-1.5 text-xs uppercase tracking-wide text-[var(--ink-3)]">
         Importar hoja de cálculo
       </h2>
 
@@ -53,18 +53,18 @@ export default function ImportPanel() {
           type="file"
           accept=".xlsx,.xlsm"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="max-w-[280px] text-xs file:mr-3 file:rounded file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-xs file:text-black hover:file:border-neutral-600"
+          className="max-w-[280px] text-xs file:mr-3 file:rounded file:border file:border-[var(--stroke)] file:bg-[var(--surface)] file:px-3 file:py-1.5 file:text-xs file:text-[var(--ink-1)] hover:file:bg-[var(--hover)]"
         />
         <button
           type="submit"
           disabled={!file || pending}
-          className="rounded bg-black px-3 py-1.5 text-white transition hover:bg-neutral-700 disabled:opacity-40"
+          className="rounded bg-[var(--brand)] px-3 py-1.5 text-white transition hover:bg-[var(--brand-hover)] disabled:opacity-40"
         >
           {pending ? "Importando…" : "Importar"}
         </button>
       </form>
 
-      <p className="mt-2 text-xs text-neutral-500">
+      <p className="mt-2 text-xs text-[var(--ink-3)]">
         Las filas se combinan por <span className="font-mono">#&nbsp;Registro</span>: las existentes
         se actualizan y las nuevas se agregan. Nada se borra.
       </p>

@@ -5,32 +5,32 @@ import {
   formatMoney,
   isForSale,
   titleCase,
+  QUICK_EDIT_KEYS,
   type StatusGroup,
 } from "@/lib/inventory/fields";
 import SaleToggle from "./SaleToggle";
+import QuickEdit from "./QuickEdit";
 import ThumbPreview from "./ThumbPreview";
 import type { ArtworkRow } from "@/lib/inventory/db";
 import { artistHrefFor, artistSlugIndex } from "@/lib/inventory/public";
+import { PUBLIC_SITE_ENABLED } from "@/lib/site-config";
 import { hrefWith, type SearchParams } from "./query";
+import { BADGE, type Tone } from "./ui";
 
-const STATUS_STYLES: Record<StatusGroup, string> = {
-  en_inventario: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  de_accessed: "bg-stone-100 text-stone-600 border-stone-300",
-  otro: "bg-amber-50 text-amber-800 border-amber-200",
-  sin_estatus: "bg-white text-neutral-500 border-neutral-200",
+const STATUS_TONES: Record<StatusGroup, Tone> = {
+  en_inventario: "success",
+  de_accessed: "neutral",
+  otro: "warning",
+  sin_estatus: "neutral",
 };
 
 export function StatusPill({ group }: { group: string }) {
-  const key = (group in STATUS_STYLES ? group : "sin_estatus") as StatusGroup;
-  return (
-    <span className={`inline-block whitespace-nowrap rounded border px-1.5 py-0.5 text-xs ${STATUS_STYLES[key]}`}>
-      {STATUS_GROUPS[key]}
-    </span>
-  );
+  const key = (group in STATUS_TONES ? group : "sin_estatus") as StatusGroup;
+  return <span className={BADGE[STATUS_TONES[key]]}>{STATUS_GROUPS[key]}</span>;
 }
 
 const CELL =
-  "border-b border-neutral-200 px-3 py-1.5 transition group-hover:bg-neutral-100";
+  "border-b border-[var(--stroke-soft)] px-3 py-2 text-[var(--ink-1)] transition-colors group-hover:bg-[var(--hover)]";
 
 const COLUMNS: Array<{ key: string; label: string; sort?: string; align?: string }> = [
   { key: "image", label: "" },
@@ -44,7 +44,14 @@ const COLUMNS: Array<{ key: string; label: string; sort?: string; align?: string
   { key: "status", label: "Estatus" },
   { key: "for_sale", label: "Venta" },
   { key: "current_value", label: "Valor", sort: "current_value", align: "text-right" },
+  { key: "actions", label: "" },
 ];
+
+function quickValues(row: ArtworkRow): Record<string, string> {
+  return Object.fromEntries(
+    QUICK_EDIT_KEYS.map((key) => [key, row[key] === null || row[key] === undefined ? "" : String(row[key])])
+  );
+}
 
 function SortHeader({
   column,
@@ -63,10 +70,10 @@ function SortHeader({
   return (
     <Link
       href={hrefWith("/inventory", params, { sort: column.sort, dir: nextDir, page: undefined })}
-      className="inline-flex items-center gap-1 transition hover:text-black"
+      className="inline-flex items-center gap-1 transition-colors hover:text-[var(--brand-hover)]"
     >
       {column.label}
-      <span className={isActive ? "text-neutral-900" : "text-neutral-500"}>
+      <span className={isActive ? "text-[var(--brand)]" : "text-[var(--ink-4)]"}>
         {isActive && activeDir === "desc" ? "↓" : "↑"}
       </span>
     </Link>
@@ -87,11 +94,11 @@ export default function InventoryTable({
     <div>
       <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-sm">
         <thead>
-          <tr className="text-left text-xs uppercase tracking-wide text-neutral-500">
+          <tr className="text-left">
             {COLUMNS.map((column) => (
               <th
                 key={column.key}
-                className={`sticky top-[var(--admin-header-h)] z-30 border-b border-neutral-300 bg-[#fdfcfc] px-3 py-2 font-normal ${
+                className={`sticky top-0 z-20 border-b border-[var(--stroke)] bg-[var(--surface-alt)] px-3 py-2 text-xs font-semibold text-[var(--ink-2)] ${
                   column.align ?? ""
                 }`}
               >
@@ -112,7 +119,7 @@ export default function InventoryTable({
                   />
                 </Link>
               </td>
-              <td className={`${CELL} font-mono text-xs text-neutral-600`}>
+              <td className={`${CELL} font-mono text-xs text-[var(--ink-3)]`}>
                 <Link href={`/inventory/${row.ref}`}>{row.registro}</Link>
               </td>
               <td className={`${CELL} max-w-[260px]`}>
@@ -122,24 +129,30 @@ export default function InventoryTable({
               </td>
               <td className={`${CELL} max-w-[180px]`}>
                 {(() => {
-                  const href = artistHrefFor(row, artistSlugs);
+                  // The public artist page is unavailable while the site is
+                  // off, so link to the same artist's works in the inventory.
+                  const href = PUBLIC_SITE_ENABLED
+                    ? artistHrefFor(row, artistSlugs)
+                    : row.artist_last
+                      ? `/inventory?artist=${encodeURIComponent(String(row.artist_last))}`
+                      : null;
                   return href ? (
-                    <Link href={href} className="line-clamp-1 text-neutral-800 hover:underline">
+                    <Link href={href} className="line-clamp-1 text-[var(--ink-1)] hover:underline">
                       {artistName(row)}
                     </Link>
                   ) : (
-                    <span className="line-clamp-1 text-neutral-800">{artistName(row)}</span>
+                    <span className="line-clamp-1 text-[var(--ink-1)]">{artistName(row)}</span>
                   );
                 })()}
               </td>
-              <td className={`${CELL} text-neutral-700`}>{row.year ?? "—"}</td>
-              <td className={`${CELL} max-w-[200px] text-neutral-700`}>
+              <td className={`${CELL} text-[var(--ink-2)]`}>{row.year ?? "—"}</td>
+              <td className={`${CELL} max-w-[200px] text-[var(--ink-2)]`}>
                 <span className="line-clamp-1">
                   {[row.technique, row.support].filter(Boolean).join(" / ") || "—"}
                 </span>
               </td>
-              <td className={`${CELL} whitespace-nowrap text-neutral-700`}>{row.dimensions ?? "—"}</td>
-              <td className={`${CELL} max-w-[160px] text-neutral-700`}>
+              <td className={`${CELL} whitespace-nowrap text-[var(--ink-2)]`}>{row.dimensions ?? "—"}</td>
+              <td className={`${CELL} max-w-[160px] text-[var(--ink-2)]`}>
                 <span className="line-clamp-1">{row.location ?? "—"}</span>
               </td>
               <td className={CELL}>
@@ -157,13 +170,21 @@ export default function InventoryTable({
               <td className={`${CELL} whitespace-nowrap text-right tabular-nums`}>
                 {formatMoney(row.current_value)}
               </td>
+              <td className={`${CELL} whitespace-nowrap text-right`}>
+                <QuickEdit
+                  refId={String(row.ref)}
+                  registro={String(row.registro)}
+                  title={row.title ? titleCase(String(row.title)) : "Sin título"}
+                  values={quickValues(row)}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
       {rows.length === 0 && (
-        <p className="px-5 py-16 text-center text-sm text-neutral-500">
+        <p className="px-5 py-16 text-center text-sm text-[var(--ink-3)]">
           Ninguna obra coincide con estos filtros.
         </p>
       )}

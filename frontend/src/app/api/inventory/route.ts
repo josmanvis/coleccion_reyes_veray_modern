@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createArtwork, facets, listArtworks } from "@/lib/inventory/db";
 import { parseListParams } from "@/lib/inventory/params";
+import { record } from "@/lib/inventory/audit";
+import { currentActor } from "@/lib/inventory/actor";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +17,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const values = await request.json();
-    return NextResponse.json(createArtwork(values), { status: 201 });
+    const created = createArtwork(values);
+    if (!created) return NextResponse.json({ error: "No se pudo crear" }, { status: 400 });
+    record({
+      actor: await currentActor(),
+      action: "crear",
+      entity: "obra",
+      entityId: String(created.ref),
+      summary: `Alta de la obra ${created.registro}${created.title ? ` · ${created.title}` : ""}`,
+    });
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }

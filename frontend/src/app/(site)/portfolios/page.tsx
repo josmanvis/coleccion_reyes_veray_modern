@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { listPortfolios } from "@/lib/inventory/public";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n-server";
 
 export const revalidate = 3600;
 
@@ -11,15 +13,16 @@ export const metadata = {
 };
 
 export default async function PortfoliosIndex() {
+  const locale = await getLocale();
   const portfolios = listPortfolios();
   const sheets = portfolios.reduce((sum, p) => sum + p.members.length, 0);
 
   return (
     <main className="min-h-screen bg-neutral-100 px-6 pb-24 pt-32 md:px-12">
       <header className="mx-auto max-w-[1400px] border-b border-black/10 pb-8">
-        <h1 className="font-serif text-4xl leading-none md:text-6xl">Portfolios</h1>
+        <h1 className="font-serif text-4xl leading-none md:text-6xl">{t(locale, "portfolios.title")}</h1>
         <p className="mt-3 font-display text-[10px] uppercase tracking-widest opacity-40">
-          {portfolios.length} portfolios · {sheets} sheets
+          {t(locale, "portfolios.count", { n: portfolios.length, m: sheets })}
         </p>
         <p className="mt-4 max-w-[70ch] text-sm leading-relaxed opacity-60">
           Works filed as <span className="font-mono">0012.a</span>,{" "}

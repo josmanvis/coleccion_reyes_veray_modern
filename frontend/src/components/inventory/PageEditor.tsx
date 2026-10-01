@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import RichText from "./RichText";
 import {
   BLOCK_LABELS,
   emptyBlock,
@@ -16,12 +17,12 @@ import ImagePicker from "./ImagePicker";
 import { useToast } from "./ToastProvider";
 
 const FIELD =
-  "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-neutral-900";
+  "w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
 const BTN =
   "rounded border px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-40";
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <span className="mb-1 block text-xs font-medium text-neutral-600">{children}</span>;
+  return <span className="mb-1 block text-xs font-medium text-[var(--ink-3)]">{children}</span>;
 }
 
 /** Editor for one block, switching on its type. */
@@ -69,15 +70,10 @@ function BlockFields({
 
     case "text":
       return (
-        <label className="block">
-          <Label>Texto (admite HTML sencillo: &lt;p&gt;, &lt;em&gt;, &lt;a&gt;)</Label>
-          <textarea
-            value={String(c.html ?? "")}
-            onChange={(e) => set({ html: e.target.value })}
-            rows={7}
-            className={`${FIELD} font-mono text-xs leading-relaxed`}
-          />
-        </label>
+        <div>
+          <Label>Texto</Label>
+          <RichText value={String(c.html ?? "")} onChange={(html) => set({ html })} />
+        </div>
       );
 
     case "image":
@@ -85,7 +81,7 @@ function BlockFields({
         <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
           <div>
             <Label>Imagen</Label>
-            <div className="relative aspect-square overflow-hidden rounded border border-neutral-300 bg-neutral-100">
+            <div className="relative aspect-square overflow-hidden rounded border border-[var(--stroke)] bg-[var(--hover)]">
               {c.url ? (
                 <Image
                   src={String(c.url)}
@@ -96,7 +92,7 @@ function BlockFields({
                   unoptimized
                 />
               ) : (
-                <span className="flex size-full items-center justify-center text-xs text-neutral-500">
+                <span className="flex size-full items-center justify-center text-xs text-[var(--ink-3)]">
                   Sin imagen
                 </span>
               )}
@@ -104,7 +100,7 @@ function BlockFields({
             <button
               type="button"
               onClick={onPickImage}
-              className={`${BTN} mt-2 w-full border-neutral-300 text-neutral-800 hover:border-neutral-500 focus-visible:outline-neutral-900`}
+              className={`${BTN} mt-2 w-full border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
               {c.url ? "Cambiar" : "Elegir imagen"}
             </button>
@@ -141,7 +137,7 @@ function BlockFields({
             <ul className="mb-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {images.map((img, i) => (
                 <li key={i} className="group relative">
-                  <span className="relative block aspect-square overflow-hidden rounded border border-neutral-300 bg-neutral-100">
+                  <span className="relative block aspect-square overflow-hidden rounded border border-[var(--stroke)] bg-[var(--hover)]">
                     <Image
                       src={String(img.url ?? "")}
                       alt=""
@@ -155,7 +151,7 @@ function BlockFields({
                     type="button"
                     aria-label="Quitar imagen"
                     onClick={() => set({ images: images.filter((_, j) => j !== i) })}
-                    className="absolute -right-1 -top-1 rounded-full border border-neutral-300 bg-white px-1.5 text-xs text-neutral-700 shadow-sm hover:border-red-400 hover:text-red-700"
+                    className="absolute -right-1 -top-1 rounded-full border border-[var(--stroke)] bg-[var(--surface)] px-1.5 text-xs text-[var(--ink-2)] shadow-sm hover:border-red-400 hover:text-red-700"
                   >
                     ×
                   </button>
@@ -166,7 +162,7 @@ function BlockFields({
           <button
             type="button"
             onClick={onPickGallery}
-            className={`${BTN} border-neutral-300 text-neutral-800 hover:border-neutral-500 focus-visible:outline-neutral-900`}
+            className={`${BTN} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
           >
             Añadir imágenes
           </button>
@@ -213,7 +209,7 @@ function BlockFields({
       );
 
     default:
-      return <p className="text-sm text-neutral-500">Sin opciones.</p>;
+      return <p className="text-sm text-[var(--ink-3)]">Sin opciones.</p>;
   }
 }
 
@@ -296,15 +292,15 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
   return (
     <>
-      <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-neutral-200 bg-[#fdfcfc]/95 px-5 py-3 backdrop-blur">
-        <span className="text-sm text-neutral-600">
+      <div className="sticky top-[var(--admin-header-h)] z-30 -mx-5 mb-6 flex flex-wrap items-center gap-3 border-b border-[var(--stroke-soft)] bg-[var(--surface)] px-5 py-3 backdrop-blur">
+        <span className="text-sm text-[var(--ink-3)]">
           {dirty ? "Cambios sin guardar" : "Sin cambios"}
         </span>
         <span
           className={`rounded border px-2 py-0.5 text-xs font-medium ${
             draft.status === "published"
               ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-              : "border-neutral-300 bg-neutral-100 text-neutral-700"
+              : "border-[var(--stroke)] bg-[var(--hover)] text-[var(--ink-2)]"
           }`}
         >
           {draft.status === "published" ? "Publicada" : "Borrador"}
@@ -314,7 +310,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
           {draft.status === "published" && (
             <Link
               href={`/${draft.slug}`}
-              className={`${BTN} border-neutral-300 text-neutral-700 hover:border-neutral-500 focus-visible:outline-neutral-900`}
+              className={`${BTN} border-[var(--stroke)] text-[var(--ink-2)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
             >
               Ver en el sitio
             </Link>
@@ -324,7 +320,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
             onClick={() =>
               setField("status", draft.status === "published" ? "draft" : "published")
             }
-            className={`${BTN} border-neutral-300 text-neutral-800 hover:border-neutral-500 focus-visible:outline-neutral-900`}
+            className={`${BTN} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
           >
             {draft.status === "published" ? "Pasar a borrador" : "Publicar"}
           </button>
@@ -332,14 +328,14 @@ export default function PageEditor({ page }: { page: PageRow }) {
             type="button"
             disabled={!dirty || pending}
             onClick={() => setAsking("save")}
-            className={`${BTN} border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-700 focus-visible:outline-neutral-900`}
+            className={`${BTN} border-[var(--brand)] bg-[var(--brand)] text-white hover:bg-[var(--brand-hover)] focus-visible:outline-[var(--brand)]`}
           >
             Guardar
           </button>
         </div>
       </div>
 
-      <section className="mb-8 grid gap-4 rounded border border-neutral-200 bg-white p-4 sm:grid-cols-2">
+      <section className="mb-8 grid gap-4 rounded border border-[var(--stroke-soft)] bg-[var(--surface)] p-4 sm:grid-cols-2">
         <label>
           <Label>Título</Label>
           <input
@@ -389,19 +385,19 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
       <ol className="space-y-4">
         {draft.blocks.map((block, index) => (
-          <li key={index} className="rounded border border-neutral-200 bg-white">
-            <header className="flex items-center gap-2 border-b border-neutral-200 px-4 py-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+          <li key={index} className="rounded border border-[var(--stroke-soft)] bg-[var(--surface)]">
+            <header className="flex items-center gap-2 border-b border-[var(--stroke-soft)] px-4 py-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--ink-3)]">
                 {BLOCK_LABELS[block.type] ?? block.type}
               </span>
-              <span className="text-xs text-neutral-400">#{index + 1}</span>
+              <span className="text-xs text-[var(--ink-4)]">#{index + 1}</span>
               <div className="ml-auto flex items-center gap-1">
                 <button
                   type="button"
                   aria-label="Subir bloque"
                   disabled={index === 0}
                   onClick={() => moveBlock(index, -1)}
-                  className="rounded px-2 py-1 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-30"
+                  className="rounded px-2 py-1 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)] disabled:opacity-30"
                 >
                   ↑
                 </button>
@@ -410,7 +406,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
                   aria-label="Bajar bloque"
                   disabled={index === draft.blocks.length - 1}
                   onClick={() => moveBlock(index, 1)}
-                  className="rounded px-2 py-1 text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-30"
+                  className="rounded px-2 py-1 text-sm text-[var(--ink-2)] transition hover:bg-[var(--hover)] disabled:opacity-30"
                 >
                   ↓
                 </button>
@@ -438,19 +434,19 @@ export default function PageEditor({ page }: { page: PageRow }) {
       </ol>
 
       {draft.blocks.length === 0 && (
-        <p className="rounded border border-dashed border-neutral-300 px-4 py-10 text-center text-sm text-neutral-600">
+        <p className="rounded border border-dashed border-[var(--stroke)] px-4 py-10 text-center text-sm text-[var(--ink-3)]">
           Esta página todavía no tiene contenido. Añade un bloque para empezar.
         </p>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-neutral-200 pt-6">
-        <span className="text-xs font-medium text-neutral-600">Añadir bloque:</span>
+      <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-[var(--stroke-soft)] pt-6">
+        <span className="text-xs font-medium text-[var(--ink-3)]">Añadir bloque:</span>
         {(Object.keys(BLOCK_LABELS) as BlockType[]).map((type) => (
           <button
             key={type}
             type="button"
             onClick={() => addBlock(type)}
-            className={`${BTN} border-neutral-300 text-neutral-800 hover:border-neutral-500 focus-visible:outline-neutral-900`}
+            className={`${BTN} border-[var(--stroke)] text-[var(--ink-1)] hover:bg-[var(--hover)] focus-visible:outline-[var(--brand)]`}
           >
             + {BLOCK_LABELS[type]}
           </button>

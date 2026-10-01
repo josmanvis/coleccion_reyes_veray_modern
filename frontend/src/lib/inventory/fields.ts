@@ -100,6 +100,26 @@ export const FIELDS: Field[] = [
 
 export const FIELD_BY_KEY = new Map(FIELDS.map((f) => [f.key, f]));
 
+/**
+ * Fields offered in the inventory quick-edit drawer: the ones that actually get
+ * corrected while working through the list. Everything else lives on the full
+ * edit form, one click further in.
+ */
+export const QUICK_EDIT_KEYS = [
+  "title",
+  "artist_last",
+  "artist_first",
+  "year",
+  "technique",
+  "support",
+  "dimensions",
+  "status",
+  "location",
+  "current_value",
+  "purchase_price",
+  "notes",
+] as const;
+
 /** Columns the UI never lets you edit — they are derived or managed by the system. */
 export const READONLY_KEYS = new Set(["registro"]);
 
