@@ -56,6 +56,9 @@ the seed.
 inventory routes run locally (or on a Node host with a persistent disk), not on
 a serverless deploy.
 
+Hosting is moving from Vercel to GCP. See [DEPLOYMENT.md](DEPLOYMENT.md) for
+what the server needs, the open security issue, and the options.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
