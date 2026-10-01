@@ -3,6 +3,8 @@ import ArtistMergeCard from "@/components/inventory/ArtistMergeCard";
 import { SUGGESTION_LABELS, artistReview } from "@/lib/inventory/artists";
 import { formatNumber, titleCase } from "@/lib/inventory/fields";
 import { getTr } from "@/lib/i18n-server";
+import ArtistDirectoryView from "@/components/inventory/ArtistDirectory";
+import { duplicateArtistGroups, duplicateSurnameGroups } from "@/lib/inventory/artists";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +44,7 @@ function Section({
   );
 }
 
-export default async function ArtistsPage() {
+async function NameReview() {
   const tr = await getTr();
   const { duplicates, surnames, suggestions, distinctKeys, rawPairs } = artistReview();
   const pendingGroups = duplicates.length + surnames.length;
@@ -51,7 +53,7 @@ export default async function ArtistsPage() {
     <main className="mx-auto max-w-[1400px] px-5 py-6">
       <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
         <div>
-          <h1 className="text-3xl leading-none">{tr("Nombres de artistas")}</h1>
+          <h2 className="text-2xl leading-none">{tr("Nombres de artistas")}</h2>
           <p className="mt-1.5 max-w-[70ch] text-sm text-[var(--ink-3)]">
             
             {tr("La hoja de cálculo acumula grafías distintas del mismo nombre, así que un artista se cuenta varias veces y el filtro del inventario se parte. Nada se unifica solo: elige tú la grafía correcta en cada caso.")}
@@ -164,5 +166,43 @@ export default async function ArtistsPage() {
         </Section>
       </div>
     </main>
+  );
+}
+
+type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+/** All artists by default; the duplicate-name review sits under its own tab. */
+export default async function ArtistsPage({ searchParams }: Props) {
+  const tr = await getTr();
+  const params = await searchParams;
+  const tab = params.tab === "nombres" ? "nombres" : "todos";
+  const pending = duplicateArtistGroups().length + duplicateSurnameGroups().length;
+
+  const tabClass = (active: boolean) =>
+    `border-b-2 px-1 pb-2 text-sm font-semibold transition-colors ${
+      active
+        ? "border-[var(--brand)] text-[var(--ink-1)]"
+        : "border-transparent text-[var(--ink-3)] hover:text-[var(--ink-1)]"
+    }`;
+
+  return (
+    <>
+      <nav className="flex gap-5 border-b border-[var(--stroke-soft)] bg-[var(--surface)] px-6 pt-3">
+        <Link href="/admin/artists" className={tabClass(tab === "todos")} aria-current={tab === "todos" ? "page" : undefined}>
+          {tr("Todos los artistas")}
+        </Link>
+        <Link
+          href="/admin/artists?tab=nombres"
+          className={tabClass(tab === "nombres")}
+          aria-current={tab === "nombres" ? "page" : undefined}
+        >
+          {tr("Revisar nombres")}
+          {pending > 0 && (
+            <span className="ml-1.5 rounded-full bg-[var(--warning-soft)] px-1.5 text-xs text-[var(--warning)]">{pending}</span>
+          )}
+        </Link>
+      </nav>
+      {tab === "nombres" ? <NameReview /> : <ArtistDirectoryView params={params} />}
+    </>
   );
 }

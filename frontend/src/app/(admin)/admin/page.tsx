@@ -86,7 +86,7 @@ export default async function AdminPage() {
           value={formatNumber(totals.artists)}
           hint={
             pendingArtists > 0 ? (
-              <Link href="/admin/artists" className="text-amber-700 underline-offset-2 hover:underline">
+              <Link href="/admin/artists?tab=nombres" className="text-amber-700 underline-offset-2 hover:underline">
                 {tr("{n} nombres por revisar", { n: formatNumber(pendingArtists) })}
               </Link>
             ) : (
