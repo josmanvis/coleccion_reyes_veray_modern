@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { deletePage, getPageBySlug, updatePage } from "@/lib/inventory/pages";
+import { record } from "@/lib/inventory/audit";
+import { currentActor } from "@/lib/inventory/actor";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +27,18 @@ export async function PATCH(request: Request, { params }: Context) {
 
 export async function DELETE(_request: Request, { params }: Context) {
   const { slug } = await params;
-  if (!deletePage(slug)) {
+  const actor = await currentActor();
+  const page = getPageBySlug(slug);
+  const trashId = deletePage(slug, actor);
+  if (!trashId) {
     return NextResponse.json({ error: "No encontrada" }, { status: 404 });
   }
-  return NextResponse.json({ ok: true });
+  record({
+    actor,
+    action: "eliminar",
+    entity: "pagina",
+    entityId: slug,
+    summary: `Página «${page?.title ?? slug}» enviada a la papelera`,
+  });
+  return NextResponse.json({ ok: true, trashId });
 }

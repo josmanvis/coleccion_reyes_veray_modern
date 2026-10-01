@@ -4,8 +4,11 @@
  */
 
 import { getDb } from "./db";
+import { moveToTrash } from "./trash";
+import type { Actor } from "./audit";
 import {
   UNIT_KINDS,
+  UNIT_LABELS,
   formatLocation,
   locationKey,
   parseLocation,
@@ -92,8 +95,24 @@ export function updateBuilding(id: number, patch: { code?: string; name?: string
   db().prepare(`UPDATE buildings SET ${sets.join(", ")} WHERE id = @id`).run(args);
 }
 
-export function deleteBuilding(id: number): boolean {
-  return db().prepare("DELETE FROM buildings WHERE id = ?").run(id).changes > 0;
+/** Moves the building, with its registered units, to the trash. */
+export function deleteBuilding(id: number, actor?: Actor | null): number | null {
+  const building = db().prepare("SELECT code, name FROM buildings WHERE id = ?").get(id) as
+    | { code: string; name: string | null }
+    | undefined;
+  if (!building) return null;
+  const units = (db().prepare("SELECT COUNT(*) AS n FROM storage_units WHERE building_id = ?").get(id) as { n: number }).n;
+  return moveToTrash({
+    entity: "edificio",
+    entityId: String(id),
+    label: `Edificio ${building.code}${building.name ? ` · ${building.name}` : ""}`,
+    detail: units ? `${units} unidad(es)` : "",
+    rows: [
+      { table: "buildings", where: "id = ?", args: [id] },
+      { table: "storage_units", where: "building_id = ?", args: [id] },
+    ],
+    actor,
+  });
 }
 
 export function listUnits(): StorageUnit[] {
@@ -169,8 +188,23 @@ export function updateUnit(
   db().prepare(`UPDATE storage_units SET ${sets.join(", ")} WHERE id = @id`).run(args);
 }
 
-export function deleteUnit(id: number): boolean {
-  return db().prepare("DELETE FROM storage_units WHERE id = ?").run(id).changes > 0;
+/** Moves one storage unit to the trash. */
+export function deleteUnit(id: number, actor?: Actor | null): number | null {
+  const unit = db()
+    .prepare(
+      `SELECT u.kind, u.label, u.room, b.code AS building FROM storage_units u
+         LEFT JOIN buildings b ON b.id = u.building_id WHERE u.id = ?`
+    )
+    .get(id) as { kind: UnitKind; label: string; room: string | null; building: string | null } | undefined;
+  if (!unit) return null;
+  return moveToTrash({
+    entity: "unidad",
+    entityId: String(id),
+    label: `${UNIT_LABELS[unit.kind] ?? unit.kind} ${unit.label}`,
+    detail: [unit.building && `Edificio ${unit.building}`, unit.room && `Sala ${unit.room}`].filter(Boolean).join(" · "),
+    rows: [{ table: "storage_units", where: "id = ?", args: [id] }],
+    actor,
+  });
 }
 
 // --- What is actually stored where -------------------------------------------

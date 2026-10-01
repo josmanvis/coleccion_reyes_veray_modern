@@ -12,6 +12,8 @@ import {
   parseInteger,
 } from "./fields";
 import { fuzzyRefs } from "./search";
+import { moveToTrash } from "./trash";
+import type { Actor } from "./audit";
 
 export type ArtworkRow = Record<string, string | number | null> & {
   id: number;
@@ -363,10 +365,18 @@ export function createArtwork(values: Record<string, unknown>) {
   return getArtwork(String(row.ref));
 }
 
-export function deleteArtwork(key: string) {
+/** Moves the work to the trash; returns the trash id, or null when it does not exist. */
+export function deleteArtwork(key: string, actor?: Actor | null): number | null {
   const current = getArtwork(key);
-  if (!current) return false;
-  return getDb().prepare("DELETE FROM artworks WHERE ref = ?").run(current.ref).changes > 0;
+  if (!current) return null;
+  return moveToTrash({
+    entity: "obra",
+    entityId: current.ref,
+    label: `CRV #${current.registro}${current.title ? ` · ${current.title}` : ""}`,
+    detail: [current.artist_first, current.artist_last].filter(Boolean).join(" "),
+    rows: [{ table: "artworks", where: "ref = ?", args: [current.ref] }],
+    actor,
+  });
 }
 
 export function facets() {

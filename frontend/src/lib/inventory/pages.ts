@@ -8,6 +8,8 @@
  */
 
 import { getDb } from "./db";
+import { moveToTrash } from "./trash";
+import type { Actor } from "./audit";
 import { slugifyPage, type Block, type MediaRow, type PageRow, type PageStatus } from "./blocks";
 
 export * from "./blocks";
@@ -166,8 +168,18 @@ export function updatePage(slug: string, patch: PageInput): PageRow | null {
   return getPageBySlug(nextSlug);
 }
 
-export function deletePage(slug: string): boolean {
-  return db().prepare("DELETE FROM pages WHERE slug = ?").run(slug).changes > 0;
+/** Moves the page to the trash; returns the trash id, or null when there is none. */
+export function deletePage(slug: string, actor?: Actor | null): number | null {
+  const page = getPageBySlug(slug);
+  if (!page) return null;
+  return moveToTrash({
+    entity: "pagina",
+    entityId: page.slug,
+    label: page.title,
+    detail: `/${page.slug}`,
+    rows: [{ table: "pages", where: "slug = ?", args: [page.slug] }],
+    actor,
+  });
 }
 
 // --- Media -------------------------------------------------------------------
@@ -204,6 +216,17 @@ export function getMedia(id: number): MediaRow | null {
   return (db().prepare("SELECT * FROM media WHERE id = ?").get(id) as MediaRow) ?? null;
 }
 
-export function deleteMediaRecord(id: number): boolean {
-  return db().prepare("DELETE FROM media WHERE id = ?").run(id).changes > 0;
+/** Moves the image and its file to the trash; returns the trash id. */
+export function deleteMedia(id: number, actor?: Actor | null): number | null {
+  const entry = getMedia(id);
+  if (!entry) return null;
+  return moveToTrash({
+    entity: "imagen",
+    entityId: String(id),
+    label: entry.filename,
+    detail: entry.alt ?? "",
+    rows: [{ table: "media", where: "id = ?", args: [id] }],
+    files: [{ dir: "uploads", name: entry.filename }],
+    actor,
+  });
 }

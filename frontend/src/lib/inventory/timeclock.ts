@@ -1,4 +1,6 @@
 import { getDb } from "./db";
+import { moveToTrash } from "./trash";
+import type { Actor } from "./audit";
 
 /**
  * Clocking in and out.
@@ -243,11 +245,19 @@ export function adjustShift(
   return { before, after: getShift(id)! };
 }
 
-export function deleteShift(id: number): Shift | null {
+/** Moves the shift to the trash; returns it as it was, with the trash id. */
+export function deleteShift(id: number, actor?: Actor | null, reason = ""): (Shift & { trashId: number }) | null {
   const before = getShift(id);
   if (!before) return null;
-  db().prepare("DELETE FROM time_entries WHERE id = ?").run(id);
-  return before;
+  const trashId = moveToTrash({
+    entity: "jornada",
+    entityId: String(id),
+    label: `Jornada de ${before.userName} · ${before.startedAt.slice(0, 10)}`,
+    detail: reason,
+    rows: [{ table: "time_entries", where: "id = ?", args: [id] }],
+    actor,
+  });
+  return trashId === null ? null : { ...before, trashId };
 }
 
 /** "7 h 45 min", the way the totals read on screen. */

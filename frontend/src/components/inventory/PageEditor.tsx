@@ -18,6 +18,7 @@ import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
 import { ArrowDown, ArrowUp, CopyPlus, Trash2 } from "lucide-react";
 import { useContextMenu } from "./ContextMenu";
+import { useDeletedToast } from "./trash-client";
 
 const FIELD =
   "w-full rounded border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
@@ -232,6 +233,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(page);
   const menu = useContextMenu();
+  const deletedToast = useDeletedToast();
 
   function setField<K extends keyof PageRow>(key: K, value: PageRow[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -288,7 +290,10 @@ export default function PageEditor({ page }: { page: PageRow }) {
       method: "DELETE",
     });
     if (response.ok) {
-      notify(tr("Página \"{title}\" eliminada", { title: page.title }));
+      const { trashId } = await response.json().catch(() => ({}));
+      deletedToast(tr("Página «{title}» enviada a la papelera", { title: page.title }), trashId, (href) => {
+        if (href) router.push(href);
+      });
       router.push("/admin/content");
       router.refresh();
     } else {
@@ -549,7 +554,7 @@ export default function PageEditor({ page }: { page: PageRow }) {
       <ConfirmDialog
         open={asking === "delete"}
         title={tr("¿Eliminar \"{title}\"?", { title: page.title })}
-        body={tr("La página y su contenido se borran de la base de datos. No se puede deshacer.")}
+        body={tr("La página y su contenido van a la papelera, desde donde se pueden restaurar.")}
         tone="danger"
         confirmLabel={tr("Sí, eliminar")}
         pending={pending}

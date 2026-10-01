@@ -42,11 +42,13 @@ export async function PATCH(request: Request, { params }: Context) {
 export async function DELETE(_request: Request, { params }: Context) {
   const { registro } = await params;
   const before = getArtwork(registro);
-  if (!deleteArtwork(registro)) {
+  const actor = await currentActor();
+  const trashId = deleteArtwork(registro, actor);
+  if (!trashId) {
     return NextResponse.json({ error: "No encontrado" }, { status: 404 });
   }
   record({
-    actor: await currentActor(),
+    actor,
     action: "eliminar",
     entity: "obra",
     entityId: registro,
@@ -58,5 +60,5 @@ export async function DELETE(_request: Request, { params }: Context) {
           .map(([field, value]) => ({ field, before: String(value), after: "" }))
       : [],
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, trashId });
 }

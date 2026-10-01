@@ -17,6 +17,7 @@ import { useTr } from "@/components/I18nProvider";
 import { Copy, Merge, Search, Trash2 } from "lucide-react";
 import { copyText, useContextMenu, type MenuEntry } from "./ContextMenu";
 import { newWindowItem } from "./context-menus";
+import { useDeletedToast } from "./trash-client";
 
 const FIELD =
   "rounded border border-[var(--stroke)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--ink-1)] outline-none transition placeholder:text-[var(--ink-4)] focus:border-[var(--brand)]";
@@ -52,6 +53,7 @@ export default function LocationsManager({
   const { notify } = useToast();
   const [pending, setPending] = useState(false);
   const menu = useContextMenu();
+  const deletedToast = useDeletedToast();
   const [confirm, setConfirm] = useState<null | { title: string; body: string; run: () => Promise<void> }>(
     null
   );
@@ -64,8 +66,9 @@ export default function LocationsManager({
   async function run(fn: () => Promise<unknown>, ok: string) {
     setPending(true);
     try {
-      await fn();
-      notify(ok);
+      const result = (await fn()) as { trashId?: number } | undefined;
+      if (result?.trashId) deletedToast(ok, result.trashId);
+      else notify(ok);
       router.refresh();
     } catch (error) {
       notify(tr((error as Error).message), "error");
@@ -105,8 +108,8 @@ export default function LocationsManager({
   function askDeleteBuilding(building: Building) {
     setConfirm({
       title: tr("¿Eliminar el edificio {code}?", { code: building.code }),
-      body: tr("Se borran también sus unidades registradas. No cambia la columna «Localización» de ninguna obra."),
-      run: () => run(() => post({ action: "delete_building", id: building.id }), tr("Edificio eliminado")),
+      body: tr("Va a la papelera junto con sus unidades registradas, y se puede restaurar. No cambia la columna «Localización» de ninguna obra."),
+      run: () => run(() => post({ action: "delete_building", id: building.id }), tr("Edificio enviado a la papelera")),
     });
   }
 
@@ -338,7 +341,7 @@ export default function LocationsManager({
                       icon: Trash2,
                       danger: true,
                       disabled: pending,
-                      run: () => run(() => post({ action: "delete_unit", id: unit.id }), tr("Unidad eliminada")),
+                      run: () => run(() => post({ action: "delete_unit", id: unit.id }), tr("Unidad enviada a la papelera")),
                     },
                   ])}
                 >
@@ -350,7 +353,7 @@ export default function LocationsManager({
                     type="button"
                     disabled={pending}
                     onClick={() =>
-                      run(() => post({ action: "delete_unit", id: unit.id }), tr("Unidad eliminada"))
+                      run(() => post({ action: "delete_unit", id: unit.id }), tr("Unidad enviada a la papelera"))
                     }
                     className="ml-auto shrink-0 text-xs text-red-700 hover:underline"
                   >

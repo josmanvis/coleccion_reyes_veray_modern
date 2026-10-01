@@ -16,9 +16,6 @@ import { CERTIFICATE_COPY, CERTIFICATE_TYPES, type CertificateType } from "./cer
 export const CERTIFICATE_DIR =
   process.env.INVENTORY_CERTIFICATE_DIR || path.join(process.cwd(), "data", "certificates");
 
-/** Deleted certificates are moved here rather than erased. */
-const TRASH_DIR = path.join(CERTIFICATE_DIR, ".papelera");
-
 export const MAX_CERTIFICATE_BYTES = 25 * 1024 * 1024;
 
 function storedName(id: number, extension: string): string {
@@ -48,14 +45,6 @@ export async function writeCertificateFile(
 
 export async function readCertificateFile(fileName: string): Promise<Buffer> {
   return fs.readFile(certificatePath(fileName));
-}
-
-export async function trashCertificateFile(fileName: string): Promise<void> {
-  await fs.mkdir(TRASH_DIR, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  await fs
-    .rename(certificatePath(fileName), path.join(TRASH_DIR, `${stamp}-${path.basename(fileName)}`))
-    .catch(() => undefined);
 }
 
 /**

@@ -7,6 +7,7 @@ import SaleToggle from "./SaleToggle";
 import ConfirmDialog from "./ConfirmDialog";
 import { useToast } from "./ToastProvider";
 import { useTr } from "@/components/I18nProvider";
+import { useDeletedToast } from "./trash-client";
 
 function Heading({ children }: { children: React.ReactNode }) {
   return (
@@ -41,6 +42,7 @@ export default function ArtworkActions({
   const tr = useTr();
   const router = useRouter();
   const { notify } = useToast();
+  const deletedToast = useDeletedToast();
 
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
@@ -79,7 +81,10 @@ export default function ArtworkActions({
     });
 
     if (response.ok) {
-      notify(tr("CRV #{n} eliminada", { n: registro }));
+      const { trashId } = await response.json().catch(() => ({}));
+      deletedToast(tr("CRV #{n} enviada a la papelera", { n: registro }), trashId, (href) => {
+        if (href) router.push(href);
+      });
       router.push("/inventory");
       router.refresh();
     } else {
@@ -170,7 +175,7 @@ export default function ArtworkActions({
         <Heading>{tr("Eliminar")}</Heading>
         <p className="mt-2 text-sm text-[var(--ink-3)]">
           
-          {tr("Borra la ficha de la base de datos. No se puede deshacer — para retirar una obra de la colección conservando su historial, usa de-accession.")}
+          {tr("Envía la ficha a la papelera, desde donde se puede restaurar. Para retirar una obra de la colección conservando su historial, usa de-accession.")}
         </p>
 
         <div className="mt-3">
@@ -210,8 +215,8 @@ export default function ArtworkActions({
 
       <ConfirmDialog
         open={asking === "delete"}
-        title={tr("¿Eliminar CRV #{registro} para siempre?", { registro })}
-        body={tr("La ficha se borra de la base de datos y no se puede recuperar salvo volviendo a importar la hoja de cálculo.")}
+        title={tr("¿Eliminar CRV #{registro}?", { registro })}
+        body={tr("La ficha va a la papelera; se puede restaurar desde allí.")}
         tone="danger"
         confirmLabel={tr("Sí, eliminar")}
         pending={pending}

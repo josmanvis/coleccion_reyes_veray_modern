@@ -17,6 +17,7 @@ import {
   Users,
   History,
   Clock,
+  Trash2,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -61,6 +62,7 @@ const ITEMS = [
   { href: "/admin/sync", label: "Sincronizar", icon: RefreshCw },
   { href: "/admin/hours", label: "Horas", icon: Clock },
   { href: "/admin/history", label: "Historial", icon: History },
+  { href: "/admin/trash", label: "Papelera", icon: Trash2 },
   { href: "/admin/users", label: "Usuarios", icon: Users },
   { href: "/admin/settings", label: "Ajustes", icon: Settings },
 ];

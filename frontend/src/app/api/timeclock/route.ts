@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         if (!reason) {
           return NextResponse.json({ error: "Hace falta indicar el motivo" }, { status: 400 });
         }
-        const removed = deleteShift(Number(body.id));
+        const removed = deleteShift(Number(body.id), who, reason);
         if (!removed) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
 
         record({
@@ -157,7 +157,7 @@ export async function POST(request: Request) {
             { field: "reason", label: "Motivo", before: "", after: reason },
           ],
         });
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ ok: true, trashId: removed.trashId });
       }
       default:
         return NextResponse.json({ error: "Acción desconocida" }, { status: 400 });

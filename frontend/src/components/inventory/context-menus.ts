@@ -30,6 +30,8 @@ import {
 import { deaccessionStatus, FOR_SALE_CODE, IN_INVENTORY_STATUS, withForSale } from "@/lib/inventory/fields";
 import { download, type MenuEntry } from "./ContextMenu";
 import { canShare, shareLabel, shareLink } from "./share";
+import { trashAction } from "./trash-client";
+import type { ToastAction } from "./ToastProvider";
 import type { ConfirmTone } from "./ConfirmDialog";
 
 /**
@@ -44,7 +46,7 @@ export type MenuContext = {
   tr: Tr;
   router: ReturnType<typeof useRouter>;
   pathname: string;
-  notify: (message: string, tone?: "success" | "error") => void;
+  notify: (message: string, tone?: "success" | "error", action?: ToastAction) => void;
   confirm: (options: {
     title: string;
     body?: React.ReactNode;
@@ -174,18 +176,35 @@ const artwork: Builder = (el, ctx) => {
 
   async function remove() {
     const ok = await confirm({
-      title: tr("¿Eliminar CRV #{registro} para siempre?", { registro }),
-      body: tr("La ficha se borra de la base de datos y no se puede recuperar salvo volviendo a importar la hoja de cálculo."),
+      title: tr("¿Eliminar CRV #{registro}?", { registro }),
+      body: tr("La ficha va a la papelera; se puede restaurar desde allí."),
       tone: "danger",
       confirmLabel: tr("Sí, eliminar"),
     });
     if (!ok) return;
     const response = await fetch(`/api/inventory/${encodeURIComponent(ref)}`, { method: "DELETE" });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(tr(body.error || "No se pudo eliminar"));
-    }
-    notify(tr("CRV #{n} eliminada", { n: registro }));
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(tr(body.error || "No se pudo eliminar"));
+    const trashId = Number(body.trashId);
+    notify(
+      tr("CRV #{n} enviada a la papelera", { n: registro }),
+      "success",
+      trashId
+        ? {
+            label: tr("Deshacer"),
+            run: async () => {
+              try {
+                await trashAction("restore", trashId);
+                notify(tr("Restaurado desde la papelera"));
+                if (onRecord || onEdit) router.push(href);
+                router.refresh();
+              } catch (error) {
+                notify(tr((error as Error).message), "error");
+              }
+            },
+          }
+        : undefined
+    );
     if (onRecord || onEdit) router.push("/inventory");
     router.refresh();
   }

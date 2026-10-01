@@ -18,6 +18,7 @@ import ConfirmDialog from "./ConfirmDialog";
 import { useTr } from "@/components/I18nProvider";
 import { copyText, download, useContextMenu } from "./ContextMenu";
 import CertificateViewer from "./CertificateViewer";
+import { useDeletedToast } from "./trash-client";
 
 export type CertificateRow = CertificateRecord & {
   /** The linked ficha, for the "Obra" column. */
@@ -55,6 +56,7 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
   const upload = useRef<HTMLInputElement>(null);
   const menu = useContextMenu();
   const [viewing, setViewing] = useState<number | null>(null);
+  const deletedToast = useDeletedToast();
 
   const needsReview = (row: CertificateRow) => Boolean(row.notes) || !row.ref;
 
@@ -166,7 +168,8 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
     const response = await fetch(`/api/admin/certificates/${removing.id}`, { method: "DELETE" });
     setBusy(false);
     if (response.ok) {
-      notify(tr("Certificado eliminado"));
+      const { trashId } = await response.json().catch(() => ({}));
+      deletedToast(tr("Certificado enviado a la papelera"), trashId);
       router.refresh();
     } else {
       notify(tr("No se pudo eliminar"), "error");
@@ -464,7 +467,7 @@ export default function CertificatesManager({ rows }: { rows: CertificateRow[] }
       <ConfirmDialog
         open={removing !== null}
         title={tr("¿Eliminar este certificado?")}
-        body={tr("Sale del registro. El archivo se mueve a la papelera de certificados en el servidor, no se borra.")}
+        body={tr("Sale del registro y va a la papelera con su archivo; se puede restaurar desde allí.")}
         detail={removing ? certificateDisplayName(removing.type, removing.registro) : null}
         confirmLabel={tr("Eliminar")}
         tone="danger"

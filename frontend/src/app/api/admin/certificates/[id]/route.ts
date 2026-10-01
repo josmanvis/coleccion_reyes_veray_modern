@@ -6,7 +6,6 @@ import {
   updateCertificate,
   type CertificatePatch,
 } from "@/lib/inventory/certificate-log";
-import { trashCertificateFile } from "@/lib/inventory/certificate-files";
 import { certificateDisplayName, isCertificateType } from "@/lib/inventory/certificates";
 import { record } from "@/lib/inventory/audit";
 import { currentActor } from "@/lib/inventory/actor";
@@ -59,22 +58,22 @@ export async function PATCH(request: Request, { params }: Context) {
   return NextResponse.json(updated);
 }
 
-/** Removes the certificate from the register; the file goes to data/certificates/.papelera. */
+/** Moves the certificate and its file to the trash, where it can be restored. */
 export async function DELETE(_request: Request, { params }: Context) {
   const { id } = await params;
   const certificate = getCertificate(Number(id));
   if (!certificate) return NextResponse.json({ error: "Certificado no encontrado" }, { status: 404 });
 
-  if (certificate.file_name) await trashCertificateFile(certificate.file_name);
-  deleteCertificate(certificate.id);
+  const actor = await currentActor();
+  const trashId = deleteCertificate(certificate.id, actor);
 
   record({
-    actor: await currentActor(),
+    actor,
     action: "eliminar certificado",
     entity: "certificado",
     entityId: certificate.code,
     summary: `${certificateDisplayName(certificate.type, certificate.registro)} eliminado`,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, trashId });
 }

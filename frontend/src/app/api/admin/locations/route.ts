@@ -55,9 +55,9 @@ export async function POST(request: Request) {
         log(`Edificio ${body.code ?? body.id} actualizado`, String(body.id));
         return NextResponse.json({ ok: true });
       case "delete_building": {
-        const ok = deleteBuilding(Number(body.id));
-        if (ok) log(`Edificio ${body.id} eliminado`, String(body.id));
-        return NextResponse.json({ ok });
+        const trashId = deleteBuilding(Number(body.id), await currentActor());
+        if (trashId) log(`Edificio ${body.id} enviado a la papelera`, String(body.id));
+        return NextResponse.json({ ok: Boolean(trashId), trashId });
       }
       case "create_unit": {
         const unit = createUnit(body);
@@ -69,9 +69,9 @@ export async function POST(request: Request) {
         log(`Unidad ${body.name ?? body.id} actualizada`, String(body.id));
         return NextResponse.json({ ok: true });
       case "delete_unit": {
-        const ok = deleteUnit(Number(body.id));
-        if (ok) log(`Unidad ${body.id} eliminada`, String(body.id));
-        return NextResponse.json({ ok });
+        const trashId = deleteUnit(Number(body.id), await currentActor());
+        if (trashId) log(`Unidad ${body.id} enviada a la papelera`, String(body.id));
+        return NextResponse.json({ ok: Boolean(trashId), trashId });
       }
       case "normalize": {
         const updated = normalizeSpellings(String(body.key));

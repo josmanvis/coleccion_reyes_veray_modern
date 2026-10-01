@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { deleteMediaRecord, getMedia, listMedia } from "@/lib/inventory/pages";
-import { removeUploadFile, storeUpload } from "@/lib/inventory/uploads";
+import { deleteMedia, listMedia } from "@/lib/inventory/pages";
+import { currentActor } from "@/lib/inventory/actor";
+import { storeUpload } from "@/lib/inventory/uploads";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +33,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Falta el id" }, { status: 400 });
   }
 
-  const entry = getMedia(id);
-  if (!entry) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
-
-  await removeUploadFile(entry.filename);
-  deleteMediaRecord(id);
-  return NextResponse.json({ ok: true });
+  const trashId = deleteMedia(id, await currentActor());
+  if (!trashId) return NextResponse.json({ error: "No encontrada" }, { status: 404 });
+  return NextResponse.json({ ok: true, trashId });
 }

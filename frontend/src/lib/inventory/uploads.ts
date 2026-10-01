@@ -82,10 +82,3 @@ export async function storeUpload(file: File, alt?: string | null): Promise<Stor
     alt: alt ?? null,
   });
 }
-
-/** Removes the file from disk; a missing file is not an error. */
-export async function removeUploadFile(filename: string): Promise<void> {
-  // Guard against a stored name trying to escape the uploads folder.
-  const target = path.join(UPLOAD_DIR, path.basename(filename));
-  await fs.rm(target, { force: true });
-}

@@ -1,5 +1,7 @@
 import { getDb } from "./db";
-import type { CertificateFormat, CertificateSource, CertificateType } from "./certificates";
+import { certificateDisplayName, type CertificateFormat, type CertificateSource, type CertificateType } from "./certificates";
+import { moveToTrash } from "./trash";
+import type { Actor } from "./audit";
 
 /**
  * Register of every certificate issued.
@@ -255,8 +257,20 @@ export function updateCertificate(id: number, patch: CertificatePatch): Certific
   return getCertificate(id);
 }
 
-export function deleteCertificate(id: number): void {
-  db().prepare("DELETE FROM certificates WHERE id = ?").run(id);
+/** Moves the certificate and its file to the trash; returns the trash id. */
+export function deleteCertificate(id: number, actor?: Actor | null): number | null {
+  const certificate = getCertificate(id);
+  if (!certificate) return null;
+  db(); // the table may not have been touched yet in this process
+  return moveToTrash({
+    entity: "certificado",
+    entityId: certificate.code,
+    label: certificateDisplayName(certificate.type as CertificateType, certificate.registro),
+    detail: [certificate.party, certificate.file_ext?.toUpperCase()].filter(Boolean).join(" · "),
+    rows: [{ table: "certificates", where: "id = ?", args: [id] }],
+    files: certificate.file_name ? [{ dir: "certificates", name: certificate.file_name }] : [],
+    actor,
+  });
 }
 
 /**

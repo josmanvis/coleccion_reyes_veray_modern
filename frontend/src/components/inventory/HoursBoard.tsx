@@ -7,6 +7,7 @@ import { BADGE, BTN, BTN_PRIMARY, CARD, FIELD, LABEL, MUTED } from "./ui";
 import { useToast } from "./ToastProvider";
 import { useDateLocale, useTr } from "@/components/I18nProvider";
 import { useContextMenu } from "./ContextMenu";
+import { useDeletedToast } from "./trash-client";
 
 type Shift = {
   id: number;
@@ -95,6 +96,7 @@ export default function HoursBoard({
   const [editing, setEditing] = useState<Shift | null>(null);
   const [pending, setPending] = useState(false);
   const menu = useContextMenu();
+  const deletedToast = useDeletedToast();
 
   function filter(form: FormData) {
     const query = new URLSearchParams();
@@ -160,7 +162,7 @@ export default function HoursBoard({
       notify(tr(data.error || "No se pudo eliminar"), "error");
       return;
     }
-    notify(tr("Jornada eliminada · queda en el historial"));
+    deletedToast(tr("Jornada enviada a la papelera · queda en el historial"), data.trashId);
     router.refresh();
   }
 
