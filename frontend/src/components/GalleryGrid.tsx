@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useReducer, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { galleryPagination } from "@/lib/gallery-pagination";
 import { Search } from "lucide-react";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -16,8 +17,7 @@ type Artwork = {
 };
 
 export default function GalleryGrid({ artworks, locale }: { artworks: Artwork[]; locale: Locale }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [visibleCount, setVisibleCount] = useState(30);
+  const [{ searchQuery, visibleCount }, dispatch] = useReducer(galleryPagination, { searchQuery: "", visibleCount: 30 });
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const filteredArtworks = artworks.filter((artwork) => {
@@ -32,7 +32,7 @@ export default function GalleryGrid({ artworks, locale }: { artworks: Artwork[];
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + 30, filteredArtworks.length));
+          dispatch({ type: "more", total: filteredArtworks.length });
         }
       },
       { threshold: 0.1, rootMargin: "500px" }
@@ -76,7 +76,7 @@ export default function GalleryGrid({ artworks, locale }: { artworks: Artwork[];
             type="text"
             placeholder={t(locale, "gallery.search")}
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(30); }}
+            onChange={(e) => dispatch({ type: "search", query: e.target.value })}
             className="w-full bg-transparent pl-12 pb-4 font-serif text-2xl md:text-4xl outline-none placeholder:text-black/20 text-black"
           />
         </motion.div>
