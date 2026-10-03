@@ -1,8 +1,83 @@
-steps:
-  - name: gcr.io/cloud-builders/docker
-    args: ['build', '-t', 'us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:$BUILD_ID', '.']
-    env: ['DOCKER_BUILDKIT=1']
-images: ['us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:$BUILD_ID']
-options:
-  logging: CLOUD_LOGGING_ONLY
-timeout: 1200s
+{
+  "substitutions": {
+    "_TAG": "manual"
+  },
+  "steps": [
+    {
+      "id": "linux-build-and-check",
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "--target",
+        "build",
+        "-t",
+        "ci-check:$BUILD_ID",
+        "."
+      ]
+    },
+    {
+      "id": "runtime-image",
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "build",
+        "-t",
+        "us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:${_TAG}-$BUILD_ID",
+        "."
+      ]
+    },
+    {
+      "id": "export-runtime-layers",
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "save",
+        "-o",
+        ".ci-image.tar",
+        "us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:${_TAG}-$BUILD_ID"
+      ]
+    },
+    {
+      "id": "verify-no-secret-layers",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+      "args": [
+        "scripts/gcp-scan-image.py",
+        ".ci-image.tar",
+        ".ci-no-build-secrets"
+      ],
+      "entrypoint": "python3"
+    },
+    {
+      "id": "remove-build-inputs",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+      "args": [
+        "-ec",
+        "rm -f .ci-image.tar"
+      ],
+      "entrypoint": "bash"
+    },
+    {
+      "id": "push-image",
+      "name": "gcr.io/cloud-builders/docker",
+      "args": [
+        "push",
+        "us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:${_TAG}-$BUILD_ID"
+      ]
+    },
+    {
+      "id": "release",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+      "args": [
+        "-c",
+        "set -euo pipefail\nimage='us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:${_TAG}-$BUILD_ID'\ndigest=$(gcloud artifacts docker images describe \"$$image\" --format='value(image_summary.digest)')\nexport CI_SERVICE='orc' CI_BUILD_ID='$BUILD_ID' CI_IMAGE=\"$${image%:*}@$$digest\" CI_PUBLIC_HEALTH_URL='https://orc.axxes.app/'\npython3 scripts/gcp-release.py\n"
+      ],
+      "entrypoint": "bash"
+    }
+  ],
+  "images": [
+    "us-west1-docker.pkg.dev/$PROJECT_ID/orc/site:${_TAG}-$BUILD_ID"
+  ],
+  "options": {
+    "logging": "CLOUD_LOGGING_ONLY",
+    "machineType": "E2_HIGHCPU_8"
+  },
+  "timeout": "1800s"
+}
