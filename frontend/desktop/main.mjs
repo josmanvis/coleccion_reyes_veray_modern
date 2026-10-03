@@ -1,9 +1,7 @@
-"use strict";
-
-const { app, BrowserWindow, Menu, ShareMenu, dialog, ipcMain, shell } = require("electron");
-const path = require("node:path");
-const fs = require("node:fs");
-const { spawn } = require("node:child_process");
+import { app, BrowserWindow, Menu, ShareMenu, dialog, ipcMain, shell } from "electron";
+import path from "node:path";
+import fs from "node:fs";
+import { spawn } from "node:child_process";
 
 /**
  * CRVMGMT — the desktop shell for the Colección Reyes-Veray inventory.
@@ -46,7 +44,7 @@ function windowOptions() {
     // Centre the traffic lights in the 48px app bar the page draws.
     trafficLightPosition: process.platform === "darwin" ? { x: 14, y: 16 } : undefined,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(import.meta.dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,

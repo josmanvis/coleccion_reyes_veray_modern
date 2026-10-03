@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -50,9 +51,9 @@ export default function AboutFallback({ locale }: { locale: Locale }) {
         >
           <h2 className="text-white mb-8">{t(locale, "about.index")}</h2>
           <ul className="space-y-4">
-            <li><a href="/gallery" className="hover:text-white transition-colors">{t(locale, "about.catalogue")}</a></li>
-            <li><a href="/exhibition" className="hover:text-white transition-colors">{t(locale, "about.macExhibition")}</a></li>
-            <li><a href="/contact" className="hover:text-white transition-colors">{t(locale, "about.inquiries")}</a></li>
+            <li><Link href="/gallery" className="hover:text-white transition-colors">{t(locale, "about.catalogue")}</Link></li>
+            <li><Link href="/exhibition" className="hover:text-white transition-colors">{t(locale, "about.macExhibition")}</Link></li>
+            <li><Link href="/contact" className="hover:text-white transition-colors">{t(locale, "about.inquiries")}</Link></li>
           </ul>
         </motion.div>
       </section>

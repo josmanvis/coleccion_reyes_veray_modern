@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { t, type Locale } from "@/lib/i18n";
 
 export default function Header({ locale }: { locale: Locale }) {
+  const pathname = usePathname();
+  return <RouteHeader key={pathname} locale={locale} />;
+}
+
+function RouteHeader({ locale }: { locale: Locale }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 50], [1, 0.8]);
   const y = useTransform(scrollY, [0, 50], [0, -10]);
   
   const pathname = usePathname();
-
-  // Close menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   const navLinks = [
     { name: t(locale, "nav.inventory"), href: "/gallery" },

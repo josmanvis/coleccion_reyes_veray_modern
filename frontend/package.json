@@ -10,8 +10,8 @@
     "inventory:seed": "tsx scripts/seed-inventory.ts",
     "wp:fetch": "tsx scripts/fetch-wordpress.ts",
     "certificates:import": "tsx scripts/import-certificates.ts",
-    "desktop": "electron desktop/main.js",
-    "desktop:dev": "CRVMGMT_URL=http://localhost:9182 electron desktop/main.js"
+    "desktop": "electron desktop/main.mjs",
+    "desktop:dev": "CRVMGMT_URL=http://localhost:9182 electron desktop/main.mjs"
   },
   "dependencies": {
     "@tailwindcss/container-queries": "^0.1.1",

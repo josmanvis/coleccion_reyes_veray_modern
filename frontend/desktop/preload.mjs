@@ -1,6 +1,4 @@
-"use strict";
-
-const { contextBridge, ipcRenderer } = require("electron");
+import { contextBridge, ipcRenderer } from "electron";
 
 /**
  * The only bridge between the page and the machine. Context isolation stays on

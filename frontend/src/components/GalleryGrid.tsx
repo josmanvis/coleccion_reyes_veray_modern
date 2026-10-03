@@ -29,10 +29,6 @@ export default function GalleryGrid({ artworks, locale }: { artworks: Artwork[];
   });
 
   useEffect(() => {
-    setVisibleCount(30);
-  }, [searchQuery]);
-
-  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -80,7 +76,7 @@ export default function GalleryGrid({ artworks, locale }: { artworks: Artwork[];
             type="text"
             placeholder={t(locale, "gallery.search")}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(30); }}
             className="w-full bg-transparent pl-12 pb-4 font-serif text-2xl md:text-4xl outline-none placeholder:text-black/20 text-black"
           />
         </motion.div>
