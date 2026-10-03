@@ -7,3 +7,6 @@ public/wp-content
 .netlify
 .vercel
 *.log
+
+.ci-image.tar
+__pycache__
