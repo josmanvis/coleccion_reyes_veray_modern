@@ -23,7 +23,7 @@ export default function PageBlocks({ page }: { page: MacPage }) {
 
       <section className="space-y-24 max-w-5xl">
         {page.blocks.map((block, i) => {
-          const c = block.content as Record<string, any>;
+          const c = block.content as { level?: string; text?: string; html?: string; url?: string; alt?: string; caption?: string; images?: { url?: string; alt?: string }[]; link?: string; height?: number };
           switch (block.type) {
             case "heading":
               return (
@@ -67,7 +67,7 @@ export default function PageBlocks({ page }: { page: MacPage }) {
             case "gallery":
               return (
                 <div key={i} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                  {(c.images || []).map((img: any, j: number) => (
+                  {(c.images || []).map((img, j: number) => (
                     <figure key={j} className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
                       {img.url && (
                         <Image

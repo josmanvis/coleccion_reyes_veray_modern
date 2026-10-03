@@ -186,6 +186,7 @@ export default async function AdminPage() {
           </h2>
           <div className="mt-3 flex flex-wrap gap-2 text-sm">
             <a
+              download
               href="/api/admin/export?format=json&shape=website"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
@@ -193,6 +194,7 @@ export default async function AdminPage() {
               {tr("JSON para el sitio web")}
             </a>
             <a
+              download
               href="/api/admin/export?format=json&shape=website&forSale=1"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
@@ -200,6 +202,7 @@ export default async function AdminPage() {
               {tr("JSON solo en venta")}
             </a>
             <a
+              download
               href="/api/admin/export?format=json&shape=full"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >
@@ -207,6 +210,7 @@ export default async function AdminPage() {
               {tr("JSON completo")}
             </a>
             <a
+              download
               href="/api/admin/export?format=csv"
               className="rounded border border-[var(--stroke)] px-3 py-1.5 transition hover:bg-[var(--hover)]"
             >

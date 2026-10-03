@@ -13,51 +13,48 @@ import { copyText, useContextMenu } from "./ContextMenu";
  * go to /api/admin/media, which stores the file under public/uploads and
  * records it, so previously uploaded images stay reusable.
  */
-export default function ImagePicker({
-  open,
-  multiple = false,
-  onClose,
-  onPick,
-}: {
+type ImagePickerProps = {
   open: boolean;
   /** Gallery blocks take several images at once. */
   multiple?: boolean;
   onClose: () => void;
   onPick: (urls: string[]) => void;
-}) {
+};
+
+export default function ImagePicker(props: ImagePickerProps) {
+  return props.open ? <OpenImagePicker {...props} /> : null;
+}
+
+function OpenImagePicker({ multiple = false, onClose, onPick }: ImagePickerProps) {
   const tr = useTr();
   const { notify } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<MediaRow[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const menu = useContextMenu();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const response = await fetch("/api/admin/media");
-    const body = await response.json().catch(() => ({}));
-    setMedia(Array.isArray(body.media) ? body.media : []);
-    setLoading(false);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/media")
+      .then((response) => response.json().catch(() => ({})))
+      .then((body) => {
+        if (!active) return;
+        setMedia(Array.isArray(body.media) ? body.media : []);
+        setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
-    if (open) {
-      setSelected([]);
-      load();
-    }
-  }, [open, load]);
-
-  useEffect(() => {
-    if (!open) return;
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [onClose]);
 
   const upload = useCallback(
     async (files: FileList | File[]) => {
@@ -83,10 +80,8 @@ export default function ImagePicker({
       }
       setUploading(false);
     },
-    [multiple, notify]
+    [multiple, notify, tr]
   );
-
-  if (!open) return null;
 
   function toggle(url: string) {
     setSelected((current) => {

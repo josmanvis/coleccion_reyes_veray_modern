@@ -24,11 +24,11 @@ export async function POST(req: Request) {
     const { stdout, stderr } = await execAsync(`${agyPath} prompt '${escapedPrompt}'`);
     
     return NextResponse.json({ reply: stdout.trim() || stderr.trim() });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Ocho execution error:", error);
     
     // Fallback message if agy is not installed or available
-    if (error.code === 127) {
+    if (error && typeof error === "object" && "code" in error && error.code === 127) {
       return NextResponse.json({ 
         error: "Ocho (Antigravity CLI) no está instalado o no se encuentra en el PATH. Por favor, instala el cliente local." 
       });

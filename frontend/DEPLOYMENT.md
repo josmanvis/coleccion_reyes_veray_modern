@@ -35,7 +35,7 @@ log.
 | `NEXT_PUBLIC_IMAGE_HOST` | Image host for artwork images |
 | `WP_ORIGIN` | Only for `npm run wp:fetch` |
 | `AGY_PATH` | Path to the `agy` CLI used by the chat widget (`/api/chat`) |
-| `CRVMGMT_URL`, `CRVMGMT_PORT` | Electron desktop wrapper only (`desktop/main.js`) |
+| `CRVMGMT_URL`, `CRVMGMT_PORT` | Electron desktop wrapper only (`desktop/main.mjs`) |
 
 `npm run start` listens on port **9182**, not 3000.
 

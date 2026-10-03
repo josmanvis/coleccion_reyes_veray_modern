@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -40,9 +41,9 @@ export default function ExhibitionFallback({ locale }: { locale: Locale }) {
             {t(locale, "exhibition.p2")}
           </p>
           <div className="pt-12">
-             <a href="/gallery" className="font-display text-[10px] uppercase tracking-widest underline underline-offset-8 text-black hover:text-neutral-400 transition-colors">
+             <Link href="/gallery" className="font-display text-[10px] uppercase tracking-widest underline underline-offset-8 text-black hover:text-neutral-400 transition-colors">
                {t(locale, "exhibition.explore")}
-             </a>
+             </Link>
           </div>
         </motion.div>
         
