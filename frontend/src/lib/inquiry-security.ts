@@ -7,7 +7,9 @@ export async function readInquiryBody(request:Request):Promise<InquiryPayload>{
  if(size && (!/^\d+$/.test(size)||Number(size)>MAX_BYTES))throw new InputError(413);
  if(!request.body)throw new InputError();
  const reader=request.body.getReader();const chunks:Uint8Array[]=[];let total=0;
- try{while(true){const {value,done}=await reader.read();if(done)break;total+=value.byteLength;if(total>MAX_BYTES){await reader.cancel();throw new InputError(413)}chunks.push(value)}}finally{reader.releaseLock()}
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ const timeout=new Promise<never>((_,reject)=>{timer=setTimeout(()=>{reject(new InputError(408));void reader.cancel().catch(()=>{})},5000)});
+ try{while(true){const {value,done}=await Promise.race([reader.read(),timeout]);if(done)break;total+=value.byteLength;if(total>MAX_BYTES){void reader.cancel().catch(()=>{});throw new InputError(413)}chunks.push(value)}}finally{clearTimeout(timer);reader.releaseLock()}
  const bytes=new Uint8Array(total);let offset=0;for(const c of chunks){bytes.set(c,offset);offset+=c.length}
  let body:Record<string,unknown>;try{body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes))}catch{throw new InputError()}
  if(!body||typeof body!=='object'||Array.isArray(body))throw new InputError();
@@ -21,10 +23,10 @@ export async function readInquiryBody(request:Request):Promise<InquiryPayload>{
 export function createInquiryHandler(admit:(identity:string,limit:number,seconds:number)=>Promise<void>,persist:(payload:InquiryPayload)=>Promise<boolean>){
  return async(request:Request):Promise<Response>=>{
   try{
-   await admit('inquiry:global',120,3600);
    await admit('inquiry:client:'+clientIp(request.headers),5,600);
    const payload=await readInquiryBody(request);
    await admit('inquiry:email:'+payload.email,5,86400);
+   await admit('inquiry:global',120,3600);
    if(!await persist(payload))return Response.json({error:'Could not submit inquiry'},{status:502});
    return Response.json({ok:true},{status:201});
   }catch(error){const status=error instanceof InputError?error.status:error instanceof AdmissionError?error.status:503;

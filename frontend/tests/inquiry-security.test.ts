@@ -37,3 +37,14 @@ test('forwarding headers are trusted only behind a configured exact LB tail',()=
  assert.equal(clientIp(new Headers({'x-forwarded-for':'1.2.3.4, 8.8.8.8'}),['136.81.161.193']),'untrusted');
  assert.equal(clientIp(new Headers({'x-forwarded-for':'fake, 1.2.3.4, 136.81.161.193'}),['136.81.161.193']),'1.2.3.4');
 });
+
+test('invalid and client-rejected requests do not spend the collection global budget',async()=>{
+ const seen:string[]=[];const handler=createInquiryHandler(async(identity)=>{seen.push(identity)},async()=>true);
+ await handler(new Request('https://orc.axxes.app/api/inquiry',{method:'POST',body:'{}'}));
+ assert.equal(seen.some(x=>x==='inquiry:global'),false);
+});
+test('an unfinished body has a total read deadline',async()=>{
+ const body=new ReadableStream<Uint8Array>({start(controller){controller.enqueue(new TextEncoder().encode('{'))}});
+ const request=new Request('https://orc.axxes.app/api/inquiry',{method:'POST',body,duplex:'half'} as RequestInit);
+ await assert.rejects(()=>readInquiryBody(request),e=>(e as {status:number}).status===408);
+});
