@@ -2,16 +2,18 @@ import { Pool } from "pg";
 import { createHash, randomUUID } from "node:crypto";
 
 const state = globalThis as unknown as { orcPool?: Pool };
-function pool(): Pool {
+export function catalogPool(): Pool {
   if (!process.env.ORC_DATABASE_URL) throw new Error("GCP catalog database is not configured");
-  return state.orcPool ??= new Pool({connectionString: process.env.ORC_DATABASE_URL, max: 2, connectionTimeoutMillis: 8000, idleTimeoutMillis: 30000, statement_timeout: 8000, query_timeout: 8000, allowExitOnIdle: true});
+  const active = state.orcPool ??= new Pool({connectionString: process.env.ORC_DATABASE_URL, max: 2, connectionTimeoutMillis: 8000, idleTimeoutMillis: 30000, statement_timeout: 8000, query_timeout: 8000, allowExitOnIdle: true});
+  if (!active.listenerCount("error")) active.on("error", () => console.error("ORC database connection interrupted"));
+  return active;
 }
 const camelRow = (row: Record<string, unknown>) => Object.fromEntries(Object.entries(row).map(([key,value]) => [key.replace(/_([a-z])/g, (_,letter) => letter.toUpperCase()), value]));
 
 /** Views expose only this client's published records, enforced by PostgreSQL. */
 export async function readGcpCatalog(path: string): Promise<unknown> {
   const url = new URL(path, "https://orc.axxes.app");
-  const db = pool();
+  const db = catalogPool();
   if (url.pathname === "/inventory") {
     const slug = url.searchParams.get("slug");
     const featured = url.searchParams.get("featured") === "true";
@@ -45,7 +47,7 @@ export type InquiryPayload = {name?: string; email: string; phone?: string; mess
 export async function saveGcpInquiry(payload: InquiryPayload): Promise<boolean> {
   const email = payload.email.trim().toLowerCase();
   if (!email.includes("@") || email.length > 320) return false;
-  const db = await pool().connect();
+  const db = await catalogPool().connect();
   let failed = false;
   try {
     await db.query("BEGIN");
