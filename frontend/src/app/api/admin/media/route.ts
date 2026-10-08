@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { deleteMedia, listMedia } from "@/lib/inventory/pages";
 import { currentActor } from "@/lib/inventory/actor";
@@ -10,6 +11,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     const form = await request.formData();
     const files = form.getAll("file").filter((f): f is File => f instanceof File);
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const id = Number(new URL(request.url).searchParams.get("id"));
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: "Falta el id" }, { status: 400 });

@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { readSettings } from "@/lib/inventory/settings";
 import { getUser } from "@/lib/inventory/users";
 import { databasePath } from "@/lib/inventory/db";

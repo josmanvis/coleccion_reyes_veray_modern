@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { listShifts, openShift, totalsByUser } from "@/lib/inventory/timeclock";
 import { listUsers } from "@/lib/inventory/users";
 import { MUTED } from "@/components/inventory/ui";

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { auditFacets, listEntries, verifyChain } from "@/lib/inventory/audit";
 import { CARD, MUTED } from "@/components/inventory/ui";
 import HistoryFilters from "@/components/inventory/HistoryFilters";

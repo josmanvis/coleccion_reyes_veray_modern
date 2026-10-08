@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { listTrash } from "@/lib/inventory/trash";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import TrashManager from "@/components/inventory/TrashManager";
 import { PAGE } from "@/components/inventory/ui";
 import { getTr } from "@/lib/i18n-server";

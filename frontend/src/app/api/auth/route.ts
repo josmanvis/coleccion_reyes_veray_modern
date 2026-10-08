@@ -1,6 +1,9 @@
+import {isSameOrigin} from "@/lib/site-config";
+import {loginAllowed} from "@/lib/inventory/login-rate-limit";
 import { NextResponse } from "next/server";
 import { authenticate, changeOwnPassword, getUser } from "@/lib/inventory/users";
-import { SESSION_COOKIE, SESSION_MAX_AGE, createSession, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, SESSION_MAX_AGE, createSession } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { record } from "@/lib/inventory/audit";
 import { isIntranetRequest } from "@/lib/inventory/network";
 import { leave } from "@/lib/inventory/presence";
@@ -8,6 +11,7 @@ import { leave } from "@/lib/inventory/presence";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const body = await request.json().catch(() => null);
   const username = String(body?.username ?? "").trim();
   const password = String(body?.password ?? "");
@@ -22,6 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario y contraseña son obligatorios" }, { status: 400 });
   }
 
+  if (!loginAllowed(username)) return NextResponse.json({error:"Too many sign-in attempts. Try again later."},{status:429});
   const origin = isIntranetRequest(request.headers.get("host")) ? "red local" : "esta computadora";
   const user = authenticate(username, password);
 
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
     ok: true,
     user: { id: user.id, name: user.name, role: user.role, mustChange: user.must_change === 1 },
   });
-  response.cookies.set(SESSION_COOKIE, await createSession(user.id, user.role), {
+  response.cookies.set(SESSION_COOKIE, await createSession(user.id, user.role, user.session_version), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -61,6 +66,7 @@ export async function POST(request: Request) {
 
 /** Changing your own password, which also clears the reset flag. */
 export async function PATCH(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const session = await readSession(
     request.headers
       .get("cookie")
@@ -93,6 +99,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const token = request.headers
     .get("cookie")
     ?.split(";")

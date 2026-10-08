@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { applyChanges, discardSession, getSession, skipChanges } from "@/lib/inventory/import-staging";
 
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 /** Applies, skips or discards staged changes — never the whole file implicitly. */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const body = await request.json().catch(() => null);
   const sessionId = Number(body?.sessionId);
   if (!sessionId || !getSession(sessionId)) {

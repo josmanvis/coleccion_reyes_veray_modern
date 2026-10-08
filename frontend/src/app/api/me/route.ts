@@ -1,6 +1,8 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { getUser, setAppearance } from "@/lib/inventory/users";
 import { normalizeHex } from "@/lib/inventory/theme";
 import { record } from "@/lib/inventory/audit";
@@ -14,6 +16,7 @@ export const dynamic = "force-dynamic";
  * whoever is signed in, and only ever change their own row.
  */
 export async function PATCH(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });

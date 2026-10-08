@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { getArtistBySlug } from "@/lib/inventory/public";
 import { getProfile, saveArticle, saveProfile } from "@/lib/inventory/artist-profile";
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const body = await request.json().catch(() => null);
   const artist = getArtistBySlug(String(body?.slug ?? ""));
   if (!artist) return NextResponse.json({ error: "Artista no encontrado" }, { status: 404 });

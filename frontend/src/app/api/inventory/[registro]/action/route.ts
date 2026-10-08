@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { getArtwork, updateArtwork } from "@/lib/inventory/db";
 import {
@@ -22,6 +23,7 @@ export type ArtworkAction = "for_sale" | "deaccession" | "reinstate";
  * what a de-accession status reads like — stay on the server.
  */
 export async function POST(request: Request, { params }: Context) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { registro: ref } = await params;
 
   try {

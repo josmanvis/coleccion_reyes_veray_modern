@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { deletePage, getPageBySlug, updatePage } from "@/lib/inventory/pages";
 import { record } from "@/lib/inventory/audit";
@@ -15,6 +16,7 @@ export async function GET(_request: Request, { params }: Context) {
 }
 
 export async function PATCH(request: Request, { params }: Context) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { slug } = await params;
   try {
     const updated = updatePage(slug, await request.json());
@@ -26,6 +28,7 @@ export async function PATCH(request: Request, { params }: Context) {
 }
 
 export async function DELETE(_request: Request, { params }: Context) {
+  if(!isSameOrigin(_request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { slug } = await params;
   const actor = await currentActor();
   const page = getPageBySlug(slug);

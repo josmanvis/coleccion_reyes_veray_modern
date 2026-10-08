@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { addMarketSale, deleteMarketSale, setHot, type HotSetting } from "@/lib/inventory/market";
 import { record } from "@/lib/inventory/audit";
@@ -7,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** Recorded market sales and the per-artist "hot commodity" setting. */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     const body = await request.json();
     const actor = await currentActor();

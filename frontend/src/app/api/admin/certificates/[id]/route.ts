@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import {
   deleteCertificate,
@@ -21,6 +22,7 @@ function text(value: unknown): string | null {
 
 /** Corrects the type, CRV number, party, date or notes of a certificate. */
 export async function PATCH(request: Request, { params }: Context) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { id } = await params;
   const before = getCertificate(Number(id));
   if (!before) return NextResponse.json({ error: "Certificado no encontrado" }, { status: 404 });
@@ -60,6 +62,7 @@ export async function PATCH(request: Request, { params }: Context) {
 
 /** Moves the certificate and its file to the trash, where it can be restored. */
 export async function DELETE(_request: Request, { params }: Context) {
+  if(!isSameOrigin(_request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { id } = await params;
   const certificate = getCertificate(Number(id));
   if (!certificate) return NextResponse.json({ error: "Certificado no encontrado" }, { status: 404 });

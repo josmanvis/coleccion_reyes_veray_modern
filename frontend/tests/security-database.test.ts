@@ -1,0 +1,24 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+process.env.INVENTORY_DB_PATH=path.join(mkdtempSync(path.join(tmpdir(),'orc-security-db-')),'inventory.db');
+process.env.INVENTORY_PASSWORD='synthetic-password-for-disposable-tests';
+process.env.CRVMGMT_SECRET='synthetic-signing-secret-for-disposable-tests';
+test('real SQLite role boundaries, revocation and login quotas',async()=>{
+ const users=await import('../src/lib/inventory/users');
+ const owner=users.listUsers()[0];
+ assert.throws(()=>users.createUser({username:'bad',name:'bad',role:'superadmin',password:'test-password'},'admin'));
+ assert.throws(()=>users.resetPassword(owner.id,'test-password','admin'));
+ const user=users.createUser({username:'worker',name:'worker',role:'admin',password:'test-password'},'superadmin');
+ const {createSession}=await import('../src/lib/inventory/session');
+ const {readSession}=await import('../src/lib/inventory/session-server');
+ const token=await createSession(user.id,user.role,user.session_version);
+ assert.ok(await readSession(token));
+ users.resetPassword(user.id,'replacement-password','superadmin');
+ assert.equal(await readSession(token),null);
+ const {loginAllowed}=await import('../src/lib/inventory/login-rate-limit');
+ for(let i=0;i<5;i++)assert.equal(loginAllowed('synthetic-user'),true);
+ assert.equal(loginAllowed('synthetic-user'),false);
+});

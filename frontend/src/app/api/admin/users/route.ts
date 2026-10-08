@@ -1,6 +1,8 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession, type Role } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers, type Role } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { createUser, getUser, listUsers, resetPassword, setActive, setRole } from "@/lib/inventory/users";
 import { record } from "@/lib/inventory/audit";
 import { currentActor } from "@/lib/inventory/actor";
@@ -23,6 +25,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const session = await actor();
   if (!session || !canManageUsers(session.role)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
           name: String(body.name ?? ""),
           role: (body.role ?? "staff") as Role,
           password: String(body.password ?? ""),
-        });
+        }, session.role);
         record({
           actor: who,
           action: "crear",
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ user });
       }
       case "reset": {
-        const user = resetPassword(Number(body.id), String(body.password ?? ""));
+        const user = resetPassword(Number(body.id), String(body.password ?? ""), session.role);
         record({
           actor: who,
           action: "restablecer contraseña",

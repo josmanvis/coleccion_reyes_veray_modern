@@ -1,6 +1,8 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import {
   adjustShift,
   clockIn,
@@ -52,6 +54,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const claims = await session();
   if (!claims) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 

@@ -1,9 +1,11 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { importWorkbook, linkWebsiteImages } from "@/lib/inventory/import";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
 

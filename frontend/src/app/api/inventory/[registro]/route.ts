@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { deleteArtwork, getArtwork, updateArtwork } from "@/lib/inventory/db";
 import { diffRows, record } from "@/lib/inventory/audit";
@@ -15,6 +16,7 @@ export async function GET(_request: Request, { params }: Context) {
 }
 
 export async function PATCH(request: Request, { params }: Context) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { registro } = await params;
   try {
     const patch = await request.json();
@@ -40,6 +42,7 @@ export async function PATCH(request: Request, { params }: Context) {
 }
 
 export async function DELETE(_request: Request, { params }: Context) {
+  if(!isSameOrigin(_request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const { registro } = await params;
   const before = getArtwork(registro);
   const actor = await currentActor();

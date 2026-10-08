@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
-import { SESSION_COOKIE, readSession } from "./session";
+import { SESSION_COOKIE } from "./session";
+import { readSession } from "./session-server";
 import { getUser } from "./users";
 import { isIntranetRequest } from "./network";
 import { SYSTEM_ACTOR, type Actor } from "./audit";

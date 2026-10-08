@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { applyCanonicalArtist, artistReview, type MergeRequest } from "@/lib/inventory/artists";
 import { record } from "@/lib/inventory/audit";
@@ -10,6 +11,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     const body = (await request.json()) as MergeRequest;
     const result = applyCanonicalArtist(body);
