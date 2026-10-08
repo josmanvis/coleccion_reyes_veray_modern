@@ -21,4 +21,11 @@ test('real SQLite role boundaries, revocation and login quotas',async()=>{
  const {loginAllowed}=await import('../src/lib/inventory/login-rate-limit');
  for(let i=0;i<5;i++)assert.equal(loginAllowed('synthetic-user'),true);
  assert.equal(loginAllowed('synthetic-user'),false);
+ const {getDb}=await import('../src/lib/inventory/db');const db=getDb();
+ for(let i=0;i<25;i++)db.prepare('INSERT INTO orc_login_limits(key,count,reset_at) VALUES (?,1,?)').run(`expired-${i}`,Date.now()-7200000);
+ assert.equal(loginAllowed('synthetic-user'),false);
+ assert.equal((db.prepare('SELECT count(*) AS count FROM orc_login_limits').get() as {count:number}).count,7,'cleanup removes at most twenty expired counters');
+ db.prepare("UPDATE orc_login_limits SET count=100 WHERE key='global'").run();
+ for(let i=0;i<50;i++)assert.equal(loginAllowed(`rotating-user-${i}`),false);
+ assert.equal((db.prepare('SELECT count(*) AS count FROM orc_login_limits').get() as {count:number}).count,2,'global rejection never stores new attacker-controlled account keys');
 });
