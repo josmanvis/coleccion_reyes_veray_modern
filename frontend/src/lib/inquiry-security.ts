@@ -20,13 +20,12 @@ export async function readInquiryBody(request:Request):Promise<InquiryPayload>{
  if(body.submissionId!==undefined){if(typeof body.submissionId!=='string'||! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.submissionId))throw new InputError();payload.submissionId=body.submissionId}
  return payload;
 }
-export function createInquiryHandler(admit:(identity:string,limit:number,seconds:number)=>Promise<void>,persist:(payload:InquiryPayload)=>Promise<boolean>){
+export function createInquiryHandler(admit:(budgets:[string,number,number][])=>Promise<void>,persist:(payload:InquiryPayload)=>Promise<boolean>){
  return async(request:Request):Promise<Response>=>{
   try{
-   await admit('inquiry:client:'+clientIp(request.headers),5,600);
+   await admit([['inquiry:requests',600,60],['inquiry:client:'+clientIp(request.headers),5,600]]);
    const payload=await readInquiryBody(request);
-   await admit('inquiry:email:'+payload.email,5,86400);
-   await admit('inquiry:global',120,3600);
+   await admit([['inquiry:global',120,3600],['inquiry:email:'+payload.email,5,86400]]);
    if(!await persist(payload))return Response.json({error:'Could not submit inquiry'},{status:502});
    return Response.json({ok:true},{status:201});
   }catch(error){const status=error instanceof InputError?error.status:error instanceof AdmissionError?error.status:503;

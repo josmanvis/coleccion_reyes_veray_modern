@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import {consume} from "./security/admission-core.mjs";
 import { createHash, randomUUID } from "node:crypto";
 
 const state = globalThis as unknown as { orcPool?: Pool };
@@ -75,9 +76,9 @@ export async function saveGcpInquiry(payload: InquiryPayload): Promise<boolean> 
   finally {db.release(failed);}
 }
 
-/** Preserve the database read-only default; only this scoped counter transaction writes. */
-export async function queryInquiryAdmission(sql:string,args:unknown[]):Promise<{rows:unknown[]}>{
+/** Preserve the database read-only default; commit admission only when every budget passes. */
+export async function admitInquiry(budgets:[string,number,number][]):Promise<void>{
  const db=await catalogPool().connect();let failed=false;
- try{await db.query('BEGIN READ WRITE');const result=await db.query(sql,args);await db.query('COMMIT');return result}
+ try{await db.query('BEGIN READ WRITE');for(const [identity,limit,seconds] of budgets)await consume((sql,args)=>db.query(sql,args),identity,limit,seconds,1,'orc_security_rate_limits');await db.query('COMMIT')}
  catch(error){failed=true;throw error}finally{db.release(failed)}
 }
