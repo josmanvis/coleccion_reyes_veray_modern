@@ -50,7 +50,7 @@ export async function saveGcpInquiry(payload: InquiryPayload): Promise<boolean> 
   const db = await catalogPool().connect();
   let failed = false;
   try {
-    await db.query("BEGIN");
+    await db.query("BEGIN READ WRITE");
     const submissionId = payload.submissionId || randomUUID();
     const hash = createHash("sha256").update(JSON.stringify({email,name:payload.name || "",phone:payload.phone || "",message:payload.message || "",artworkTitle:payload.artworkTitle || "",artworkSlug:payload.artworkSlug || "",source:payload.source || "coleccion-website"})).digest("hex");
     const reserved = await db.query("INSERT INTO orc_public.inquiry_submissions (id,payload_hash) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING id", [submissionId,hash]);
@@ -73,4 +73,11 @@ export async function saveGcpInquiry(payload: InquiryPayload): Promise<boolean> 
   } catch (error) {failed = true; throw error;}
   // Destroying a failed connection rolls back server-side without another network wait.
   finally {db.release(failed);}
+}
+
+/** Preserve the database read-only default; only this scoped counter transaction writes. */
+export async function queryInquiryAdmission(sql:string,args:unknown[]):Promise<{rows:unknown[]}>{
+ const db=await catalogPool().connect();let failed=false;
+ try{await db.query('BEGIN READ WRITE');const result=await db.query(sql,args);await db.query('COMMIT');return result}
+ catch(error){failed=true;throw error}finally{db.release(failed)}
 }
