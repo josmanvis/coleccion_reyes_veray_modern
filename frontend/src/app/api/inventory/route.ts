@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { createArtwork, facets, getArtwork, getDb, listArtworks, updateArtwork, type ArtworkRow } from "@/lib/inventory/db";
 import { parseListParams } from "@/lib/inventory/params";
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     const values = await request.json();
     const created = createArtwork(values);
@@ -38,6 +40,7 @@ export async function POST(request: Request) {
  * cannot be found is reported back rather than failing the rest.
  */
 export async function PATCH(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     const body = await request.json();
     const updates = Array.isArray(body?.updates) ? (body.updates as Array<{ ref: string; patch: Record<string, unknown> }>) : null;

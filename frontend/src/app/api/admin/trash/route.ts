@@ -1,6 +1,8 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { TRASH_ENTITY_LABELS, listTrash, purgeFromTrash, restoreFromTrash } from "@/lib/inventory/trash";
 import { record } from "@/lib/inventory/audit";
 import { currentActor } from "@/lib/inventory/actor";
@@ -17,6 +19,7 @@ export async function GET() {
  * the one step that cannot be taken back.
  */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });

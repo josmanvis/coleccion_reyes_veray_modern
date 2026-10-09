@@ -1,6 +1,8 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
-import { SESSION_COOKIE, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { HEARTBEAT_SECONDS, heartbeat, leave, present } from "@/lib/inventory/presence";
 import { isIntranetRequest } from "@/lib/inventory/network";
 
@@ -13,6 +15,7 @@ export const dynamic = "force-dynamic";
  * than a write and a read.
  */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });

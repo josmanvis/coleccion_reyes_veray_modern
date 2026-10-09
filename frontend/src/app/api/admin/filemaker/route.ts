@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import {
   checkAppleScript,
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const blocked = desktopOnly(request);
   if (blocked) return blocked;
 

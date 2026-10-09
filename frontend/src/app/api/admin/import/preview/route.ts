@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { parseWorkbook } from "@/lib/inventory/import";
 import { stageImport } from "@/lib/inventory/import-staging";
@@ -6,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** Parses the spreadsheet and stages a proposal. Writes nothing to the records. */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
   if (!(file instanceof File)) {

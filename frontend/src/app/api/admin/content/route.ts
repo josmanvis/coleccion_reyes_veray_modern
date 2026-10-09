@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { createPage, listPages } from "@/lib/inventory/pages";
 
@@ -8,6 +9,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     return NextResponse.json(createPage(await request.json()), { status: 201 });
   } catch (error) {

@@ -78,3 +78,7 @@ one of the following:
    SQLite (no reliable file locking).
 
 Owner's lean: undecided. Option 1 is the low-effort path.
+
+## Branch release boundary
+
+Current public ORC production is served from `feat/orc-gcp`, not the inventory application on `main`. Main intentionally has no GCP production release workflow. Its CI checks this boundary before building. Merging an inventory security PR into main must not deploy it to the public `orc` service. A future inventory release requires an explicitly separate service/storage destination and review of SQLite persistence and replica constraints; change the boundary test only as part of that explicit deployment design. Production public-site fixes belong on `feat/orc-gcp` with a job restricted to that exact ref.

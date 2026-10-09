@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { getArtwork } from "@/lib/inventory/db";
 import { buildCertificatePdf } from "@/lib/inventory/certificate-pdf";
@@ -26,6 +27,7 @@ function isType(value: unknown): value is CertificateType {
 }
 
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const body = await request.json().catch(() => null);
   if (!body || !isType(body.type)) {
     return NextResponse.json({ error: "Tipo de certificado inválido" }, { status: 400 });

@@ -1,3 +1,4 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import {
   createBuilding,
@@ -32,6 +33,7 @@ export async function GET() {
  * changed, so the admin screen does not need five separate routes.
  */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   try {
     const body = await request.json();
     const who = await currentActor();

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
 const LATER_COLUMNS: Array<[string, string]> = [
   ["accent", "TEXT NOT NULL DEFAULT ''"],
   ["avatar", "TEXT"],
+  ["session_version", "INTEGER NOT NULL DEFAULT 0"],
 ];
 
 function migrate(handle: ReturnType<typeof getDb>) {
@@ -61,6 +62,7 @@ function db() {
 
 export type User = {
   id: number;
+  session_version: number;
   username: string;
   name: string;
   role: Role;
@@ -119,14 +121,14 @@ function seedSuperadmin(handle: ReturnType<typeof getDb>) {
 
 export function listUsers(): User[] {
   return db()
-    .prepare("SELECT id, username, name, role, active, must_change, created_at, last_login, accent, avatar FROM users ORDER BY id")
+    .prepare("SELECT id, username, name, role, active, must_change, created_at, last_login, accent, avatar, session_version FROM users ORDER BY id")
     .all() as User[];
 }
 
 export function getUser(id: number): User | null {
   return (
     (db()
-      .prepare("SELECT id, username, name, role, active, must_change, created_at, last_login, accent, avatar FROM users WHERE id = ?")
+      .prepare("SELECT id, username, name, role, active, must_change, created_at, last_login, accent, avatar, session_version FROM users WHERE id = ?")
       .get(id) as User) ?? null
   );
 }
@@ -150,7 +152,8 @@ export function createUser(input: {
   name: string;
   role: Role;
   password: string;
-}): User {
+}, actorRole: string): User {
+  if (!["admin", "superadmin"].includes(actorRole) || (input.role === "superadmin" && actorRole !== "superadmin")) throw new Error("Only the superadministrador may grant that role");
   const username = input.username.trim().toLowerCase();
   if (!username) throw new Error("El usuario es obligatorio");
   if (!input.password || input.password.length < 8) {
@@ -181,13 +184,15 @@ export function createUser(input: {
 }
 
 /** Sets a new password and requires the person to change it when they sign in. */
-export function resetPassword(id: number, password: string): User {
+export function resetPassword(id: number, password: string, actorRole: string): User {
+  const target = getUser(id);
+  if (!target || !["admin", "superadmin"].includes(actorRole) || (target.role === "superadmin" && actorRole !== "superadmin")) throw new Error("Only the superadministrador may reset that account");
   if (!password || password.length < 8) {
     throw new Error("La contraseña debe tener al menos 8 caracteres");
   }
   const salt = randomBytes(16).toString("hex");
   db()
-    .prepare("UPDATE users SET salt = ?, hash = ?, must_change = 1 WHERE id = ?")
+    .prepare("UPDATE users SET salt = ?, hash = ?, must_change = 1, session_version = session_version + 1 WHERE id = ?")
     .run(salt, hashPassword(password, salt), id);
   return getUser(id)!;
 }
@@ -201,7 +206,7 @@ export function changeOwnPassword(id: number, current: string, next: string): Us
 
   const salt = randomBytes(16).toString("hex");
   db()
-    .prepare("UPDATE users SET salt = ?, hash = ?, must_change = 0 WHERE id = ?")
+    .prepare("UPDATE users SET salt = ?, hash = ?, must_change = 0, session_version = session_version + 1 WHERE id = ?")
     .run(salt, hashPassword(next, salt), id);
   return getUser(id)!;
 }
@@ -212,7 +217,7 @@ export function setActive(id: number, active: boolean): User {
   if (user.role === "superadmin" && !active) {
     throw new Error("No se puede desactivar al superadministrador");
   }
-  db().prepare("UPDATE users SET active = ? WHERE id = ?").run(active ? 1 : 0, id);
+  db().prepare("UPDATE users SET active = ?, session_version = session_version + 1 WHERE id = ?").run(active ? 1 : 0, id);
   return getUser(id)!;
 }
 
@@ -225,7 +230,7 @@ export function setRole(id: number, role: Role, actorRole: string): User {
   if (role === "superadmin" && actorRole !== "superadmin") {
     throw new Error("Solo el superadministrador puede otorgar ese rol");
   }
-  db().prepare("UPDATE users SET role = ? WHERE id = ?").run(role, id);
+  db().prepare("UPDATE users SET role = ?, session_version = session_version + 1 WHERE id = ?").run(role, id);
   return getUser(id)!;
 }
 

@@ -1,6 +1,8 @@
+import {isSameOrigin} from "@/lib/site-config";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { readSettings, writeSettings } from "@/lib/inventory/settings";
 import { record, type AuditChange } from "@/lib/inventory/audit";
 import { currentActor } from "@/lib/inventory/actor";
@@ -13,6 +15,7 @@ export async function GET() {
 
 /** Settings affect everyone, so only an administrator may change them. */
 export async function POST(request: Request) {
+  if(!isSameOrigin(request))return NextResponse.json({error:"Invalid request origin"},{status:403});
   const store = await cookies();
   const session = await readSession(store.get(SESSION_COOKIE)?.value);
   if (!session || !canManageUsers(session.role)) {

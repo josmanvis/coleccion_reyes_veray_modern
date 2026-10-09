@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, canManageUsers, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE, canManageUsers } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import { listUsers } from "@/lib/inventory/users";
 import { CARD, MUTED } from "@/components/inventory/ui";
 import UsersManager from "@/components/inventory/UsersManager";

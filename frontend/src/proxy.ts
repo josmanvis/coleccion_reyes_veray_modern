@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE, readSession } from "@/lib/inventory/session";
+import { SESSION_COOKIE } from "@/lib/inventory/session";
+import { readSession } from "@/lib/inventory/session-server";
 import {
   HOME_PATH,
   PUBLIC_SITE_ENABLED,
@@ -35,5 +36,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Everything except build assets, so the public site can be turned off too.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)"],
+  matcher: ["/api/:path*", "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)"],
 };

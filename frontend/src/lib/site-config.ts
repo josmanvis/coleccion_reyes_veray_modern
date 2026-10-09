@@ -33,3 +33,14 @@ export function isManagementPath(pathname: string): boolean {
     pathname.startsWith("/api/timeclock")
   );
 }
+
+/** Cookie-authenticated mutations accept only this application's browser origin. */
+export function isSameOrigin(request:Request):boolean {
+ const origin=request.headers.get("origin");
+ if(!origin)return false;
+ const configured=process.env.PUBLIC_ORIGIN;
+ const url=new URL(request.url);
+ const host=request.headers.get("host")||url.host;
+ const expected=configured || `${process.env.NODE_ENV==="production"?"https:":url.protocol}//${host}`;
+ return origin===expected;
+}
