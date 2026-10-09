@@ -1,17 +1,20 @@
 import { Pool } from "pg";
+import {consume} from "./security/admission-core.mjs";
 import { createHash, randomUUID } from "node:crypto";
 
 const state = globalThis as unknown as { orcPool?: Pool };
-function pool(): Pool {
+export function catalogPool(): Pool {
   if (!process.env.ORC_DATABASE_URL) throw new Error("GCP catalog database is not configured");
-  return state.orcPool ??= new Pool({connectionString: process.env.ORC_DATABASE_URL, max: 2, connectionTimeoutMillis: 8000, idleTimeoutMillis: 30000, statement_timeout: 8000, query_timeout: 8000, allowExitOnIdle: true});
+  const active = state.orcPool ??= new Pool({connectionString: process.env.ORC_DATABASE_URL, max: 2, connectionTimeoutMillis: 8000, idleTimeoutMillis: 30000, statement_timeout: 8000, query_timeout: 8000, allowExitOnIdle: true});
+  if (!active.listenerCount("error")) active.on("error", () => console.error("ORC database connection interrupted"));
+  return active;
 }
 const camelRow = (row: Record<string, unknown>) => Object.fromEntries(Object.entries(row).map(([key,value]) => [key.replace(/_([a-z])/g, (_,letter) => letter.toUpperCase()), value]));
 
 /** Views expose only this client's published records, enforced by PostgreSQL. */
 export async function readGcpCatalog(path: string): Promise<unknown> {
   const url = new URL(path, "https://orc.axxes.app");
-  const db = pool();
+  const db = catalogPool();
   if (url.pathname === "/inventory") {
     const slug = url.searchParams.get("slug");
     const featured = url.searchParams.get("featured") === "true";
@@ -45,10 +48,10 @@ export type InquiryPayload = {name?: string; email: string; phone?: string; mess
 export async function saveGcpInquiry(payload: InquiryPayload): Promise<boolean> {
   const email = payload.email.trim().toLowerCase();
   if (!email.includes("@") || email.length > 320) return false;
-  const db = await pool().connect();
+  const db = await catalogPool().connect();
   let failed = false;
   try {
-    await db.query("BEGIN");
+    await db.query("BEGIN READ WRITE");
     const submissionId = payload.submissionId || randomUUID();
     const hash = createHash("sha256").update(JSON.stringify({email,name:payload.name || "",phone:payload.phone || "",message:payload.message || "",artworkTitle:payload.artworkTitle || "",artworkSlug:payload.artworkSlug || "",source:payload.source || "coleccion-website"})).digest("hex");
     const reserved = await db.query("INSERT INTO orc_public.inquiry_submissions (id,payload_hash) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING id", [submissionId,hash]);
@@ -71,4 +74,11 @@ export async function saveGcpInquiry(payload: InquiryPayload): Promise<boolean> 
   } catch (error) {failed = true; throw error;}
   // Destroying a failed connection rolls back server-side without another network wait.
   finally {db.release(failed);}
+}
+
+/** Preserve the database read-only default; commit admission only when every budget passes. */
+export async function admitInquiry(budgets:[string,number,number][]):Promise<void>{
+ const db=await catalogPool().connect();let failed=false;
+ try{await db.query('BEGIN READ WRITE');for(const [identity,limit,seconds] of budgets)await consume((sql,args)=>db.query(sql,args),identity,limit,seconds,1,'orc_security_rate_limits');await db.query('COMMIT')}
+ catch(error){failed=true;throw error}finally{db.release(failed)}
 }

@@ -38,7 +38,7 @@ class ReleaseTests(unittest.TestCase):
   before,current=self.fixture();before['metadata']['annotations']['run.googleapis.com/ingress']='internal-and-cloud-load-balancing';current['status']['conditions']=[{'type':'Ready','status':'True'}];calls=[]
   def gc(*args):calls.append(args);return before if len(calls)==1 else current if args[:3]==('run','services','describe') else {}
   with patch.dict(os.environ,{},clear=True),patch.object(m,'gcloud',gc),patch.object(m,'probe'):
-   with self.assertRaisesRegex(RuntimeError,'public load-balancer health URL'):m.release('webmaster','digest','123')
+   with self.assertRaisesRegex(RuntimeError,'public load-balancer health URL'):m.release('unregistered-public-app','digest','123')
   self.assertFalse(any(any(a.startswith('--to-revisions') for a in c) for c in calls))
  def test_valid_redirects_reject_local_or_insecure_targets(self):
   self.assertTrue(m.valid_response(307,'https://handshake.axxes.club/sign-in'))
